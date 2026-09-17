@@ -1,0 +1,3 @@
+# Normalise les fins de ligne : évite les faux conflits entre postes
+* text=auto eol=lf
+*.png binary
