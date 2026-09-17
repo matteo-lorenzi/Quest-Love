@@ -1,0 +1,36 @@
+{
+  "parcours": "Découverte et adoption de Quest & Love",
+  "persona": "Sylvianne, 26 ans, en couple depuis 3 ans, très à l'aise mobile, utilisatrice quotidienne de Duolingo et BeReal",
+  "contexte": "Sylvianne découvre l'application via une story Instagram d'une amie, l'installe le soir même sur son téléphone et propose à son partenaire d'essayer \"deux minutes, pour voir\". Usage mobile, en tout début ou toute fin de journée.",
+  "date": "2026-09-14",
+  "etapes": [
+    {
+      "Étape": "Découverte",
+      "Actions utilisateur": "Voit l'application mentionnée dans une story d'une amie qui la trouve \"trop drôle\". Clique sur le lien par curiosité, sans intention préalable de chercher une app de couple.",
+      "Émotion": "Amusée, curieuse",
+      "Points de friction": "Aucune preuve sociale au-delà d'une story éphémère : rien qui rassure sur le sérieux ou la pérennité de l'appli avant de cliquer.",
+      "Opportunités": "Page d'accueil qui reprend immédiatement le ton \"drôle et original\" pour confirmer en une seconde que l'appli correspond à ce qu'elle a vu passer, sans jargon de gamification ni promesse de \"travailler sa relation\"."
+    },
+    {
+      "Étape": "Inscription et appairage",
+      "Actions utilisateur": "Télécharge / ouvre l'application, crée un compte avec un pseudo et un mot de passe (pas d'email requis), génère un code d'invitation et l'envoie à son partenaire le soir même, en mode léger (\"on essaie, pour voir\").",
+      "Émotion": "Impatiente, un peu excitée",
+      "Points de friction": "Elle n'a pas le temps ni l'envie de configurer quoi que ce soit de compliqué en rentrant du travail : toute étape supplémentaire (email, formulaire long, choix multiples) risque de la faire abandonner avant l'appairage. Tant que le partenaire n'a pas rejoint le duo, l'expérience reste incomplète.",
+      "Opportunités": "Parcours d'inscription à une seule action principale par écran, appairage en un seul code à copier-coller ou partager directement (lien/SMS). Message d'attente ludique et rassurant pendant que le duo n'est pas encore formé, pour ne pas donner l'impression que \"rien ne se passe\"."
+    },
+    {
+      "Étape": "Premier tirage et attribution du défi",
+      "Actions utilisateur": "Une fois le duo formé, découvre les 3 défis tirés au sort, en choisit un vite, souvent sur un coup de tête et en rigolant, puis l'attribue à son partenaire.",
+      "Émotion": "Amusée, joueuse",
+      "Points de friction": "Une hésitation possible entre les 3 propositions si l'écart de ton ou de faisabilité entre les défis est trop grand ; un tirage perçu comme confus ou trop lent casserait l'effet de spontanéité recherché.",
+      "Opportunités": "Vérifier l'hypothèse persona : le tirage de 3 défis suffit à créer un sentiment de choix sans paralysie. Micro-interaction satisfaisante au moment du choix (animation légère, formulation qui valorise le choix) pour renforcer l'envie de recommencer le lendemain."
+    },
+    {
+      "Étape": "Usage quotidien et fidélisation",
+      "Actions utilisateur": "Ouvre l'application en tout début ou toute fin de journée, jamais en plein milieu. Réalise ou reçoit ses défis, screenshot les plus drôles pour les montrer à des amis (sans les publier), suit l'évolution des points de vie du couple.",
+      "Émotion": "Complice, divertie — avec un risque de lassitude si la nouveauté retombe",
+      "Points de friction": "Peur exprimée par la persona que l'usage s'essouffle après deux semaines, comme la plupart des apps de gamification. Rien ne relance activement l'envie de revenir si un défi n'est pas réalisé ou si un jour se passe sans attribution.",
+      "Opportunités": "Indicateur visuel non ambigu dès l'écran d'accueil sur les trois états (défi en attente, défi déjà vu, rien aujourd'hui) pour donner une raison claire de revenir. Renouvellement suffisant de la bibliothèque de défis (~50 défis) pour retarder la sensation de répétition, et mise en avant discrète des gages accumulés comme ressort narratif du duo."
+    }
+  ]
+}
