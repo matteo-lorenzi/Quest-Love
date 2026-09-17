@@ -24,6 +24,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | `02-recherche-utilisateur/proto-personas.*` | Sylvianne (initiatrice) et Joul (invité sceptique). | À confirmer par la recherche utilisateur |
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
 | `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.1 — lot 1 complet (34/34) |
+| `03-conception/wireframes/` | Captures PNG du zonage Figma : un dossier par bande (00 à 04), fichiers numérotés dans l'ordre du Figma. | Lot 1 — 34 cadres + légende |
 
 Les fichiers `.json` sont les fichiers de travail générés par l'outil de conception ; les `.md` du même nom en sont la version lisible. Les deux se modifient ensemble.
 
