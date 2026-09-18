@@ -3,7 +3,7 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.8 — 17 septembre 2026.** Intègre les décisions de la séance de conception (étape 1, inventaire, parcours, zonage). La V2.0 fusionnait le document de référence V1 et le complément V1.1.
+> **Version 2.9 — 18 septembre 2026.** Intègre la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
 ---
 
@@ -349,7 +349,7 @@ Minimalisme retenu, référence Duolingo. Hypothèse à valider : **structure mi
 - **Accueil en face-à-face** : deux colonnes symétriques (avatar, pseudo, jauge de PV, état du jour, gages en lot 2), élément commun au duo au centre, action principale pleine largeur en dessous. Pas de cadrage « versus » : aucun score, aucun signe de rivalité.
 - **Tirage en éventail** : 3 cartes face cachée ; la carte touchée sort du lot et se révèle. Toucher une autre carte la remplace : aucune action « reposer ». « Attribuer » valide sans écran de confirmation.
 - **Confirmations** en panneau bas, y compris la déclaration « défi réalisé » depuis l'accueil. **Exception** : dissolution du duo et suppression de compte ont un écran dédié (F2, F3), exigé par le § 10 ; retour et annulation ramènent à l'écran d'origine.
-- **État 7 de l'accueil** : défi reçu réalisé ; le bloc du défi envoyé affiche son statut (en cours, réalisé, expiré).
+- **Défi reçu réalisé** : variante de l'état 6 de l'accueil (ex-état 7, sans cadre séparé depuis le 18/09) ; le bloc du défi envoyé affiche son statut (en cours, réalisé, expiré).
 - **Onboarding (B2)** : une règle par écran, puis accueil. Bouton « Passer » disponible sur chaque écran, vers l'accueil.
 - **« Pas aujourd'hui »** : réponse définitive, donc confirmée en panneau bas. Une réponse envoyée après 12 h (horodatage serveur) est refusée avec un message d'erreur en texte, et l'accueil est rechargé dans son état réel.
 - **Connexion** : joueur en duo vers l'accueil ; sans duo, vers B2 si un code valide a été conservé, sinon vers la salle d'attente (avec erreur si le code est invalide).
@@ -360,6 +360,17 @@ Minimalisme retenu, référence Duolingo. Hypothèse à valider : **structure mi
 - **Avatars** : initiale ou pictogramme généré en lot 1 ; version graphique en lot 3. Aucune photo (minimisation, § 10).
 - Les **points de vie** sont le principal objet graphique, sans reposer sur la couleur seule.
 - Corpus de 3 à 5 références en S5, avec pour chacune ce qui est retenu précisément.
+
+**Convention d'annotation du zonage (18/09).** Trois formes, choisies selon ce que l'annotation désigne :
+
+- *Étiquette in situ* : sur tout élément actif important (action principale ou secondaire, champ, lien, flèche de retour, onglet de navigation), libellé et destination écrits directement sur l'élément (`Libellé → ID`), sans flèche.
+- *Annotation groupée* : une unité livrant plusieurs informations (carte, formulaire, en-tête, colonne) reçoit une seule flèche vers son conteneur, texte en liste de deux à quatre lignes, terminée par des points de suspension si elle continue.
+- *Note d'écran* : une variante, un popover ou un dialogue standard n'ouvre pas de cadre séparé ; elle est documentée en note sous le cadre concerné, préfixée « Variante · » ou « Erreur · », qui ne décrit que le delta. Un cadre séparé n'est créé que si le zonage change réellement.
+
+Seuil de lisibilité : au-delà de huit annotations sur un cadre, regrouper avant d'en ajouter une de plus.
+
+**Composants annotés une seule fois.** Le socle C1, la carte de défi, le panneau bas de confirmation et le gabarit d'écran d'événement (D1, D2, D3, D5) sont des composants Figma isolés, annotés une seule fois. Toute modification se fait sur le composant, jamais sur une instance.
+
 
 ## 9. Accessibilité
 
@@ -582,3 +593,7 @@ Suite à l'analyse du lot 1 : état 7 de l'accueil (défi réalisé) ; bascule �
 ### Version 2.8 — 17 septembre 2026
 
 Arbitrage des points UX de l'analyse : confirmation en panneau bas et erreur hors délai pour « pas aujourd'hui » (§ 8.5) ; bouton « Passer » dans l'onboarding (§ 8.5) ; surface tactile de 44 × 44 px appliquée à toute zone interactive (§ 9) ; suppression de compte sans ressaisie du mot de passe (§ 10).
+
+### Version 2.9 — 18 septembre 2026
+
+Reprise du zonage Figma suite au retour du professeur sur la lisibilité (§ 8.5) : trois types d'annotation (étiquette in situ, annotation groupée, note d'écran), seuil de huit annotations par cadre, quatre composants partagés annotés une seule fois. Sept cadres fusionnés en notes de variante : C3 · confirmation et réalisé (sur C3 · en cours), C1 · confirmation « pas aujourd'hui » (sur C1 · état 1), C1 · état 7 (sur C1 · état 6), A1 · cas invitation (sur A1 · par défaut), C1 · premier jour de jeu (sur C1 · cas : aucun jeu aujourd'hui, ex-journée blanche), G2 (sur G1, renommé écrans d'erreur). Inventaire des écrans passé en v2.2 (34 → 27 cadres).

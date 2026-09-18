@@ -1,7 +1,7 @@
 # Projet _Quest & Love_
 
 > **Statut : trame.** Ce document structure la documentation fonctionnelle et liste l'ensemble des éléments à couvrir. Chaque entrée marquée `[à rédiger]` sera développée par la personne chargée de la rédaction.
-> Référence : cadrage unifié V2.8 (17/09/2026) · inventaire des écrans v2.1. En cas d'écart, le cadrage fait foi.
+> Référence : cadrage unifié V2.9 (18/09/2026) · inventaire des écrans v2.2. En cas d'écart, le cadrage fait foi.
 
 ## Description synthétique
 
@@ -156,11 +156,12 @@ Code source : `[URL debug.php à compléter]`
 ### Maquettes et écrans
 
 > Pour chaque écran : maquette, éléments affichés, actions possibles, destinations, cas d'erreur. Nomenclature identique à l'inventaire et au fichier Figma.
+> Une variante notée en sous-point n'a pas de cadre dédié dans le Figma : elle est documentée en note sous le cadre concerné (§ 8.5 du cadrage). Son texte reste à rédiger comme celui d'un écran.
 
 #### Bande 01 — Arrivée et appairage
 
 - **A1 · Accueil public** `[maquette]` `[à rédiger]`
-  - Variante : invitation (créer un compte / j'ai déjà un compte)
+  - Variante : invitation reçue (créer un compte / j'ai déjà un compte) — note sous le cadre A1, pas de cadre dédié
 - **A2 · Inscription** `[maquette]` `[à rédiger]`
   - Avertissement mot de passe, mention CGU, code prérempli, erreurs
   - Destinations : B2 (code valide), B1 (sans code ou code invalide), retour A1
@@ -183,20 +184,21 @@ Code source : `[URL debug.php à compléter]`
   - Élément commun, zone d'action pleine largeur
 - **C1 · États de l'accueil** `[maquettes]` `[à rédiger]`
   - État 1 : on joue aujourd'hui ?
-  - État 1 : confirmation « pas aujourd'hui » (panneau bas, erreur hors délai)
+    - Variante : confirmation « pas aujourd'hui » (panneau bas, erreur hors délai)
   - État 2 : attente du partenaire
   - État 3 : à toi de piocher
   - État 4 : défi envoyé, en attente de révélation
   - État 5 : révélation
   - État 6 : défi reçu en cours
-  - État 7 : défi réalisé (statut du défi envoyé)
-  - Journée blanche (3 variantes)
-  - Premier jour de jeu demain
+    - Variante : défi réalisé, statut du défi envoyé (ex-état 7, même cadre que l'état 6)
+  - Cas : aucun jeu aujourd'hui
+    - Journée blanche (3 variantes de texte)
+    - Variante : premier jour de jeu demain
 - **C2 · Tirage** `[maquette]` `[à rédiger]`
   - Éventail de 3 cartes
   - Carte piochée, remplacement par une autre carte, « Attribuer »
 - **C3 · Défi reçu** `[maquette]` `[à rédiger]`
-  - En cours · confirmation « réalisé » · réalisé
+  - En cours · confirmation « réalisé » · réalisé (un seul cadre, les deux derniers états en variantes ; confirmation par le panneau bas partagé)
   - Sans navigation, sans mention de contestabilité
 - **D2 · Événement : le hasard a choisi pour toi** `[maquette]` `[à rédiger]`
 
@@ -215,8 +217,8 @@ Code source : `[URL debug.php à compléter]`
 - **F2 · Dissolution du duo** `[maquette]` `[à rédiger]`
   - Avertissement d'irréversibilité, données supprimées
 - **F3 · Suppression de compte** `[maquette]` `[à rédiger]`
-- **G1 · Page introuvable** `[maquette]` `[à rédiger]`
-- **G2 · Erreur serveur / action impossible** `[maquette]` `[à rédiger]`
+- **G1 · Écrans d'erreur — page introuvable** `[maquette]` `[à rédiger]`
+- **G2 · Erreur serveur / action impossible** `[à rédiger]` _(G2 est une variante de G1, même gabarit : note sous le cadre G1, pas de cadre dédié ; le texte reste à rédiger séparément)_
 
 #### Bande 05 — Gamification _(lot 2, à zoner)_
 
