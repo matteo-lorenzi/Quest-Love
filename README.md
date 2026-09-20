@@ -12,6 +12,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | [`01-cadrage/`](01-cadrage/) | Cadrage unifié (source de vérité), documentation fonctionnelle, Lean Canvas |
 | [`02-recherche-utilisateur/`](02-recherche-utilisateur/) | Proto-personas, parcours utilisateur |
 | [`03-conception/`](03-conception/) | Inventaire des écrans, maquettes |
+| [`04-technique/`](04-technique/) | Description technique, modèle de données |
 | [`99-archives/`](99-archives/) | Versions périmées, conservées pour l'historique |
 
 ### Détail des documents
@@ -25,6 +26,8 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
 | `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (27/27 cadres) |
 | `03-conception/wireframes/` | Captures PNG du zonage Figma : un dossier par bande (00 à 04), fichiers numérotés dans l'ordre du Figma. | Lot 1 — captures antérieures à la reprise du 18/09 (34 cadres + légende), à réexporter sur les 27 cadres actuels |
+| `04-technique/doc-technique.md` | Description technique : architecture, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.0 — à confronter au code à partir de S10 |
+| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.0 — **à valider en S8** |
 
 Les fichiers `.json` sont les fichiers de travail générés par l'outil de conception ; les `.md` du même nom en sont la version lisible. Les deux se modifient ensemble.
 
