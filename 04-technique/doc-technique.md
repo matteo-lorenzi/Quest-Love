@@ -33,9 +33,9 @@ Pitch :
 >
 > Drôle, quotidien, jamais intime. Un duo fermé, pas de conversation, pas de score : juste ce qu'il faut de hasard pour n'avoir rien à négocier.
 
-Application : `[URL Azrael à compléter]`
+Application : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/`
 
-Code source : `[URL debug.php à compléter]`
+Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 
 ### 1.1 Contraintes d'hébergement
 

@@ -20,7 +20,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | Document | Rôle | Statut |
 |---|---|---|
 | `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.9 — à jour |
-| `01-cadrage/doc-fonctionnelle.md` | Documentation fonctionnelle : écrans, règles, lots. | Trame — rédaction en cours |
+| `01-cadrage/doc-fonctionnelle.md` | Documentation fonctionnelle : écrans, règles, lots. | Rédigée — en attente de validation orale S4, maquettes à insérer après réexport |
 | `01-cadrage/lean-canvas.json` | Cadrage stratégique : problème, utilisateurs, hypothèses. | Encadrés 7 et 8 à compléter |
 | `02-recherche-utilisateur/proto-personas.*` | Sylvianne (initiatrice) et Joul (invité sceptique). | À confirmer par la recherche utilisateur |
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
@@ -34,8 +34,8 @@ Les fichiers `.json` sont les fichiers de travail générés par l'outil de conc
 ## Ressources externes
 
 - Fichier Figma de zonage : https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-—-Wireframes--zonage-
-- Application déployée : `[URL à compléter]`
-- Code source : `[URL à compléter]`
+- Application déployée : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/`
+- Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 
 ## Convention de nommage
 
