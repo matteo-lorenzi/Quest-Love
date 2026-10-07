@@ -1,8 +1,9 @@
 # Guide d'animation — Focus group Quest & Love
 
 **Auteurs :** Sheyrel, Matteo
-**Version :** 0.2 — 7 octobre 2026
-**Séance :** [date à fixer], 18 h – 20 h
+**Version :** 0.3 — 7 octobre 2026
+**Statut :** exercice d'animation, séance non tenue
+**Séance :** [date], 18 h – 20 h · [lieu]
 **Durée :** 2 h · **Participants :** 6 à 8 personnes en couple, **venues sans leur partenaire**
 **Références :** cadrage unifié V2.9 (§ 1, 4, 5), proto-personas, parcours utilisateur, inventaire des écrans v2.2
 
@@ -22,9 +23,19 @@
    - la bascule de 12 h est acceptable pour des gens qui ouvrent l'appli surtout le soir (cadrage § 4.2, choix assumé).
 4. Faire parcourir une journée de jeu sur les écrans du lot 1 : ce qui est perçu, compris, et l'action envisagée à chaque étape.
 
+### Critères de lecture des hypothèses
+
+Fixés avant la séance, pour éviter de lire les résultats dans le sens espéré. Un résultat entre les deux bornes est noté **« non tranché »** dans le compte rendu, sans arrondi favorable.
+
+| Hypothèse | Validée si | Invalidée si |
+|---|---|---|
+| H1 — Tirage de 3 (Sylvianne) | Une majorité juge que « trois, c'est juste bien », et moins de 2 participants disent hésiter ou bloquer devant l'éventail. | Au moins la moitié des participants demandent plus ou moins de choix. |
+| H2 — PV et gage ludiques (Joul) | Aucune des deux conditions d'invalidation n'est remplie. | Au moins la moitié des participants emploient spontanément un terme négatif (« punition », « pression », « culpabilité », « infantilisant ») sur la carte 3 ou 4, **ou** au moins 2 profils Joul le font. |
+| H3 — Bascule de 12 h | Les participants du soir disent pouvoir jouer, ou adapter leur usage. | Au moins 2 des 3 participants du soir déclarent qu'ils ne pourraient pas jouer. |
+
 ### Ce que la séance ne mesure pas
 
-Un focus group recueille des **perceptions**, pas des comportements. L'utilisabilité réelle sera observée avec le couple témoin (S11 ou S12, cadrage § 5). Les participants venant sans leur partenaire, tout ce qui touche à la dynamique à deux reste la vision d'**un seul** membre du couple : à signaler comme limite dans le compte rendu.
+Un focus group recueille des **perceptions**, pas des comportements. L'utilisabilité réelle sera observée avec le couple témoin (cadrage § 5). Les participants venant sans leur partenaire, tout ce qui touche à la dynamique à deux reste la vision d'**un seul** membre du couple : à signaler comme limite dans le compte rendu.
 
 ### Rôles
 
@@ -38,6 +49,7 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 - 6 à 8 personnes, 20 à 35 ans environ, en couple (cible prioritaire, cadrage § 5).
 - **Sans leur partenaire.** Si les deux membres d'un couple sont volontaires, ils participent à **deux sessions différentes**.
 - Composition : **un groupe mixte**, avec si possible un équilibre entre personnes qui lancent les initiatives dans leur couple (profil Sylvianne) et personnes plutôt sceptiques face aux applis de couple (profil Joul). Le profil est repéré au recrutement par une question simple : « Dans votre couple, qui propose en général les nouvelles activités ? »
+- Une seconde question de recrutement repère le moment d'usage, nécessaire pour l'hypothèse H3 : « À quel moment de la journée utilisez-vous le plus votre téléphone pour vous-même ? ». Viser **au moins 3 participants du soir**.
 - Exclure les proches directs du binôme et les étudiants du même master, qui connaissent déjà le projet.
 
 ### Matériel
@@ -46,8 +58,8 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 - Post-its de deux couleurs, feutres, un tableau ou un mur libre
 - Cartes « règles du jeu » imprimées (atelier 2)
 - Les 5 cartes défis de l'atelier 2, imprimées
-- Maquettes graphiques du lot 1 (S5) imprimées en A4, un écran par feuille, dans l'ordre du parcours (atelier 3) : C1 état 1, C2 éventail, C2 carte piochée, C1 état 5, C3 en cours, D1, D5
-- Feuilles de consentement en double exemplaire
+- Écrans du lot 1 pour l'atelier 3, un par feuille, dans l'ordre du parcours (voir l'atelier)
+- Formulaires de consentement en double exemplaire (voir l'annexe)
 - De quoi boire et grignoter
 
 ### Déroulé
@@ -56,14 +68,14 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 |---|---|---|
 | [18:00] | Introduction : accueil, règles, consentement | 10 min |
 | [18:10] | Brise-glace | 10 min |
-| [18:20] | Atelier 1 — La vie de couple au quotidien | 35 min |
-| [18:55] | Pause | 5 min |
-| [19:00] | Atelier 2 — Le concept et ses règles | 25 min |
-| [19:25] | Atelier 3 — Une journée de jeu, écran par écran | 25 min |
+| [18:20] | Atelier 1 — La vie de couple au quotidien | 30 min |
+| [18:50] | Pause | 5 min |
+| [18:55] | Atelier 2 — Le concept et ses règles | 25 min |
+| [19:20] | Atelier 3 — Une journée de jeu, écran par écran | 30 min |
 | [19:50] | Clôture et conclusion | 10 min |
 | [20:00] | Fin | |
 
-⇒ Date fictive, à remplacer par la date réelle. Elle est volontairement placée en S7, **avant la validation du schéma en S8** : une règle du jeu remise en cause par le groupe peut encore être modifiée dans le cadrage. Après S8, elle partirait en lot 4. Lieu : [à définir].
+⇒ Date et lieu fictifs : exercice d'animation.
 
 ---
 
@@ -77,7 +89,7 @@ Nous sommes Sheyrel et Matteo, étudiants en master 2 web éditorial à l'univer
 
 Il n'y a ni bonne ni mauvaise réponse. On ne vous évalue pas, et on n'évalue pas votre couple. Ce qui nous intéresse, c'est votre expérience et votre avis, y compris s'il est négatif sur notre idée.
 
-La discussion va être enregistrée en audio, si vous êtes d'accord. Les enregistrements servent uniquement à notre travail universitaire. Tout sera anonymisé dans nos notes : votre nom, mais aussi celui de votre partenaire. Les fichiers audio seront supprimés à la fin du projet.
+La discussion va être enregistrée en audio, si vous êtes d'accord. Les enregistrements servent uniquement à notre travail universitaire. Tout sera anonymisé dans nos notes : votre nom, mais aussi celui de votre partenaire. Les fichiers audio seront supprimés à la date indiquée sur le formulaire de consentement.
 
 Vous pouvez à tout moment demander une pause, ne pas répondre à une question ou quitter la séance, sans avoir à vous justifier.
 
@@ -91,7 +103,7 @@ Quelques règles simples pour que tout le monde se sente à l'aise :
 - Une personne parle à la fois. Levez la main si vous voulez prendre la parole.
 - On peut débattre d'une idée, jamais juger la personne qui l'a dite.
 - On parle de son couple, mais **on ne donne pas le prénom de son ou sa partenaire**. Il ou elle n'est pas là pour donner son accord. Dites simplement « mon copain », « ma compagne », « l'autre ».
-- Ce qui est dit ici reste ici.
+- Nous vous demandons de ne pas répéter à l'extérieur ce qui est dit ici.
 
 Est-ce que vous avez des questions ?
 
@@ -149,7 +161,7 @@ Points de relance :
 - Qu'est-ce qui a changé depuis le début de votre relation ?
 - Qu'est-ce que vous aimez le plus dans votre quotidien à deux ?
 
-#### 2. La routine (18:27)
+#### 2. La routine (18:26)
 
 On entend souvent dire qu'avec le temps, la routine s'installe dans un couple. Autour de vous, chez des amis, dans votre famille, qu'est-ce qui fait que la routine s'installe ?
 
@@ -166,7 +178,7 @@ Points de relance :
 
 ⇒ Co-animateur : noter qui se décrit comme celui ou celle qui lance les initiatives (profil Sylvianne) et qui se décrit comme celui ou celle qui suit (profil Joul).
 
-#### 3. Ce que vous faites déjà pour casser la routine (18:35)
+#### 3. Ce que vous faites déjà pour casser la routine (18:33)
 
 On va faire un petit exercice. Prenez trois post-its. Sur chacun, écrivez une chose que vous faites, ou que vous avez déjà essayée, pour mettre un peu de nouveauté ou de jeu dans votre couple. Ça peut être une sortie, une habitude, un jeu, une appli, une surprise, n'importe quoi.
 
@@ -186,7 +198,7 @@ Points de relance :
 
 ⇒ Photographier le tableau à la fin de l'exercice. C'est la carte des solutions existantes, à reporter dans le Lean Canvas.
 
-#### 4. Les petites frictions (18:47)
+#### 4. Les petites frictions (18:43)
 
 Dernier sujet sur le couple. Dans tous les couples, il y a des petits accrochages du quotidien : les tâches ménagères, le téléphone à table, un message resté sans réponse, l'organisation du week-end… On ne parle pas ici de vrais problèmes, juste de ces petites frictions.
 
@@ -201,13 +213,13 @@ Points de relance :
 
 ⇒ Garde-fous : ne pas aborder l'infidélité, la violence, la sexualité ni les ruptures. Si un participant s'engage sur un sujet lourd, le remercier, recentrer doucement vers le groupe, et lui proposer d'en parler en aparté à la fin. Rappeler qu'on peut ne pas répondre.
 
-#### Question de transition (18:52)
+#### Question de transition (18:47)
 
 Imaginons qu'une application veuille vous aider pour tout ce dont on vient de parler. D'après vous, qu'est-ce qu'elle ne devrait **surtout pas** faire ?
 
 ⇒ Noter les réponses au tableau, sans commentaire. Ne rien montrer de Quest & Love avant cette question.
 
-### PAUSE (18:55)
+### PAUSE (18:50)
 
 On fait une pause de cinq minutes. Il y a à boire et à grignoter.
 
@@ -215,13 +227,13 @@ On fait une pause de cinq minutes. Il y a à boire et à grignoter.
 
 ---
 
-### ATELIER 2 — Le concept et ses règles (19:00)
+### ATELIER 2 — Le concept et ses règles (18:55)
 
 On reprend. On va maintenant vous présenter notre idée, et on a besoin de votre regard le plus honnête possible.
 
 ⇒ Relancer l'enregistrement.
 
-#### 1. Première réaction (19:00)
+#### 1. Première réaction (18:55)
 
 Quest & Love, c'est une application web qui transforme le quotidien d'un couple en jeu. Chaque jour, chacun choisit un défi parmi trois propositions tirées au sort, et l'envoie à l'autre. Le défi doit être réalisé dans la journée, sinon on perd un point de vie. Quand on n'a plus de points, on écope d'un gage rédigé par son partenaire.
 
@@ -236,7 +248,7 @@ Points de relance :
 - À quoi ça vous fait penser ? Une autre appli, un jeu, une habitude ?
 - **Si vous le proposiez chez vous ce soir, comment réagirait votre partenaire ?**
 
-#### 2. Les règles une par une (19:08)
+#### 2. Les règles une par une (19:03)
 
 On va regarder quelques règles de plus près. Je pose chaque carte au centre, et vous me dites ce que vous en pensez.
 
@@ -270,7 +282,7 @@ On va regarder quelques règles de plus près. Je pose chaque carte au centre, e
 
 ⇒ Co-animateur : noter pour chaque carte les mots employés (« drôle », « pression », « punition », « infantilisant »…). Ce vocabulaire sert à valider l'hypothèse Joul et à rédiger les textes d'interface.
 
-#### 3. Tri des défis (19:18)
+#### 3. Tri des défis (19:13)
 
 Voici quelques exemples de défis. Pour chacun, dites-nous si vous l'enverriez à votre partenaire, si vous accepteriez de le recevoir, et pourquoi.
 
@@ -284,7 +296,7 @@ Voici quelques exemples de défis. Pour chacun, dites-nous si vous l'enverriez �
 | 4 | Expression | Raconte ta journée à ton partenaire comme un commentateur sportif en direct. |
 | 5 | Absurde | Discute une minute avec une plante de la maison, devant ton partenaire, comme avec une vieille amie. |
 
-⇒ Défis rédigés pour la séance selon le cadrage (§ 4.6 et 8.4) : écrits du point de vue de celui qui reçoit, tutoiement, réalisables en une journée, sans dépense ni contenu intime. Ils ne font pas partie de la bibliothèque tant que le binôme ne les a pas validés. Familles reprises des « familles probables » du cadrage, à confirmer en S5.
+⇒ Défis rédigés pour la séance selon le cadrage (§ 4.6 et 8.4) : écrits du point de vue de celui qui reçoit, tutoiement, réalisables en une journée, sans dépense ni contenu intime. Ils ne font pas partie de la bibliothèque tant que le binôme ne les a pas validés. Familles reprises des « familles probables » du cadrage (§ 8.4), non encore figées.
 
 Points de relance :
 
@@ -293,9 +305,9 @@ Points de relance :
 
 ---
 
-### ATELIER 3 — Une journée de jeu, écran par écran (19:25)
+### ATELIER 3 — Une journée de jeu, écran par écran (19:20)
 
-Pour finir, on va parcourir une journée de jeu, depuis l'ouverture de l'application le matin jusqu'à la fin du défi. Ce sont des maquettes : rien ne fonctionne encore, mais tout ce que vous voyez est prévu dans l'application.
+Pour finir, on va parcourir une journée de jeu, depuis l'ouverture de l'application le matin jusqu'au défi à réaliser, puis un moment d'un autre jour. Ce sont des maquettes : rien ne fonctionne encore, mais tout ce que vous voyez est prévu dans l'application.
 
 À chaque écran, je vais vous poser les trois mêmes questions : qu'est-ce que vous voyez, qu'est-ce que vous comprenez, et qu'est-ce que vous feriez ensuite ?
 
@@ -305,23 +317,30 @@ Est-ce que c'est clair ?
 
 C'est le matin, vous ouvrez l'application. **Écran C1 · « On joue aujourd'hui ? »** Qu'est-ce que vous voyez ? Qu'est-ce que vous comprenez ? Qu'est-ce que vous feriez ?
 
-⇒ Enchaîner ainsi sur la suite du parcours :
+⇒ Enchaîner ainsi sur la suite de la journée :
 
-1. **C2 · Tirage en éventail** : les trois cartes face cachée.
-2. **C2 · Carte piochée** : le défi choisi pour l'autre.
-3. **C1 état 5 · Révélation** : vous découvrez le défi qu'on vous a envoyé.
-4. **C3 · Défi reçu en cours**, puis la confirmation « réalisé ».
-5. **D1 · Défi expiré, −1 PV** : le défi n'a pas été fait avant minuit.
-6. **D5 · 0 PV, retour à 5** : vous n'avez plus de points de vie.
+1. **C1 état 3 · À toi de piocher** : vous et votre partenaire avez dit oui.
+2. **C2 · Tirage en éventail** : les trois cartes face cachée.
+3. **C2 · Carte piochée** : le défi choisi pour l'autre.
+4. **C1 état 4 · Défi envoyé, en attente de révélation** : il n'est pas encore midi, votre partenaire n'a pas encore choisi.
+5. **C1 état 5 · Révélation** : vous découvrez le défi qu'on vous a envoyé.
+6. **C3 · Défi reçu en cours**, puis la confirmation « réalisé ».
+
+Maintenant, imaginons **un autre jour**. Cette fois, vous n'avez pas fait votre défi avant minuit. Le lendemain matin, vous ouvrez l'application.
+
+7. **D1 · Défi expiré, −1 PV**.
 
 Points de relance :
 
 - Où est-ce que vous cliqueriez en premier ?
 - Il manque une information pour décider ?
 - À ce moment-là, qu'est-ce que vous ressentez ?
-- Sur D1 et D5 : est-ce que le ton vous paraît gentil, moqueur, sévère ?
+- Sur C1 état 4 : vous attendriez midi, ou vous reviendriez plus tard ? Et si vous n'ouvrez l'appli que le soir ?
+- Sur D1 : est-ce que le ton vous paraît gentil, moqueur, sévère ?
 
-⇒ Si le temps manque, garder en priorité C1 « On joue aujourd'hui ? », C2 éventail et D1. Ce sont les écrans liés aux trois hypothèses à valider.
+⇒ Annoncer clairement le changement de jour avant D1 : le défi réalisé sur C3 et le défi expiré sur D1 ne sont pas le même.
+
+⇒ Si le temps manque, garder en priorité C1 « On joue aujourd'hui ? », C2 éventail, C1 état 4 et D1. Ce sont les écrans liés aux trois hypothèses à valider.
 
 ---
 
@@ -343,7 +362,7 @@ Et y a-t-il un sujet dont on n'a pas parlé et dont vous auriez aimé parler ?
 
 Merci beaucoup à toutes et à tous pour votre temps et votre franchise.
 
-Pour rappel, tout ce qui a été dit ce soir sera anonymisé, y compris ce qui concerne vos partenaires, et les enregistrements seront supprimés à la fin du projet.
+Pour rappel, tout ce qui a été dit ce soir sera anonymisé, y compris ce qui concerne vos partenaires, et les enregistrements seront supprimés à la date prévue.
 
 Nous allons maintenant analyser vos réponses pour faire évoluer l'application. Si vous voulez suivre le projet, ou si une question vous vient plus tard, vous pouvez nous écrire : matteo.lorenzi@etu.univ-poitiers.fr ou sheyrel.duret@etu.univ-poitiers.fr.
 
@@ -357,5 +376,30 @@ Bonne fin de soirée !
 
 - **Débrief à chaud, le soir même (15 min)** : animateur et co-animateur notent les trois surprises de la séance et les moments de gêne ou de désaccord. Selon Wellings et al. (2000), ces moments sont des données à part entière sur les sujets sensibles.
 - **Dans les 48 h** : transcription, anonymisation des participants et des partenaires cités.
-- **Analyse** : regrouper par thème ; pour chaque thème, noter combien de participants en parlent, avec quelle intensité, et avec quelles citations précises. Croiser avec les hypothèses des personas.
-- **Reports dans le projet** : solutions existantes et raisons d'abandon vers le Lean Canvas ; validation ou non des personas ; règles du jeu remises en question vers le cadrage (avant S8, puisque toute évolution après la validation du schéma part en lot 4).
+- **Analyse** : regrouper par thème ; pour chaque thème, noter combien de participants en parlent, avec quelle intensité, et avec quelles citations précises. Croiser avec les hypothèses des personas, en appliquant les critères de lecture fixés avant la séance.
+- **Reports dans le projet** : solutions existantes et raisons d'abandon vers le Lean Canvas ; validation ou non des personas ; règles du jeu remises en question vers le cadrage (avant la validation du schéma, puisque toute évolution après celle-ci part en lot 4).
+
+---
+
+## Annexe — Formulaire de consentement
+
+À imprimer en deux exemplaires : un pour le participant, un pour le binôme.
+
+**Projet :** Quest & Love, master 2 web éditorial, université de Poitiers
+**Responsables :** Sheyrel Duret, Matteo Lorenzi
+**Séance :** groupe de discussion du [date], [lieu]
+
+**Finalité.** La séance sert uniquement à un travail universitaire : comprendre le quotidien des couples et recueillir des avis sur un projet d'application. Aucune donnée n'est utilisée à des fins commerciales ni transmise à des tiers.
+
+**Enregistrement.** La discussion est enregistrée en audio. L'enregistrement sert à la transcription, puis il est supprimé le [date de suppression].
+
+**Anonymisation.** Dans les transcriptions et les documents du projet, votre prénom et celui de votre partenaire sont remplacés par un code. Les citations reprises dans le dossier ne permettent pas de vous identifier.
+
+**Vos droits.** Votre participation est volontaire. Vous pouvez ne pas répondre à une question, quitter la séance à tout moment, et demander jusqu'au [date de suppression] que vos propos soient retirés de l'analyse, sans justification. Pour cela, écrivez à matteo.lorenzi@etu.univ-poitiers.fr ou sheyrel.duret@etu.univ-poitiers.fr.
+
+**Confidentialité.** Les participants s'engagent à ne pas répéter à l'extérieur ce qui a été dit pendant la séance.
+
+☐ J'accepte de participer au groupe de discussion.
+☐ J'accepte que la discussion soit enregistrée en audio.
+
+Prénom et nom : ______________________ Date : __________ Signature : ______________________
