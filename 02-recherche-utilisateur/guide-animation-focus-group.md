@@ -2,7 +2,7 @@
 
 **Auteurs :** Sheyrel, Matteo
 **Version :** 0.2 — 7 octobre 2026
-**Séance :** jeudi 5 novembre 2026 (date fictive), 18 h – 20 h
+**Séance :** [date à fixer], 18 h – 20 h
 **Durée :** 2 h · **Participants :** 6 à 8 personnes en couple, **venues sans leur partenaire**
 **Références :** cadrage unifié V2.9 (§ 1, 4, 5), proto-personas, parcours utilisateur, inventaire des écrans v2.2
 
@@ -103,7 +103,7 @@ Parfait. Est-ce que tout le monde est d'accord pour que l'on démarre l'enregist
 
 ⇒ Attendre l'accord de chacun, puis lancer l'enregistrement.
 
-Nous sommes le jeudi 5 novembre 2026, il est [heure], et nous sommes réunis pour le groupe de discussion du projet Quest & Love, master web éditorial de l'université de Poitiers.
+Nous sommes le [date], il est [heure], et nous sommes réunis pour le groupe de discussion du projet Quest & Love, master web éditorial de l'université de Poitiers.
 
 L'enregistrement a commencé, nous devons donc vous redemander votre accord à voix haute. Chacun à votre tour, pouvez-vous dire votre prénom et la phrase suivante : « J'accepte de participer à ce groupe de discussion et qu'il soit enregistré. »
 
@@ -345,7 +345,7 @@ Merci beaucoup à toutes et à tous pour votre temps et votre franchise.
 
 Pour rappel, tout ce qui a été dit ce soir sera anonymisé, y compris ce qui concerne vos partenaires, et les enregistrements seront supprimés à la fin du projet.
 
-Nous allons maintenant analyser vos réponses pour faire évoluer l'application. Si vous voulez suivre le projet, ou si une question vous vient plus tard, vous pouvez nous écrire : matteo.lorenzi@[domaine] ou sheyrel.duret@[domaine].
+Nous allons maintenant analyser vos réponses pour faire évoluer l'application. Si vous voulez suivre le projet, ou si une question vous vient plus tard, vous pouvez nous écrire : matteo.lorenzi@etu.univ-poitiers.fr ou sheyrel.duret@etu.univ-poitiers.fr.
 
 Bonne fin de soirée !
 
@@ -359,12 +359,3 @@ Bonne fin de soirée !
 - **Dans les 48 h** : transcription, anonymisation des participants et des partenaires cités.
 - **Analyse** : regrouper par thème ; pour chaque thème, noter combien de participants en parlent, avec quelle intensité, et avec quelles citations précises. Croiser avec les hypothèses des personas.
 - **Reports dans le projet** : solutions existantes et raisons d'abandon vers le Lean Canvas ; validation ou non des personas ; règles du jeu remises en question vers le cadrage (avant S8, puisque toute évolution après la validation du schéma part en lot 4).
-
----
-
-## Points à compléter
-
-| # | Point | Où |
-|---|---|---|
-| 1 | Remplacer la date fictive par la date réelle, préciser le lieu | En-tête, déroulé, enregistrement |
-| 2 | Domaine des adresses de contact | Conclusion |
