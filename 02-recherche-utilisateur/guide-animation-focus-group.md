@@ -1,7 +1,8 @@
 # Guide d'animation — Focus group Quest & Love
 
 **Auteurs :** Sheyrel, Matteo
-**Version :** 0.1 — 7 octobre 2026 (brouillon)
+**Version :** 0.2 — 7 octobre 2026
+**Séance :** jeudi 5 novembre 2026 (date fictive), 18 h – 20 h
 **Durée :** 2 h · **Participants :** 6 à 8 personnes en couple, **venues sans leur partenaire**
 **Références :** cadrage unifié V2.9 (§ 1, 4, 5), proto-personas, parcours utilisateur, inventaire des écrans v2.2
 
@@ -29,14 +30,14 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 
 | Rôle | Qui | Missions |
 |---|---|---|
-| Animateur | [À COMPLÉTER : Sheyrel ou Matteo] | Lit le guide, distribue la parole, relance, tient le minutage. |
-| Co-animateur | [À COMPLÉTER : l'autre membre du binôme] | Accueil, consentements, enregistrement, prise de notes (citations exactes, réactions non verbales, silences, désaccords), gestion du matériel, résumé oral en clôture. |
+| Animateur | Matteo | Lit le guide, distribue la parole, relance, tient le minutage. |
+| Co-animateur | Sheyrel | Accueil, consentements, enregistrement, prise de notes (citations exactes, réactions non verbales, silences, désaccords), gestion du matériel, résumé oral en clôture. |
 
 ### Recrutement
 
 - 6 à 8 personnes, 20 à 35 ans environ, en couple (cible prioritaire, cadrage § 5).
 - **Sans leur partenaire.** Si les deux membres d'un couple sont volontaires, ils participent à **deux sessions différentes**.
-- Composition : [À COMPLÉTER : groupe mixte, ou une session « initiateurs » (profil Sylvianne) et une session « plutôt sceptiques » (profil Joul)]
+- Composition : **un groupe mixte**, avec si possible un équilibre entre personnes qui lancent les initiatives dans leur couple (profil Sylvianne) et personnes plutôt sceptiques face aux applis de couple (profil Joul). Le profil est repéré au recrutement par une question simple : « Dans votre couple, qui propose en général les nouvelles activités ? »
 - Exclure les proches directs du binôme et les étudiants du même master, qui connaissent déjà le projet.
 
 ### Matériel
@@ -44,8 +45,8 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 - Enregistreur audio, plus le téléphone en secours
 - Post-its de deux couleurs, feutres, un tableau ou un mur libre
 - Cartes « règles du jeu » imprimées (atelier 2)
-- Cartes défis prototypes imprimées (atelier 2) : [À COMPLÉTER : 5 défis prototypes, décision ouverte n° 7 du cadrage]
-- Écrans imprimés en A4, un par feuille, dans l'ordre du parcours (atelier 3) : C1 état 1, C2 éventail, C2 carte piochée, C1 état 5, C3 en cours, D1, D5
+- Les 5 cartes défis de l'atelier 2, imprimées
+- Maquettes graphiques du lot 1 (S5) imprimées en A4, un écran par feuille, dans l'ordre du parcours (atelier 3) : C1 état 1, C2 éventail, C2 carte piochée, C1 état 5, C3 en cours, D1, D5
 - Feuilles de consentement en double exemplaire
 - De quoi boire et grignoter
 
@@ -62,7 +63,7 @@ Un focus group recueille des **perceptions**, pas des comportements. L'utilisabi
 | [19:50] | Clôture et conclusion | 10 min |
 | [20:00] | Fin | |
 
-⇒ Les horaires sont indicatifs : [À COMPLÉTER : date, heure de début, lieu].
+⇒ Date fictive, à remplacer par la date réelle. Elle est volontairement placée en S7, **avant la validation du schéma en S8** : une règle du jeu remise en cause par le groupe peut encore être modifiée dans le cadrage. Après S8, elle partirait en lot 4. Lieu : [à définir].
 
 ---
 
@@ -102,7 +103,7 @@ Parfait. Est-ce que tout le monde est d'accord pour que l'on démarre l'enregist
 
 ⇒ Attendre l'accord de chacun, puis lancer l'enregistrement.
 
-Nous sommes le [À COMPLÉTER : date], il est [heure], et nous sommes réunis pour le groupe de discussion du projet Quest & Love, master web éditorial de l'université de Poitiers.
+Nous sommes le jeudi 5 novembre 2026, il est [heure], et nous sommes réunis pour le groupe de discussion du projet Quest & Love, master web éditorial de l'université de Poitiers.
 
 L'enregistrement a commencé, nous devons donc vous redemander votre accord à voix haute. Chacun à votre tour, pouvez-vous dire votre prénom et la phrase suivante : « J'accepte de participer à ce groupe de discussion et qu'il soit enregistré. »
 
@@ -273,7 +274,17 @@ On va regarder quelques règles de plus près. Je pose chaque carte au centre, e
 
 Voici quelques exemples de défis. Pour chacun, dites-nous si vous l'enverriez à votre partenaire, si vous accepteriez de le recevoir, et pourquoi.
 
-⇒ Lire les cartes défis une par une : [À COMPLÉTER : 5 défis prototypes]. Les participants classent chaque carte en trois tas : « je l'envoie », « je le ferais volontiers », « non merci ».
+⇒ Lire les cartes une par une. Les participants classent chaque carte en trois tas : « je l'envoie », « je le ferais volontiers », « non merci ».
+
+| Carte | Famille probable | Défi |
+|---|---|---|
+| 1 | Attention | Cache un petit mot gentil quelque part où ton partenaire tombera dessus avant ce soir. |
+| 2 | Complicité | Invente une poignée de main secrète et apprends-la à ton partenaire avant minuit. |
+| 3 | Action | Fais en douce une corvée que ton partenaire déteste, puis attends qu'il ou elle s'en rende compte. |
+| 4 | Expression | Raconte ta journée à ton partenaire comme un commentateur sportif en direct. |
+| 5 | Absurde | Discute une minute avec une plante de la maison, devant ton partenaire, comme avec une vieille amie. |
+
+⇒ Défis rédigés pour la séance selon le cadrage (§ 4.6 et 8.4) : écrits du point de vue de celui qui reçoit, tutoiement, réalisables en une journée, sans dépense ni contenu intime. Ils ne font pas partie de la bibliothèque tant que le binôme ne les a pas validés. Familles reprises des « familles probables » du cadrage, à confirmer en S5.
 
 Points de relance :
 
@@ -284,7 +295,7 @@ Points de relance :
 
 ### ATELIER 3 — Une journée de jeu, écran par écran (19:25)
 
-Pour finir, on va parcourir une journée de jeu, depuis l'ouverture de l'application le matin jusqu'à la fin du défi. Ce sont des maquettes de travail, donc encore très simples, sans couleurs ni images.
+Pour finir, on va parcourir une journée de jeu, depuis l'ouverture de l'application le matin jusqu'à la fin du défi. Ce sont des maquettes : rien ne fonctionne encore, mais tout ce que vous voyez est prévu dans l'application.
 
 À chaque écran, je vais vous poser les trois mêmes questions : qu'est-ce que vous voyez, qu'est-ce que vous comprenez, et qu'est-ce que vous feriez ensuite ?
 
@@ -312,8 +323,6 @@ Points de relance :
 
 ⇒ Si le temps manque, garder en priorité C1 « On joue aujourd'hui ? », C2 éventail et D1. Ce sont les écrans liés aux trois hypothèses à valider.
 
-⇒ [À COMPLÉTER : utiliser le zonage du lot 1 ou les maquettes graphiques de S5, selon la date de la séance]
-
 ---
 
 ## CONCLUSION
@@ -336,7 +345,7 @@ Merci beaucoup à toutes et à tous pour votre temps et votre franchise.
 
 Pour rappel, tout ce qui a été dit ce soir sera anonymisé, y compris ce qui concerne vos partenaires, et les enregistrements seront supprimés à la fin du projet.
 
-Nous allons maintenant analyser vos réponses pour faire évoluer l'application. Si vous voulez suivre le projet, ou si une question vous vient plus tard, vous pouvez nous écrire à [À COMPLÉTER : adresse de contact].
+Nous allons maintenant analyser vos réponses pour faire évoluer l'application. Si vous voulez suivre le projet, ou si une question vous vient plus tard, vous pouvez nous écrire : matteo.lorenzi@[domaine] ou sheyrel.duret@[domaine].
 
 Bonne fin de soirée !
 
@@ -357,9 +366,5 @@ Bonne fin de soirée !
 
 | # | Point | Où |
 |---|---|---|
-| 1 | Date, heure de début et lieu de la séance | Déroulé, enregistrement |
-| 2 | Qui anime, qui co-anime | Rôles |
-| 3 | Composition : groupe mixte ou sessions séparées initiateurs / sceptiques | Recrutement |
-| 4 | Les 5 défis prototypes à faire trier | Matériel, atelier 2 |
-| 5 | Supports de l'atelier 3 : zonage lot 1 ou maquettes S5 | Atelier 3 |
-| 6 | Adresse de contact donnée aux participants | Conclusion |
+| 1 | Remplacer la date fictive par la date réelle, préciser le lieu | En-tête, déroulé, enregistrement |
+| 2 | Domaine des adresses de contact | Conclusion |
