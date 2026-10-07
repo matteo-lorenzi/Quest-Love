@@ -27,7 +27,7 @@ Pitch :
 
 > **Quest & Love** transforme le quotidien d'un couple en jeu.
 >
-> Chaque matin, trois défis tirés au sort. Chacun en choisit un — pas pour soi, pour l'autre. À midi, les deux défis se révèlent en même temps. Il reste jusqu'à minuit pour les relever.
+> Chaque matin, trois défis tirés au sort. Chacun en choisit un — pas pour soi, pour l'autre. Dès que les deux ont choisi, ou à midi au plus tard, chacun découvre le défi qu'il a reçu. Il reste jusqu'à minuit pour le relever.
 >
 > Un défi non relevé coûte un point de vie. À court de points, c'est le partenaire qui rédige le gage.
 >
