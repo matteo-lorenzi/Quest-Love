@@ -2,6 +2,17 @@
 
 Cadrage de référence : `01-cadrage/cadrage-unifie.md` (fait foi en cas d'écart).
 
+## Standards de code
+
+Référence complète : `04-technique/doc-technique.md` § 2.4 ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`.
+
+- MVC à contrôleur frontal : `app/public/index.php` est le seul fichier public ; contrôleurs fins, SQL dans les dépôts seulement, règles du jeu dans les services.
+- Tout service dépendant de l'heure reçoit `DateTimeImmutable $maintenant` ; seul `index.php` lit l'horloge.
+- Code en français sans accent (classes, méthodes, tables), vocabulaire de `GLOSSARY.md`.
+- Vues préfixées du code d'écran de l'inventaire (`vues/ecrans/c1-accueil.php`) ; tickets et tests citent l'écran et le parcours couverts.
+- HTML sémantique avant tout `div` ; classes CSS en BEM français (`carte-defi__titre`).
+- Aucune bibliothèque tierce dans `app/`.
+
 ## Agent skills
 
 ### Issue tracker
