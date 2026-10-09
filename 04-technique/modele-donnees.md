@@ -5,11 +5,11 @@
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.0 — 18 septembre 2026.**
+> **Version 1.1 — 9 octobre 2026.** Tables renommées selon le glossaire : `utilisateur` devient `joueur`, `couple` devient `duo` (écart de nom assumé avec le tableau préliminaire du cadrage § 7). Version 1.0 du 18 septembre 2026.
 
 ## 1. Vue d'ensemble
 
-- **Comptes et duo** — `utilisateur`, `couple`
+- **Comptes et duo** — `joueur`, `duo`
 - **Rythme quotidien** — `participation`, `tirage`, `tirage_proposition`
 - **Contenu** — `categorie`, `defi`
 - **Jeu** — `mission`, `gage` _(lot 2)_
@@ -17,27 +17,27 @@
 
 Relations :
 
-- un `couple` porte zéro à deux `utilisateur` ; un `utilisateur` appartient à zéro ou un `couple` ;
+- un `duo` porte zéro à deux `joueur` ; un `joueur` appartient à zéro ou un `duo` ;
 - un `tirage` porte exactement trois `tirage_proposition` ;
 - une `mission` naît d'un `tirage` choisi ou d'une attribution aléatoire, et pointe un `defi`.
 
 ## 2. Tables
 
-### `utilisateur`
+### `joueur`
 
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
 | `pseudo` | chaîne 30 | unique, non nul |
 | `mdp_hash` | chaîne 255 | non nul, produit par `password_hash` |
-| `couple_id` | entier non signé | nullable, clé étrangère vers `couple` |
+| `duo_id` | entier non signé | nullable, clé étrangère vers `duo` |
 | `pv` | entier très court non signé | non nul, défaut 5 |
 | `date_creation` | date-heure | non nul |
 
-- `couple_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ou C1.
+- `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ou C1.
 - Aucune autre donnée personnelle : minimisation, cadrage § 10.
 
-### `couple`
+### `duo`
 
 | Champ | Type | Contrainte |
 |---|---|---|
@@ -53,7 +53,7 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `joueur_id` | entier non signé | clé étrangère vers `utilisateur` |
+| `joueur_id` | entier non signé | clé étrangère vers `joueur` |
 | `date_jour` | date | non nul |
 | `reponse` | énumération `oui` / `non` | non nul |
 | `date_reponse` | date-heure | non nul |
@@ -77,8 +77,8 @@ Relations :
 |---|---|---|---|
 | `tirage` | `id` | entier non signé | clé primaire |
 | `tirage` | `date_jour` | date | non nul |
-| `tirage` | `emetteur_id` | entier non signé | clé étrangère vers `utilisateur` |
-| `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `utilisateur` |
+| `tirage` | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
+| `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
 | `tirage` | `date_choix` | date-heure | nullable tant que le choix n'est pas fait |
 | `tirage_proposition` | `id` | entier non signé | clé primaire |
 | `tirage_proposition` | `tirage_id` | entier non signé | clé étrangère vers `tirage`, suppression en cascade |
@@ -94,8 +94,8 @@ Relations :
 |---|---|---|
 | `id` | entier non signé | clé primaire |
 | `defi_id` | entier non signé | clé étrangère vers `defi` |
-| `emetteur_id` | entier non signé | clé étrangère vers `utilisateur` |
-| `destinataire_id` | entier non signé | clé étrangère vers `utilisateur` |
+| `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
+| `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
 | `origine` | énumération `choix` / `aleatoire` | non nul |
 | `date_attribution` | date-heure | non nul |
 | `date_revelation` | date-heure | nullable |
@@ -111,8 +111,8 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `auteur_id` | entier non signé | clé étrangère vers `utilisateur` |
-| `destinataire_id` | entier non signé | clé étrangère vers `utilisateur` |
+| `auteur_id` | entier non signé | clé étrangère vers `joueur` |
+| `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
 | `texte` | texte | non nul, échappé à l'affichage |
 | `date_creation` | date-heure | non nul |
 | `statut` | énumération `en_attente` / `realise` / `conteste` | non nul |
@@ -168,7 +168,7 @@ Au-delà des clés primaires et étrangères :
 - `mission` sur `(emetteur_id, date_attribution)` — accueil et historique.
 - `tirage` sur `(emetteur_id, date_jour)` — lecture des propositions du jour.
 - `tentative` sur `(cle, type, date)` — comptage des dernières minutes.
-- `utilisateur` sur `couple_id`.
+- `joueur` sur `duo_id`.
 
 ## 6. Suppressions
 
@@ -176,10 +176,10 @@ Règles : cadrage § 10. Aucune corbeille, aucune conservation différée.
 
 | Action | Supprimé | Conservé |
 |---|---|---|
-| Dissolution du duo | `mission`, `tirage`, `tirage_proposition`, `participation`, `gage` du duo, puis la ligne `couple` | Les deux `utilisateur`, remis à `couple_id` nul et 5 points de vie |
-| Suppression de compte | Tout ce qui précède, plus la ligne `utilisateur` | Rien |
+| Dissolution du duo | `mission`, `tirage`, `tirage_proposition`, `participation`, `gage` du duo, puis la ligne `duo` | Les deux `joueur`, remis à `duo_id` nul et 5 points de vie |
+| Suppression de compte | Tout ce qui précède, plus la ligne `joueur` | Rien |
 
-- Les clés étrangères des tables de jeu sont déclarées en suppression en cascade depuis `couple` : la dissolution est une seule instruction, pas une séquence à maintenir.
+- Les clés étrangères des tables de jeu sont déclarées en suppression en cascade depuis `duo` : la dissolution est une seule instruction, pas une séquence à maintenir.
 
 ## 7. À trancher en S8
 

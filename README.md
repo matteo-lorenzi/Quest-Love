@@ -13,6 +13,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | [`02-recherche-utilisateur/`](02-recherche-utilisateur/) | Proto-personas, parcours utilisateur, guide d'animation du focus group |
 | [`03-conception/`](03-conception/) | Inventaire des écrans, carte de navigation (maquettes et parcours : Figma, voir ressources externes) |
 | [`04-technique/`](04-technique/) | Description technique, modèle de données |
+| [`docs/`](docs/) | Décisions d'architecture (`adr/`), guide GitHub Issues, consignes pour les outils de développement (`agents/`) |
 | [`GLOSSARY.md`](GLOSSARY.md) | Vocabulaire du domaine : un mot par concept, pour la documentation et le code |
 | `00-donnees-sensibles/` | **Local, non versionné** (RGPD) : enregistrements, questionnaires bruts, consentements. Absent du dépôt : chaque membre le crée sur son poste. |
 | `00-supports-cours/` | **Local, non versionné** : supports fournis par les enseignants (diffusion restreinte), dont l'exemple de documentation fonctionnelle. |
@@ -29,8 +30,8 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
 | `02-recherche-utilisateur/guide-animation-focus-group.md` | Déroulé et questions du focus group (2 h, 6 à 8 participants). | v0.3 (07/10/2026) — exercice, séance non tenue |
 | `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (27/27 cadres) |
-| `04-technique/doc-technique.md` | Description technique : architecture, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.0 — à confronter au code à partir de S10 |
-| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.0 — **à valider en S8** |
+| `04-technique/doc-technique.md` | Description technique : architecture MVC, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.1 (09/10/2026) — MVC à contrôleur frontal, ADR-0001 |
+| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.1 (09/10/2026) — tables `joueur` et `duo` · **à valider en S8** |
 
 Les fichiers `.json` sont les fichiers de travail générés par l'outil de conception ; les `.md` du même nom en sont la version lisible. Les deux se modifient ensemble.
 
