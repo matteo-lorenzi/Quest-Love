@@ -13,6 +13,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | [`02-recherche-utilisateur/`](02-recherche-utilisateur/) | Proto-personas, parcours utilisateur |
 | [`03-conception/`](03-conception/) | Inventaire des écrans, carte et parcours de navigation (maquettes : Figma, voir ressources externes) |
 | [`04-technique/`](04-technique/) | Description technique, modèle de données |
+| `00-donnees-sensibles/` | **Local, non versionné** (RGPD) : enregistrements, questionnaires bruts, consentements. Absent du dépôt : chaque membre le crée sur son poste. |
 | [`99-archives/`](99-archives/) | Versions périmées, conservées pour l'historique (dont les captures PNG des wireframes antérieures au 18/09) |
 
 ### Détail des documents

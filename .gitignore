@@ -17,5 +17,12 @@ $RECYCLE.BIN/
 .vscode/
 .idea/
 
+# Données personnelles (RGPD) : enregistrements, questionnaires, consentements
+# Dossier local uniquement, jamais versionné
+00-donnees-sensibles/
+
+# Archives
+*.zip
+
 # Supports de cours à diffusion restreinte (ne pas publier)
 04-technique/Exemple guide animation focus group authentification.pdf
