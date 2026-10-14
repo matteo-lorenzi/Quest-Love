@@ -26,3 +26,10 @@ $RECYCLE.BIN/
 
 # Supports de cours à diffusion restreinte (ne pas publier)
 00-supports-cours/
+
+# Configuration propre à chaque installation (identifiants de base, décalage d'horloge)
+# Seul config.exemple.php est versionné (doc technique § 6.1)
+app/config/config.php
+
+# Outil de test, téléchargé par chacun hors du dépôt (doc technique § 6.4)
+phpunit.phar
