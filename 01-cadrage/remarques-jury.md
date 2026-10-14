@@ -3,13 +3,13 @@
 > Toutes les remarques reçues de l'encadrant (Yannis Delmas) et, à terme, du jury : par courriel, en cours ou en soutenance. Chaque remarque est datée, rattachée à sa source et suivie jusqu'à sa résolution.
 > Ce document ne fixe aucune règle : une remarque qui change une règle est d'abord reportée dans le cadrage, puis marquée « traitée » ici avec le renvoi.
 >
-> **Version 1.1 — 14 octobre 2026.** Ajout des réponses du cours du 14/10.
+> **Version 1.1 — 14 octobre 2026.** Ajout des réponses du cours du 14/10 ; remarques 07-2 à 07-4 retenues pour les prochains projets.
 > Version 1.0 du 14 octobre 2026 : remarques des courriels du 17/09, du 18/09, du 07/10 et du 12/10/2026.
 
 ## Comment tenir ce document
 
 - **Le jour même** : toute remarque reçue est ajoutée, par écrit ou de mémoire après un cours (préciser « oral »).
-- **Statuts** : _ouverte_ (rien n'est fait), _en cours_ (un travail ou une réponse est engagé), _traitée_ (le document ou le code qui y répond est fusionné dans `main`).
+- **Statuts** : _ouverte_ (rien n'est fait), _en cours_ (un travail ou une réponse est engagé), _traitée_ (le document ou le code qui y répond est fusionné dans `main`) ; _retenue_ (enseignement noté pour les prochains projets, sans modification de celui-ci : la remarque n'est plus bloquante).
 - **Réponse** : toujours un renvoi vers l'endroit qui traite la remarque (section, ADR, demande de fusion), jamais une recopie.
 - Les points positifs sont gardés aussi : ils indiquent ce qu'il ne faut pas défaire et servent d'arguments en soutenance.
 
@@ -17,11 +17,12 @@
 
 | Statut | Nombre |
 |---|---|
-| Ouvertes | 3 |
+| Ouvertes | 0 |
 | En cours | 2 |
 | Traitées | 17 |
+| Retenues pour les prochains projets | 3 |
 
-Les trois remarques ouvertes concernent la documentation fonctionnelle (07-2, 07-3, 07-4) : à traiter avant le prochain checkpoint (cadrage § 12).
+Aucune remarque n'est bloquante. Les trois remarques du 07/10 sur les maquettes (07-2, 07-3, 07-4) sont retenues comme enseignements pour les prochains projets, sans être intégrées à celui-ci (décision du binôme du 14/10).
 
 ## Courriel du 17/09/2026 — maquettes de zonage
 
@@ -46,9 +47,9 @@ Points positifs relevés : le projet est clair ; le MVP est bien décrit et la r
 | # | Remarque | Statut | Réponse |
 |---|---|---|---|
 | 07-1 | (Oral) Architecture MVC attendue, « pensée entité et vue ». | Traitée | ADR-0001 ; doc technique V1.1 puis V1.2, § 2. |
-| 07-2 | Schéma de navigation pas toujours clair (plusieurs sorties de F1) ; le relier au scénario d'utilisation, en langage d'organigramme (Mermaid possible). | **Ouverte** | À faire : organigramme Mermaid dans la doc fonctionnelle (§ Carte de navigation), étapes du scénario d'utilisation en regard. |
-| 07-3 | Maquettes lisibles dans l'ensemble, mais pas de vision synoptique. | **Ouverte** | À faire : une planche d'ensemble des 27 cadres, ou un tableau synoptique écran par écran dans la doc fonctionnelle. |
-| 07-4 | Statut des maquettes un peu intermédiaire entre maquette fonctionnelle et maquette graphique. | **Ouverte** | À trancher : soit assumer la maquette fonctionnelle (retirer ce qui relève du graphisme), soit le dire explicitement dans la doc fonctionnelle. Les maquettes graphiques sont prévues en S5. |
+| 07-2 | Schéma de navigation pas toujours clair (plusieurs sorties de F1) ; le relier au scénario d'utilisation, en langage d'organigramme (Mermaid possible). | Retenue | Décision du binôme (14/10) : non intégrée au projet, retenue pour les prochains. Enseignement : relier chaque sortie d'écran à une étape du scénario, et la tracer en organigramme. |
+| 07-3 | Maquettes lisibles dans l'ensemble, mais pas de vision synoptique. | Retenue | Décision du binôme (14/10) : non intégrée au projet, retenue pour les prochains. Enseignement : prévoir dès le départ une planche d'ensemble des écrans. |
+| 07-4 | Statut des maquettes un peu intermédiaire entre maquette fonctionnelle et maquette graphique. | Retenue | Décision du binôme (14/10) : non intégrée au projet, retenue pour les prochains. Enseignement : annoncer le statut d'une maquette (fonctionnelle ou graphique) et s'y tenir. |
 | 07-5 | Ajouter les codes d'écran dans la répartition en lots. | Traitée | Doc fonctionnelle V1.1, § Lots ; doc technique § 5 (PR #1). |
 | 07-6 | Le lot 1 est accessible ; reste à voir comment effectuer ou simuler la gestion du temps. | Traitée | Doc technique V1.2, § 3.8 (horloge unique, décalage de démonstration réglé côté serveur) ; doc fonctionnelle § Lots (PR #1). Le courriel mentionne « une utilisation de SAI » [à vérifier : sens du sigle]. |
 
