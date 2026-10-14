@@ -5,7 +5,8 @@
 > Les règles du jeu ne sont pas recopiées ici : ce document y renvoie (« cadrage § 4.2 »). Une règle recopiée est une règle qui divergera.
 > Modèle de données : annexe [`modele-donnees.md`](modele-donnees.md).
 >
-> **Version 1.1 — 9 octobre 2026.** Passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
+> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1).
+> Version 1.1 du 9 octobre 2026 : passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
 
 ## Sommaire
 
@@ -45,7 +46,9 @@ Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 | PHP 8.2 | `password_hash()`, PDO, types de retour, énumérations |
 | MariaDB 10, moteur InnoDB | Transactions et verrous disponibles ; schéma validé avant implémentation (S8) |
 | Aucune tâche planifiée | Expiration, révélation et défi aléatoire calculés au chargement de page (§ 3.2) |
-| Pas de gestionnaire de dépendances | Aucune bibliothèque tierce, ni côté serveur ni côté client |
+| Pas de gestionnaire de dépendances | Aucune bibliothèque tierce, ni côté serveur ni côté client ; l'outil de test reste hors de `app/` et hors du dépôt (§ 6.4) |
+| `.htaccess` pris en compte (courriel du 12/10) | Redirection vers `app/public/` possible si la racine servie ne peut pas être changée (§ 6.1) |
+| Pas d'accès SSH, seulement SFTP (courriel du 12/10) | Déploiement par SFTP ; tests et réinitialisation des bases exécutés en local (§ 6.3, § 6.4) |
 | `debug.php` déposé à la racine | Consultation du code source par le jury, dès S2 |
 
 Détail des contraintes : cadrage § 3.
@@ -96,7 +99,7 @@ Arborescence du lot 1. Les lots suivants n'ajoutent pas de dossier : leurs contr
 
 ### 2.2 Cycle d'une requête
 
-1. `public/index.php` inclut `noyau/amorce.php` : autoloader, fuseau `Europe/Paris`, session, connexion PDO, jeton CSRF. Il lit l'heure du serveur une seule fois, dans `$maintenant`.
+1. `public/index.php` inclut `noyau/amorce.php` : autoloader, fuseau `Europe/Paris`, session, connexion PDO, jeton CSRF. Il lit l'heure du serveur une seule fois, dans `$maintenant`, en appliquant le décalage de démonstration s'il est réglé (§ 3.8).
 2. Le routeur lit `?ecran=` ; un écran absent de la table renvoie vers G1 (page introuvable).
 3. Si un joueur est connecté, le routeur appelle `RattrapageService`, qui rejoue les échéances manquées (§ 3.2). Aucune sortie n'a encore été émise : une redirection reste possible.
 4. Si le rattrapage a produit des événements à montrer, le routeur redirige vers l'écran `evenement`.
@@ -112,7 +115,7 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 | `bienvenue` (défaut) | A1 | `BienvenueControleur` | public |
 | `inscription` | A2 | `InscriptionControleur` | public |
 | `connexion` | A3 | `ConnexionControleur` | public |
-| `deconnexion` | — | `ConnexionControleur` | connecté |
+| `deconnexion` | — | `ConnexionControleur` | connecté, `POST` seulement (§ 3.6) |
 | `legal` | A4 | `LegalControleur` | public |
 | `salle-attente` | B1 | `SalleAttenteControleur` | connecté |
 | `onboarding` | B2 | `OnboardingControleur` | en duo |
@@ -129,7 +132,7 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 ### 2.4 Conventions de code
 
 - **Temps serveur uniquement** — `date_default_timezone_set` sur `Europe/Paris` dans `amorce.php` ; aucune date issue du client n'est acceptée. Cadrage § 6.3.
-- **L'heure en paramètre** — tout service qui dépend de l'heure reçoit `DateTimeImmutable $maintenant` ; seul `index.php` lit l'horloge. C'est ce qui rend minuit, 12 h et le changement d'heure testables sans attendre.
+- **L'heure en paramètre** — tout service qui dépend de l'heure reçoit `DateTimeImmutable $maintenant` ; seul `index.php` lit l'horloge. C'est ce qui rend minuit, 12 h et le changement d'heure testables sans attendre. Les horodatages écrits en base viennent aussi de `$maintenant`, jamais de `NOW()` en SQL (§ 3.8).
 - **Bornes de journée par le calendrier** — `DateTimeImmutable` sur `today` et `tomorrow`, décalages par `modify` ; jamais d'addition de 86 400 secondes.
 - **Contrôleurs fins** — un contrôleur lit la requête, appelle un service, puis redirige ou rend sa vue. Aucune règle du jeu ni aucun SQL dans un contrôleur ou une vue.
 - **SQL dans les dépôts seulement**, en requêtes préparées sans exception, y compris pour les entiers issus de l'URL.
@@ -140,12 +143,14 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 - **Français sans accent partout** — classes, méthodes, cas d'énumération, tables et colonnes : `MissionDepot::trouverEnCoursParDestinataire()`, `StatutMission::EnCours`. Suffixes de rôle en français : `Controleur`, `Depot`, `Service`.
 - **Vocabulaire du glossaire** — les noms du code suivent `GLOSSARY.md` : `Joueur`, `Duo`, `Tirage`, `Mission`, jamais « utilisateur », « couple » ou « pioche ».
 - **HTML sémantique** — `header`, `main`, `nav`, `section`, `article`, `form`, `button` avant tout `div` ; classes CSS en BEM français : `carte-defi`, `carte-defi__titre`, `carte-defi--aleatoire`.
+- **Simplicité vérifiable** — pas de classe mère, pas de conteneur d'injection, pas d'abstraction « au cas où » : chaque fichier doit pouvoir être expliqué ligne par ligne par l'un ou l'autre membre du binôme. Ce qui ne passe pas ce test est simplifié (ADR-0001).
+- **Commentaires** — chaque fichier commence par une ligne qui donne son rôle, son code d'écran, son lot et son périmètre. Ensuite, on commente le *pourquoi* d'une décision non évidente, jamais le *quoi* que le code dit déjà : objectif, qu'une personne extérieure puisse reprendre le code. Exception assumée : `public/index.php`, `noyau/Routeur.php` et l'écran de référence A3 (`ConnexionControleur`, sa vue, `CompteService`), écrits en premier, sont annotés étape par étape, avec les numéros du § 2.2, pour servir de support d'apprentissage du MVC.
 
 ---
 
 ## 3. Mécanismes
 
-Sept entrées : ce que fait le mécanisme, quand il se déclenche, ce qu'il écrit. Les règles du jeu restent au cadrage, en renvoi de fin d'entrée.
+Huit entrées : ce que fait le mécanisme, quand il se déclenche, ce qu'il écrit. Les règles du jeu restent au cadrage, en renvoi de fin d'entrée.
 
 ### 3.1 Journée de jeu et participation
 
@@ -208,6 +213,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Services** : `CompteService`, `AppairageService`.
 - **Mot de passe** : `password_hash` au stockage, `password_verify` à la vérification.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
+- **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
 - **Code conservé** : un code reçu avant authentification est gardé en session et rejoué après inscription ou connexion.
 - **Aiguillage après authentification** : en duo vers C1 ; sans duo avec code valide vers B2 ; sinon vers B1, avec message d'erreur si le code était invalide.
@@ -218,13 +224,26 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.7 Sécurité
 
 - **Classe** : `noyau/Securite.php`.
-- **CSRF** : un jeton par session, vérifié sur tout formulaire d'écriture ; échec vers G1.
+- **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
 - **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base, par pseudo et par session.
 - **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Hors périmètre, à écrire dans le dossier** : pas de double authentification, pas de journalisation des accès, pas de politique de sécurité de contenu.
 - **Règle** : cadrage § 6.6.
+
+### 3.8 Horloge et simulation du temps
+
+Réponse à la remarque n° 5 de l'enseignant (07/10/2026) : comment effectuer ou simuler la gestion du temps au lot 1.
+
+- **Une seule lecture de l'horloge** : `public/index.php` crée `$maintenant` (heure du serveur, fuseau `Europe/Paris`) au début de chaque requête, puis le transmet au routeur et aux services (§ 2.4). Aucun autre fichier ne lit l'heure.
+- **Décalage de démonstration** : si la constante `HORLOGE_DECALAGE` du fichier `config/config.php` n'est pas vide (par exemple `'+11 hours 55 minutes'`), `index.php` l'applique à `$maintenant` par `modify`. On peut ainsi montrer en direct la bascule de 12 h ou l'expiration de minuit sans attendre. Le décalage est réglé côté serveur, dans la configuration : jamais par le navigateur, jamais par l'URL. Vide en fonctionnement normal.
+- **Signalement** : quand le décalage est actif, `pied.php` affiche une mention visible `[TEXTE À RÉDIGER : horloge de démonstration active]`, pour qu'une démonstration ne soit jamais confondue avec l'heure réelle.
+- **Horodatages en base** : écrits à partir de `$maintenant`, jamais par `NOW()` ni `CURRENT_TIMESTAMP` en SQL ; sinon le décalage ne s'appliquerait qu'à moitié.
+- **Échéance affichée** : le serveur écrit en texte statique l'heure limite et le temps restant calculés depuis `$maintenant` ; `echeance.js` ne fait que décompter à partir de cette durée, sans jamais lire l'heure du téléphone pour décider de quoi que ce soit (§ 4.3).
+- **Tests** : chaque test construit le `$maintenant` de son choix (11 h 59, puis 12 h 01 ; 23 h 59, puis 00 h 01 ; jour du changement d'heure) et le passe au service testé. Aucun mécanisme spécial n'est nécessaire (§ 6.4).
+- **Complément** : le jeu de démonstration (§ 6.5) fournit un historique déjà daté, pour les cas qu'on ne veut pas rejouer en direct.
+- **Règle** : cadrage § 4.2, § 6.3.
 
 ---
 
@@ -235,7 +254,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Une vue d'écran = un gabarit d'en-tête, un contenu, un gabarit de pied.** Aucun HTML dupliqué entre deux écrans.
 - **`entete.php`** — ouverture du document, `lang="fr"`, méta `viewport`, feuilles de style, titre passé en variable.
 - **`navigation.php`** — barre basse à quatre onglets ; incluse seulement par les écrans qui la portent, jamais sur les sous-écrans focalisés ni sur les événements.
-- **`pied.php`** — fermeture du document, scripts en fin de corps.
+- **`pied.php`** — fermeture du document, scripts en fin de corps, mention d'horloge décalée quand elle est active (§ 3.8).
 - Les textes d'interface sont rédigés en S6 et remplacent les textes d'attente ; ils ne sont pas improvisés dans le code. Cadrage § 8.3.
 
 ### 4.2 Composants partagés
@@ -255,7 +274,7 @@ Deux fichiers, sans dépendance. L'application reste utilisable sans eux.
   - **Sans JavaScript** : les trois cartes sont trois boutons de formulaire empilés ; le choix passe par un `POST`.
   - **Mouvement réduit** : la carte s'affiche directement, sans animation.
 - **`echeance.js`** — affiche le temps restant avant minuit.
-  - L'échéance est **toujours écrite en texte statique** dans le HTML ; le script ne fait que l'enrichir.
+  - L'échéance est **toujours écrite en texte statique** dans le HTML, calculée par le serveur ; le script ne fait que l'enrichir, en décomptant à partir de la durée restante fournie par le serveur (§ 3.8).
   - La zone n'est pas une région dynamique : pas d'annonce répétée aux technologies d'assistance.
 
 ### 4.4 Accessibilité
@@ -293,7 +312,8 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [ ] `noyau/Vue.php` — rendu et échappement de sortie
 - [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php`
 - [ ] `public/styles/base.css`, `composants.css`, `ecrans.css`
-- [ ] `tests/` — lanceur de tests et base de test (outil selon la réponse de l'enseignant)
+- [ ] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
+- [ ] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
 
 **Compte et duo** _(A)_
 
@@ -301,7 +321,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [ ] `CompteService` — inscription, connexion, suppression
 - [ ] `AppairageService` — code d'invitation, formation, dissolution
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
-- [ ] A2 `InscriptionControleur` · A3 `ConnexionControleur` (et déconnexion)
+- [ ] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4) · A2 `InscriptionControleur`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [ ] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
@@ -331,7 +351,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Exploitation** _(commun)_
 
-- [ ] `sql/demonstration.sql` — jeu de données reproductible (§ 6.3)
+- [ ] `sql/demonstration.sql` — jeu de données reproductible (§ 6.5)
 - [ ] `debug.php` déposé à la racine du dossier Azrael
 
 ### 5.2 Lot 2 — gamification
@@ -360,10 +380,10 @@ Non développé. Pistes en § 7, à reprendre en recul réflexif.
 
 ### 6.1 Installation
 
-1. Copier le dossier `app/` dans `~mlorenzi/quest-love/` sur Azrael ; aucune installation de dépendances. Par un script `rsync`/`scp` si le compte a un accès shell, par SFTP sinon (à vérifier).
-2. Faire de `app/public/` la racine servie ; à défaut, un `.htaccess` à la racine de `app/` redirige vers `public/` (ADR-0001).
-3. Créer la base, puis charger `sql/schema.sql` et `sql/defis.sql`.
-4. Copier `config/config.exemple.php` en `config/config.php` et y renseigner les identifiants de base. Ce fichier n'est jamais versionné.
+1. Copier le dossier `app/` dans `~mlorenzi/quest-love/` sur Azrael, par SFTP : le compte n'a pas d'accès SSH (courriel de l'enseignant du 12/10). Aucune installation de dépendances. `sql/` et `tests/` ne sont pas copiés.
+2. Faire de `app/public/` la racine servie ; à défaut, un `.htaccess` à la racine de `app/` redirige vers `public/` (ADR-0001). Les `.htaccess` sont pris en compte sur Azrael (même courriel).
+3. Créer la base, puis charger les fichiers `sql/` (§ 6.3).
+4. Copier `config/config.exemple.php` en `config/config.php` et y renseigner les identifiants de base ; laisser `HORLOGE_DECALAGE` vide (§ 3.8). Ce fichier n'est jamais versionné.
 5. Déposer `debug.php` à la racine du dossier.
 6. Vérifier que l'heure du serveur et le fuseau `Europe/Paris` concordent : tout le modèle temporel en dépend.
 
@@ -376,9 +396,72 @@ Non développé. Pistes en § 7, à reprendre en recul réflexif.
 - Point de synchronisation hebdomadaire maintenu.
 - Jamais de configuration ni de vidage de base dans le dépôt.
 
-### 6.3 Jeu de données de démonstration
+### 6.3 Bases de données : méthode
 
-`sql/demonstration.sql`, rechargeable en une commande. C'est la seule façon de démontrer l'expiration sans attendre minuit. Doit contenir :
+#### Principe
+
+Il y a trois bases, mais **une seule est précieuse**.
+
+| Base | Où | Sert à | Contenu | Peut être effacée ? |
+|---|---|---|---|---|
+| Base locale de Matteo | WAMP, son ordinateur | Développer et lancer les tests | Jeu de démonstration, modifié par l'usage et par les tests | Oui, à tout moment |
+| Base locale de Sheyrel | WAMP, son ordinateur | Développer et lancer les tests | Idem | Oui, à tout moment |
+| Base d'Azrael | Serveur de l'université | Intégration, couple témoin, démonstration | Données réelles à partir de S9 | **Jamais après S9** |
+
+Chaque base locale sert **à la fois au développement et aux tests** : il n'y a pas de base de test séparée.
+
+- **En développement**, on navigue dans l'application sur `localhost` (WAMP servant `app/public/`) ; la base contient le jeu de démonstration (§ 6.5) et ce qu'on y a ajouté en jouant.
+- **Quand on lance les tests**, ils commencent par réinitialiser cette base pour partir d'un état connu (§ 6.4). Après les tests, la base reste dans l'état où les tests l'ont laissée : on la réinitialise de nouveau pour reprendre le développement.
+- Une base locale n'est donc jamais un endroit où l'on garde quelque chose : tout ce qui compte est dans les fichiers `sql/`.
+
+#### Source de vérité : le dossier `sql/`
+
+Toutes les bases se construisent à partir des mêmes fichiers, chargés dans cet ordre :
+
+1. **`schema.sql`** — supprime les tables existantes (`DROP TABLE IF EXISTS`) puis les recrée. C'est le seul endroit où une table est définie.
+2. **`defis.sql`** — remplit la bibliothèque de défis.
+3. **`demonstration.sql`** — ajoute le jeu de démonstration (§ 6.5). Jamais chargé sur Azrael après S9.
+
+**Règle unique** : on ne modifie jamais une base à la main (pas d'`ALTER TABLE` tapé dans phpMyAdmin). Toute modification passe par les fichiers `sql/`, est versionnée, puis rejouée sur chaque base.
+
+#### Créer sa base locale (une fois)
+
+1. Dans phpMyAdmin (WAMP), créer une base vide nommée `quest_love`, interclassement `utf8mb4_unicode_ci`.
+2. Copier `app/config/config.exemple.php` en `app/config/config.php` et y renseigner les identifiants de WAMP (souvent `root` sans mot de passe [à vérifier selon l'installation]).
+3. En ligne de commande, depuis la racine du dépôt : `php sql/reinitialiser.php`.
+
+#### Réinitialiser sa base locale (à volonté)
+
+Une commande : `php sql/reinitialiser.php`. Le script lit `app/config/config.php`, puis exécute `schema.sql`, `defis.sql` et `demonstration.sql` dans l'ordre. Deux garde-fous :
+
+- il ne s'exécute qu'en ligne de commande, jamais depuis le web ;
+- il refuse de s'exécuter si l'hôte de la base n'est pas `localhost` ou `127.0.0.1` : une erreur de configuration ne peut donc jamais effacer la base d'Azrael.
+
+#### Faire évoluer le schéma
+
+- **Avant la validation du schéma (S8)** — on modifie `schema.sql` dans un ticket, on fusionne, et chacun relance `php sql/reinitialiser.php`. Azrael est reconstruite de la même façon (ci-dessous). Rien à conserver : les données ne sont que celles de démonstration.
+- **Après S8** — le schéma est validé et Azrael contiendra bientôt les données du couple témoin : on ne peut plus tout effacer. Toute évolution indispensable s'écrit dans un fichier daté `sql/evolution-AAAA-MM-JJ.sql` (les `ALTER` nécessaires), appliqué une fois à chaque base, **et** reportée dans `schema.sql` pour que les nouvelles installations naissent directement à jour. Une évolution de règle du jeu après S8 part en lot 4 (cadrage).
+
+#### La base d'Azrael
+
+- Sans accès SSH, `reinitialiser.php` ne peut pas tourner sur Azrael : on importe les fichiers `sql/`, dans l'ordre ci-dessus, avec l'outil d'administration de base de l'hébergement [à vérifier : phpMyAdmin ou équivalent sur Azrael].
+- Jusqu'en S8 : reconstruite à chaque intégration si le schéma a changé.
+- À partir de S9 : uniquement des fichiers `evolution-*.sql`, chacun précédé d'un export de sauvegarde.
+
+### 6.4 Tests
+
+- **Outil** : PHPUnit, sous forme d'archive `phpunit.phar` téléchargée une fois et rangée **hors du dépôt**, sans Composer. Version 11, compatible avec PHP 8.2 [à vérifier au téléchargement]. Accord de l'enseignant : courriel du 12/10.
+- **Périmètre** : la couche modèle (entités, dépôts, services). Les contrôleurs et les vues ne sont pas testés automatiquement : leur vérification passe par la recette (§ 6.6).
+- **Où** : en local seulement, sur la base locale de chacun (§ 6.3). Le dossier `tests/` est versionné mais jamais déployé sur Azrael ; l'enseignant le consulte dans le dépôt GitHub [à vérifier : accès de l'enseignant au dépôt].
+- **Lancement** : `php chemin/vers/phpunit.phar tests/` depuis la racine du dépôt.
+- **État de départ** : le fichier d'amorce des tests réinitialise la base (mêmes fichiers, mêmes garde-fous qu'au § 6.3), puis chaque classe de test repart d'une base réinitialisée.
+- **L'heure** : chaque test passe aux services le `$maintenant` de son choix (§ 3.8).
+- **Nommage** : un test cite l'écran et le parcours couverts (`AGENTS.md`).
+- **Tests prioritaires** — ceux de la recette technique (§ 6.6) : double pénalité depuis deux sessions, refus d'un choix après 12 h, expiration après minuit, passage à zéro, défi aléatoire sans nouveau tirage.
+
+### 6.5 Jeu de données de démonstration
+
+`sql/demonstration.sql`, rechargeable en une commande (§ 6.3). Avec le décalage d'horloge (§ 3.8), c'est ce qui permet de démontrer l'expiration sans attendre minuit. Doit contenir :
 
 - un duo formé, avec quelques jours d'historique ;
 - une mission expirée, `date_decouverte` nulle, pour la variante « jamais découvert » ;
@@ -389,13 +472,14 @@ Non développé. Pistes en § 7, à reprendre en recul réflexif.
 
 Cadrage § 6.4.
 
-### 6.4 Recette technique du lot 1
+### 6.6 Recette technique du lot 1
 
-Complète les critères de succès du cadrage § 14, qui restent la référence.
+Complète les critères de succès du cadrage § 14, qui restent la référence. Les cases marquées _(test)_ sont couvertes par un test automatique (§ 6.4).
 
-- [ ] Deux sessions du même compte ne produisent ni double pénalité ni double attribution.
-- [ ] Une réponse envoyée après la bascule est refusée avec un message en texte.
-- [ ] Un chargement de page après minuit applique l'expiration et affiche D1.
+- [ ] _(test)_ Deux sessions du même compte ne produisent ni double pénalité ni double attribution.
+- [ ] _(test)_ Une réponse envoyée après la bascule est refusée avec un message en texte.
+- [ ] _(test)_ Un chargement de page après minuit applique l'expiration et produit l'événement D1.
+- [ ] La démonstration avec décalage d'horloge (§ 3.8) montre la bascule de 12 h et l'expiration de minuit sur deux téléphones.
 - [ ] La dissolution supprime les données de jeu et affiche D3 au partenaire.
 - [ ] Le parcours complet se fait au clavier, avec focus visible.
 - [ ] L'application reste utilisable avec JavaScript désactivé.

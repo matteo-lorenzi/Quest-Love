@@ -3,13 +3,14 @@
 > **Statut : rédigée, en attente de validation orale S4.** Contenu adapté du cadrage unifié et des documents de recherche/conception ; maquettes et parcours consultables dans Figma (liens en § Carte de navigation et § Maquettes et écrans) ; reste à compléter deux sections différées : catégories de défis (S5) et textes d'interface définitifs (S6), toutes deux signalées par `⚠` à l'endroit concerné.
 > Référence : cadrage unifié V2.9 (18/09/2026) · inventaire des écrans v2.2. En cas d'écart, le cadrage fait foi.
 >
-> **Version 1.0 — 2 octobre 2026.**
+> **Version 1.1 — 14 octobre 2026.**
+> Changements depuis la V1.0 (02/10/2026) : codes d'écrans ajoutés dans la répartition en lots et gestion du temps au lot 1 (§ Lots, remarques n° 4 et n° 5 de l'encadrant du 07/10) ; variante d'erreur rattachée à G1, conformément à l'inventaire v2.2.
 
 ## Description synthétique
 
 Auteurs : Sheyrel, Matteo
 
-Mise à jour : 2 octobre 2026 (version 1.0)
+Mise à jour : 14 octobre 2026 (version 1.1)
 
 Pitch :
 
@@ -265,7 +266,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   Écran dédié, même exception que F2 ; confirmation sans ressaisie du mot de passe.
 - **G1 · Écrans d'erreur — page introuvable** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-226)
   Gabarit d'erreur générique.
-- **G2 · Erreur serveur / action impossible** — variante de G1, même gabarit : note sous le cadre G1, pas de cadre dédié.
+  - Variante : erreur serveur ou action impossible (ex-G2) — même gabarit, note sous le cadre G1, pas de cadre dédié
 
 #### Bande 05 — Gamification _(lot 2, à zoner)_
 
@@ -295,28 +296,35 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 ### Lots
 
+> Les codes renvoient aux écrans décrits en § Maquettes et écrans et à l'inventaire v2.2. Fichiers produits pour chaque écran : description technique (`04-technique/doc-technique.md`) § 5.
+
 #### Lot 1 : duo et défi du jour
 
-- Inscription, connexion, appairage par code
-- Participation quotidienne, tirage en éventail, choix et attribution
-- Révélation, défi aléatoire, validation
-- Expiration automatique, compteur de PV, perte d'1 PV
-- Accueil face-à-face
-- Dissolution du duo, suppression de compte
-- Pages légales
+18 codes d'écran, 27 cadres zonés.
+
+- Accueil public, inscription, connexion — **A1, A2, A3**
+- Appairage par code, duo formé et onboarding, règles — **B1, B2, B3**
+- Participation quotidienne, tirage en éventail, choix et attribution — **C1** (états 1 à 3), **C2**
+- Révélation, défi aléatoire, validation — **C1** (états 4 à 6), **D2**, **C3**
+- Expiration automatique, compteur de PV, perte d'1 PV, retour à 5 — **D1, D5**
+- Accueil face-à-face, journée sans jeu — **C1** (socle, cas « aucun jeu aujourd'hui »)
+- Profil, dissolution du duo, suppression de compte — **F1, F2, F3**, et **D3** pour le partenaire
+- Pages légales — **A4**
+- Écrans d'erreur — **G1**
+- **Gestion du temps** : toutes les échéances (00 h, 12 h, minuit) sont calculées sur l'heure du serveur, jamais sur celle du téléphone. Pour la démonstration, l'heure du serveur peut être décalée par un réglage côté serveur, ce qui permet de montrer la bascule de midi ou l'expiration de minuit sans attendre ; les tests automatiques, eux, fixent l'heure de leur choix. Détail : description technique (`04-technique/doc-technique.md`) § 3.8.
 
 #### Lot 2 : gamification
 
-- Contestation
-- Gages : déclenchement, rédaction, liste, contestation
-- Pénalité doublée
-- Historique
+- Contestation — **C3+**, **D4**
+- Gages : déclenchement, rédaction, liste, contestation — **D5+, D6, D7, E1, E2, E3**
+- Pénalité doublée — **D1+**
+- Historique — **E4**
 
 #### Lot 3 : confort
 
 - Catégories et filtres
-- Statistiques du couple
-- Changement de mot de passe et de pseudo
+- Statistiques du couple — **F4**
+- Changement de mot de passe et de pseudo — **F5**
 - Avatars graphiques, finition graphique
 - Notification par courriel (si faisable sur Azrael)
 
