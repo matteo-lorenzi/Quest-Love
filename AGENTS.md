@@ -13,6 +13,10 @@ Référence complète : `04-technique/doc-technique.md` § 2.4 ; architecture : 
 - HTML sémantique avant tout `div` ; classes CSS en BEM français (`carte-defi__titre`).
 - Aucune bibliothèque tierce dans `app/`.
 
+## Commits, PR et tickets
+
+Rédigés au nom du binôme, en français : un titre, le détail du changement, puis `Closes #N` s'il y a lieu, et rien d'autre. Garde-fou : aucune attribution à un outil d'IA, ni ligne `Co-Authored-By: Claude…` ou `Claude-Session:`, ni pied de page « Generated with / by Claude Code », ni lien `claude.ai/code`.
+
 ## Agent skills
 
 ### Issue tracker

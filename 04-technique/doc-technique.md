@@ -5,7 +5,7 @@
 > Les règles du jeu ne sont pas recopiées ici : ce document y renvoie (« cadrage § 4.2 »). Une règle recopiée est une règle qui divergera.
 > Modèle de données : annexe [`modele-donnees.md`](modele-donnees.md).
 >
-> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1).
+> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7) ; courriel retiré du lot 3 (§ 5.3, § 7, arbitrage A3) ; phpMyAdmin sur Azrael et accès de l'enseignant au dépôt confirmés (§ 6.3, § 6.4).
 > Version 1.1 du 9 octobre 2026 : passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
 
 ## Sommaire
@@ -211,7 +211,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.6 Compte, session et appairage
 
 - **Services** : `CompteService`, `AppairageService`.
-- **Mot de passe** : `password_hash` au stockage, `password_verify` à la vérification.
+- **Mot de passe** : `password_hash` au stockage (Argon2id si l'hébergement le permet [à vérifier sur Azrael avec `password_algos()`]), `password_verify` à la vérification. Règles de longueur, de composition, de liste noire et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
@@ -227,7 +227,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
-- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base, par pseudo et par session.
+- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base (table `tentative`), par pseudo et par session ; seuil, fenêtre et durée : cadrage § 6.6. Les échecs sont datés avec `$maintenant` (§ 3.8), ce qui rend le délai testable.
 - **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Hors périmètre, à écrire dans le dossier** : pas de double authentification, pas de journalisation des accès, pas de politique de sécurité de contenu.
 - **Règle** : cadrage § 6.6.
@@ -365,7 +365,6 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 ### 5.3 Lot 3 — confort
 
-- [ ] `CourrielService` — notification au choix, si l'envoi est possible sur Azrael
 - [ ] F4 `StatistiquesControleur` · F5 `ParametresControleur`
 - [ ] Filtres par catégorie sur l'historique
 - [ ] Avatars graphiques dans `public/medias/`
@@ -406,7 +405,7 @@ Il y a trois bases, mais **une seule est précieuse**.
 |---|---|---|---|---|
 | Base locale de Matteo | WAMP, son ordinateur | Développer et lancer les tests | Jeu de démonstration, modifié par l'usage et par les tests | Oui, à tout moment |
 | Base locale de Sheyrel | WAMP, son ordinateur | Développer et lancer les tests | Idem | Oui, à tout moment |
-| Base d'Azrael | Serveur de l'université | Intégration, couple témoin, démonstration | Données réelles à partir de S9 | **Jamais après S9** |
+| Base d'Azrael | Serveur de l'université | Intégration, couple témoin, démonstration | Données réelles dès l'arrivée du couple témoin | **Jamais une fois les vraies données arrivées** |
 
 Chaque base locale sert **à la fois au développement et aux tests** : il n'y a pas de base de test séparée.
 
@@ -420,7 +419,7 @@ Toutes les bases se construisent à partir des mêmes fichiers, chargés dans ce
 
 1. **`schema.sql`** — supprime les tables existantes (`DROP TABLE IF EXISTS`) puis les recrée. C'est le seul endroit où une table est définie.
 2. **`defis.sql`** — remplit la bibliothèque de défis.
-3. **`demonstration.sql`** — ajoute le jeu de démonstration (§ 6.5). Jamais chargé sur Azrael après S9.
+3. **`demonstration.sql`** — ajoute le jeu de démonstration (§ 6.5). Jamais chargé sur Azrael une fois que de vraies données y sont (couple témoin).
 
 **Règle unique** : on ne modifie jamais une base à la main (pas d'`ALTER TABLE` tapé dans phpMyAdmin). Toute modification passe par les fichiers `sql/`, est versionnée, puis rejouée sur chaque base.
 
@@ -439,20 +438,20 @@ Une commande : `php sql/reinitialiser.php`. Le script lit `app/config/config.php
 
 #### Faire évoluer le schéma
 
-- **Avant la validation du schéma (S8)** — on modifie `schema.sql` dans un ticket, on fusionne, et chacun relance `php sql/reinitialiser.php`. Azrael est reconstruite de la même façon (ci-dessous). Rien à conserver : les données ne sont que celles de démonstration.
-- **Après S8** — le schéma est validé et Azrael contiendra bientôt les données du couple témoin : on ne peut plus tout effacer. Toute évolution indispensable s'écrit dans un fichier daté `sql/evolution-AAAA-MM-JJ.sql` (les `ALTER` nécessaires), appliqué une fois à chaque base, **et** reportée dans `schema.sql` pour que les nouvelles installations naissent directement à jour. Une évolution de règle du jeu après S8 part en lot 4 (cadrage).
+- **Avant la validation du schéma** (présentée à un checkpoint, repère S8 ; cadrage § 12) — on modifie `schema.sql` dans un ticket, on fusionne, et chacun relance `php sql/reinitialiser.php`. Azrael est reconstruite de la même façon (ci-dessous). Rien à conserver : les données ne sont que celles de démonstration.
+- **Après la validation du schéma** — le schéma est validé et Azrael contiendra bientôt les données du couple témoin : on ne peut plus tout effacer. Toute évolution indispensable s'écrit dans un fichier daté `sql/evolution-AAAA-MM-JJ.sql` (les `ALTER` nécessaires), appliqué une fois à chaque base, **et** reportée dans `schema.sql` pour que les nouvelles installations naissent directement à jour. Une évolution de règle du jeu après S8 part en lot 4 (cadrage).
 
 #### La base d'Azrael
 
-- Sans accès SSH, `reinitialiser.php` ne peut pas tourner sur Azrael : on importe les fichiers `sql/`, dans l'ordre ci-dessus, avec l'outil d'administration de base de l'hébergement [à vérifier : phpMyAdmin ou équivalent sur Azrael].
-- Jusqu'en S8 : reconstruite à chaque intégration si le schéma a changé.
-- À partir de S9 : uniquement des fichiers `evolution-*.sql`, chacun précédé d'un export de sauvegarde.
+- Sans accès SSH, `reinitialiser.php` ne peut pas tourner sur Azrael : on importe les fichiers `sql/`, dans l'ordre ci-dessus, avec phpMyAdmin, disponible sur Azrael (confirmé le 14/10).
+- Jusqu'à la validation du schéma : reconstruite à chaque intégration si le schéma a changé.
+- Dès qu'elle contient de vraies données (couple témoin) : uniquement des fichiers `evolution-*.sql`, chacun précédé d'un export de sauvegarde.
 
 ### 6.4 Tests
 
 - **Outil** : PHPUnit, sous forme d'archive `phpunit.phar` téléchargée une fois et rangée **hors du dépôt**, sans Composer. Version 11, compatible avec PHP 8.2 [à vérifier au téléchargement]. Accord de l'enseignant : courriel du 12/10.
 - **Périmètre** : la couche modèle (entités, dépôts, services). Les contrôleurs et les vues ne sont pas testés automatiquement : leur vérification passe par la recette (§ 6.6).
-- **Où** : en local seulement, sur la base locale de chacun (§ 6.3). Le dossier `tests/` est versionné mais jamais déployé sur Azrael ; l'enseignant le consulte dans le dépôt GitHub [à vérifier : accès de l'enseignant au dépôt].
+- **Où** : en local seulement, sur la base locale de chacun (§ 6.3). Le dossier `tests/` est versionné mais jamais déployé sur Azrael ; l'enseignant le consulte dans le dépôt GitHub, auquel il a accès (confirmé le 14/10).
 - **Lancement** : `php chemin/vers/phpunit.phar tests/` depuis la racine du dépôt.
 - **État de départ** : le fichier d'amorce des tests réinitialise la base (mêmes fichiers, mêmes garde-fous qu'au § 6.3), puis chaque classe de test repart d'une base réinitialisée.
 - **L'heure** : chaque test passe aux services le `$maintenant` de son choix (§ 3.8).
@@ -491,7 +490,7 @@ Complète les critères de succès du cadrage § 14, qui restent la référence.
 
 Pistes non engageantes, à documenter en recul réflexif plutôt qu'à développer.
 
-- **Notification par courriel** _(lot 3)_ — l'événement déclencheur est déjà synchrone : quand un joueur choisit, une requête PHP est en cours. L'obstacle n'est pas l'ordonnancement mais l'infrastructure d'envoi. Faisabilité à tester sur Azrael en S10.
+- **Notification par courriel** _(lot 4)_ — l'événement déclencheur est déjà synchrone : quand un joueur choisit, une requête PHP est en cours. L'obstacle n'est pas l'ordonnancement mais l'adresse : en envoyer une supposerait de la collecter, ce que la minimisation des données exclut (cadrage § 10). Arbitrage A3 : cadrage § 6.5.
 - **Notification web push** _(lot 4)_ — suppose un service worker, un abonnement VAPID et un serveur d'envoi. Hors de portée du semestre ; à décrire pour montrer que la limite est comprise.
 - **Tâche planifiée** — si un cron devenait disponible, le rattrapage deviendrait un script exécuté à 12 h et à minuit, sans changer la logique : `RattrapageService` est déjà isolé pour ça.
 - **Récupération de compte** _(lot 4)_ — par adresse électronique, ou par validation du partenaire. La seconde piste est plus cohérente avec la minimisation des données.

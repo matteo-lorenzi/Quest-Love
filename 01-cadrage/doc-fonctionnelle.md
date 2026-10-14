@@ -4,7 +4,7 @@
 > Référence : cadrage unifié V2.9 (18/09/2026) · inventaire des écrans v2.2. En cas d'écart, le cadrage fait foi.
 >
 > **Version 1.1 — 14 octobre 2026.**
-> Changements depuis la V1.0 (02/10/2026) : codes d'écrans ajoutés dans la répartition en lots et gestion du temps au lot 1 (§ Lots, remarques n° 4 et n° 5 de l'encadrant du 07/10) ; variante d'erreur rattachée à G1, conformément à l'inventaire v2.2.
+> Changements depuis la V1.0 (02/10/2026) : codes d'écrans ajoutés dans la répartition en lots et gestion du temps au lot 1 (§ Lots, remarques n° 4 et n° 5 de l'encadrant du 07/10) ; variante d'erreur rattachée à G1, conformément à l'inventaire v2.2 ; renvoi aux règles des comptes du cadrage § 6.6 (§ Sécurité) ; arbitrage A3 clos, courriel déplacé en lot 4 (§ Lots, § Idées pour la suite).
 
 ## Description synthétique
 
@@ -157,7 +157,8 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 
 ### Sécurité et limites fonctionnelles visibles
 
-- **Limite de 5 tentatives** : au-delà de 5 essais infructueux sur la connexion ou la saisie d'un code d'invitation, un délai s'applique avant de pouvoir réessayer — visible du joueur comme un message d'attente, pas comme un blocage définitif.
+- **Limite de 5 tentatives** : au-delà de 5 essais infructueux sur la connexion ou la saisie d'un code d'invitation, un délai s'applique avant de pouvoir réessayer — visible du joueur comme un message d'attente, pas comme un blocage définitif. Seuil et durée : cadrage § 6.6.
+- **Règles du mot de passe et du pseudo** : cadrage § 6.6. Elles sont rappelées en texte sous les champs de l'inscription (A2), et chaque critère manquant est nommé à côté du champ.
 - **Sessions multiples, double envoi** : un même compte ouvert sur deux appareils est un usage normal (c'est le scénario de la démonstration). Répondre deux fois à la même question ou valider deux fois le même défi depuis deux appareils n'a pas d'effet double : la première réponse enregistrée fait foi, l'affichage se corrige au rechargement sur l'autre appareil.
 
 ## Description fonctionnelle
@@ -326,19 +327,19 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 - Statistiques du couple — **F4**
 - Changement de mot de passe et de pseudo — **F5**
 - Avatars graphiques, finition graphique
-- Notification par courriel (si faisable sur Azrael)
 
 #### Lot 4 : perspectives (non développé)
 
 - Défis personnalisés (humain ou IA)
 - Preuve photo / vidéo
+- Notification par courriel (suppose une adresse électronique, exclue par le cadrage § 10)
 - Web push (PWA)
 - Récupération de compte
 - Punition alternative du joueur passif
 
 ## Idées pour la suite
 
-- **Notifications** : trois niveaux envisagés — révélation à la connexion avec indicateur visuel non ambigu dès l'accueil (retenu, lot 1) ; courriel déclenché au choix, si l'envoi est possible sur Azrael (envisageable, lot 3) ; web push via PWA et service worker (documenté pour montrer la limite comprise, lot 4). `⚠ Le positionnement exact (arbitrage A3, cadrage § 6.5) reste ouvert, échéance S3 — à confirmer ici une fois tranché.`
+- **Notifications** : arbitrage A3 tranché le 14/10 (cadrage § 6.5). Au lot 1, aucune notification : la révélation s'affiche à l'ouverture de l'accueil (C1 état 5, précédé de D2 si le hasard a choisi). Le courriel et le web push restent des pistes documentées du lot 4 ; le courriel supposerait de collecter une adresse électronique, ce que la minimisation des données exclut.
 - **Risques acceptés à observer** : un joueur en dette de gage peut répondre « non » chaque jour pour éviter la pénalité doublée ; un gage n'a pas d'échéance ; un couple qui ne se connecte que le soir subit des journées blanches répétées (conséquence assumée de la bascule à 12 h). Les trois sont des risques acceptés, à observer avec le couple témoin et à analyser en recul réflexif plutôt qu'à corriger maintenant.
 - **Hypothèses à valider avec le couple témoin** (recruté en S9, testé en S11 ou S12) :
   - 3 défis : choix sans paralysie
