@@ -3,7 +3,7 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
+> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; clôt l'arbitrage A3 et requalifie le courriel en piste du lot 4 (§ 6.5, § 11) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
 > La V2.9 (18 septembre 2026) intégrait la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
 ---
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | A1 | Révélation simultanée | Tranché le 15/09 | § 4.2 |
 | A2 | Heure limite de choix (12 h) | Tranché le 15/09 | § 4.2 |
-| A3 | Notification à l'attribution | **Ouvert, échéance S3** | § 6.5 |
+| A3 | Notification à l'attribution | Tranché le 14/10 : aucune notification au lot 1, révélation à l'accueil (C1 état 5) | § 6.5 |
 | A4 | Adresse à l'utilisateur | Tranché le 15/09 : tutoiement | § 8.1 |
 
 ---
@@ -246,8 +246,14 @@ Nuance à écrire dans le dossier technique : **l'événement déclencheur est s
 | Niveau | Mécanisme | Lot |
 |---|---|---|
 | Retenu | Révélation à la connexion, avec indicateur visuel non ambigu dès l'accueil | 1 |
-| Envisageable | Courriel déclenché au choix, si l'envoi est possible sur Azrael | 3 |
+| Documenté | Courriel déclenché au choix | 4 |
 | Documenté | Web push via PWA et service worker | 4 |
+
+**Tranché le 14/10** :
+
+- **Aucune notification au lot 1.** Le joueur découvre sa mission en ouvrant l'application. Prix accepté : un joueur qui ne revient que le soir dispose de moins de temps pour la réaliser ; risque déjà documenté, observé avec le couple témoin.
+- **L'indicateur non ambigu est l'état 5 de C1 (révélation)**, précédé de l'événement D2 quand le hasard a choisi. Il est porté par du texte et une forme, jamais par la couleur seule (§ 9). Rien d'autre : ni pastille sur la navigation, ni compteur dans le titre de l'onglet.
+- **Le courriel passe en lot 4.** L'envoyer supposerait de collecter une adresse électronique, ce que le § 10 exclut au nom de la minimisation des données. Il reste une piste documentée, avec cette contradiction écrite.
 
 ### 6.6 Sécurité
 
@@ -461,8 +467,8 @@ Les gages sont rédigés librement, sans modération ni signalement. Acceptable 
 |---|---|---|
 | **1 — Duo et défi du jour** | Inscription, connexion, appairage par code, participation quotidienne, tirage en éventail, choix et attribution, révélation, défi aléatoire, validation, expiration automatique, **compteur de PV et perte d'1 PV à l'expiration**, accueil face-à-face, dissolution et suppression de compte, pages légales | Obligatoire, complet |
 | **2 — Gamification** | Contestation, gages (déclenchement, rédaction, liste, contestation), pénalité doublée, historique | Fortement souhaité |
-| **3 — Confort** | Catégories et filtres, statistiques du couple, changement de mot de passe et de pseudo, avatars graphiques, finition graphique, notification par courriel (si faisable) | Optionnel |
-| **4 — Perspectives** | Défis personnalisés (humain ou IA), preuve photo/vidéo, web push, récupération de compte, punition alternative du joueur passif | Non développé, documenté en recul réflexif |
+| **3 — Confort** | Catégories et filtres, statistiques du couple, changement de mot de passe et de pseudo, avatars graphiques, finition graphique | Optionnel |
+| **4 — Perspectives** | Défis personnalisés (humain ou IA), preuve photo/vidéo, notification par courriel (suppose une adresse électronique, exclue par le § 10), web push, récupération de compte, punition alternative du joueur passif | Non développé, documenté en recul réflexif |
 
 **Élargissement du lot 1 (15/09).** Le compteur de PV et la perte à l'expiration passent au lot 1 : implémentation isolée (une colonne, quelques lignes dans le calcul d'expiration déjà prévu), sans les conséquences associées. Le lot 1 gagne un enjeu démontrable. Décision révisant Q1 de l'inventaire, à consigner au journal de bord.
 
@@ -495,7 +501,7 @@ Le **lot 2 est une variable d'ajustement** : si le lot 1 n'est pas terminé en S
 | S7 | 2–8 nov | 5 | JavaScript lot 1 : sélection, compte à rebours (avec échéance en texte statique). Préparation du schéma BDD | — |
 | S8 | 9–15 nov | 5 + 6 | Fin du JS, doc technique, modèle de données | **Livraison JS + schéma BDD validé** (oral) |
 | S9 | 16–22 nov | 6 | Implémentation MariaDB, jeu de données de démo reproductible. Recrutement du couple témoin | **Livraison BDD** |
-| S10 | 23–29 nov | 7 | PHP : sessions, auth, appairage, tirage. Faisabilité du courriel sur Azrael | — |
+| S10 | 23–29 nov | 7 | PHP : sessions, auth, appairage, tirage | — |
 | S11 | 30 nov–6 déc | 7 | PHP : validation, révélation, expiration paresseuse, PV. Test couple témoin (ou S12) | **Lot 1 fonctionnel de bout en bout** |
 | S12 | 7–13 déc | 7 | Lot 2 si le lot 1 tient, sinon consolidation. Audit accessibilité, captures sur appareil réel, sauvegarde BDD et vidéo du parcours | **Gel du code (dimanche 13)** |
 | S13 | 14–16 déc | 8 | Rédaction du dossier, tests, recul réflexif, étude de cas portfolio | **Rendu mercredi 16** |
@@ -572,20 +578,18 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 | 1 | Dates officielles de rendu et de soutenance | Dès communication | Commun |
 | 2 | Format et longueur attendus du dossier | Dès communication | Commun |
 | 3 | Backend ou API externe autorisés au-delà du périmètre du cours | Dès communication | Commun |
-| 5 | Positionnement sur les notifications (A3) | S3 | Commun |
 | 7 | Cinq défis prototypes écrits | S3 | Commun |
 | 10 | Catégories de défis, déduites des quinze premiers | S5 | Commun |
 | 11 | Palette et typographie, contrastes vérifiés | S5 | Commun |
 | 12 | Traitement visuel des états d'accueil | S5 | B |
 | 13 | Recrutement du couple témoin | S9 | A |
-| 14 | Faisabilité de l'envoi de courriel sur Azrael | S10 | B |
 | 15 | Devenir de l'hébergement après la soutenance | S13 | Commun |
 
 **Tranchées le 15/09** : 4 (A1, A2), 6 (A4 et voix), 8 (adresse électronique), 9 (sort des comptes), 16 (0 PV au lot 1), 17 (frontière A / B).
 
 **Tranchées le 16/09** : action « reposer la carte » supprimée ; aucune mention de contestabilité côté destinataire ; régénération du code en B1 ; sortie de la salle d'attente vers le profil ; retour d'A2 et A3 vers A1 · invitation si un code a été reçu ; inscription avec code valide vers B2, sinon B1 avec message d'erreur ; mode démo supprimé ; joueur déjà en duo : connexion vers C1, variante « déjà en duo » de la salle d'attente.
 
-**Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8) ; rétroplanning indicatif, démarrage du code autorisé, checkpoints réguliers avec l'encadrant (§ 12, décision ouverte n° 18 close).
+**Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8) ; rétroplanning indicatif, démarrage du code autorisé, checkpoints réguliers avec l'encadrant (§ 12, décision ouverte n° 18 close) ; arbitrage A3 clos, aucune notification au lot 1, courriel en lot 4 (§ 6.5, décisions ouvertes n° 5 et 14 closes).
 
 ## 17. Note de fusion
 

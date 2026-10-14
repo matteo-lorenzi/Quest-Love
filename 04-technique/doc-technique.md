@@ -5,7 +5,7 @@
 > Les règles du jeu ne sont pas recopiées ici : ce document y renvoie (« cadrage § 4.2 »). Une règle recopiée est une règle qui divergera.
 > Modèle de données : annexe [`modele-donnees.md`](modele-donnees.md).
 >
-> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7) ; phpMyAdmin sur Azrael et accès de l'enseignant au dépôt confirmés (§ 6.3, § 6.4).
+> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7) ; courriel retiré du lot 3 (§ 5.3, § 7, arbitrage A3) ; phpMyAdmin sur Azrael et accès de l'enseignant au dépôt confirmés (§ 6.3, § 6.4).
 > Version 1.1 du 9 octobre 2026 : passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
 
 ## Sommaire
@@ -365,7 +365,6 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 ### 5.3 Lot 3 — confort
 
-- [ ] `CourrielService` — notification au choix, si l'envoi est possible sur Azrael
 - [ ] F4 `StatistiquesControleur` · F5 `ParametresControleur`
 - [ ] Filtres par catégorie sur l'historique
 - [ ] Avatars graphiques dans `public/medias/`
@@ -491,7 +490,7 @@ Complète les critères de succès du cadrage § 14, qui restent la référence.
 
 Pistes non engageantes, à documenter en recul réflexif plutôt qu'à développer.
 
-- **Notification par courriel** _(lot 3)_ — l'événement déclencheur est déjà synchrone : quand un joueur choisit, une requête PHP est en cours. L'obstacle n'est pas l'ordonnancement mais l'infrastructure d'envoi. Faisabilité à tester sur Azrael en S10.
+- **Notification par courriel** _(lot 4)_ — l'événement déclencheur est déjà synchrone : quand un joueur choisit, une requête PHP est en cours. L'obstacle n'est pas l'ordonnancement mais l'adresse : en envoyer une supposerait de la collecter, ce que la minimisation des données exclut (cadrage § 10). Arbitrage A3 : cadrage § 6.5.
 - **Notification web push** _(lot 4)_ — suppose un service worker, un abonnement VAPID et un serveur d'envoi. Hors de portée du semestre ; à décrire pour montrer que la limite est comprise.
 - **Tâche planifiée** — si un cron devenait disponible, le rattrapage deviendrait un script exécuté à 12 h et à minuit, sans changer la logique : `RattrapageService` est déjà isolé pour ça.
 - **Récupération de compte** _(lot 4)_ — par adresse électronique, ou par validation du partenaire. La seconde piste est plus cohérente avec la minimisation des données.

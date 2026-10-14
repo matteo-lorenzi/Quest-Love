@@ -42,6 +42,14 @@ Entrée de la bibliothèque : une action rédigée, réalisable en une journée,
 Défi attribué à un destinataire pour une journée de jeu donnée. Terme interne : les joueurs ne voient que le mot « défi ».
 _Éviter_ : défi du jour, quête
 
+**Révélation** :
+Moment où une mission devient visible pour son destinataire : dès que les deux joueurs ont choisi, ou à 12 h au plus tard.
+_Éviter_ : notification, annonce
+
+**Découverte** :
+Première consultation, par son destinataire, d'une mission déjà révélée. Une mission peut expirer sans avoir été découverte.
+_Éviter_ : lecture, ouverture
+
 **Point de vie (PV)** :
 Unité du capital de chaque joueur, 5 au départ, perdue quand une mission n'est pas réalisée à temps.
 _Éviter_ : vie, cœur, score
