@@ -486,7 +486,7 @@ Le **lot 2 est une variable d'ajustement** : si le lot 1 n'est pas terminé en S
 
 - **Quand** : à chaque cours ou TD de projet, et dès qu'une décision structurante est prise entre deux séances.
 - **Ce qu'on montre** : les tickets fermés depuis le point précédent ; ce qui est fusionné, en démonstration sur Azrael quand c'est possible ; les décisions prises et les questions ouvertes.
-- **Ce qu'on garde** : chaque remarque est consignée le jour même dans [`remarques-jury.md`](remarques-jury.md) ; une décision prise à l'oral fait l'objet d'un court courriel de confirmation, pour en garder une trace écrite.
+- **Ce qu'on garde** : chaque remarque, et chaque décision prise à l'oral, est consignée le jour même dans [`remarques-jury.md`](remarques-jury.md) : c'est la trace écrite. Un court courriel de confirmation n'est envoyé que pour une décision structurante (une règle du jeu, le périmètre d'un lot, l'architecture).
 - **Le schéma de la base** est présenté à l'un de ces points pour validation ; la règle « toute évolution de règle après validation part en lot 4 » s'applique à partir de cette validation.
 
 | Sem. | Dates | Étape | Travail | Jalon |
