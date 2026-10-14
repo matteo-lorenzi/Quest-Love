@@ -5,7 +5,7 @@
 > Les règles du jeu ne sont pas recopiées ici : ce document y renvoie (« cadrage § 4.2 »). Une règle recopiée est une règle qui divergera.
 > Modèle de données : annexe [`modele-donnees.md`](modele-donnees.md).
 >
-> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1).
+> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7).
 > Version 1.1 du 9 octobre 2026 : passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
 
 ## Sommaire
@@ -211,7 +211,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.6 Compte, session et appairage
 
 - **Services** : `CompteService`, `AppairageService`.
-- **Mot de passe** : `password_hash` au stockage, `password_verify` à la vérification.
+- **Mot de passe** : `password_hash` au stockage (Argon2id si l'hébergement le permet [à vérifier sur Azrael avec `password_algos()`]), `password_verify` à la vérification. Règles de longueur, de composition, de liste noire et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
@@ -227,7 +227,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
-- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base, par pseudo et par session.
+- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base (table `tentative`), par pseudo et par session ; seuil, fenêtre et durée : cadrage § 6.6. Les échecs sont datés avec `$maintenant` (§ 3.8), ce qui rend le délai testable.
 - **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Hors périmètre, à écrire dans le dossier** : pas de double authentification, pas de journalisation des accès, pas de politique de sécurité de contenu.
 - **Règle** : cadrage § 6.6.

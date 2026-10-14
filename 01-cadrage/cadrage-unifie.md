@@ -3,7 +3,8 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.9 — 18 septembre 2026.** Intègre la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
+> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; consigne les décisions du 14/10 et la décision ouverte sur le démarrage du code (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
+> La V2.9 (18 septembre 2026) intégrait la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
 ---
 
@@ -252,6 +253,31 @@ Nuance à écrire dans le dossier technique : **l'événement déclencheur est s
 
 `password_hash()`, PDO en requêtes préparées, HTTPS, régénération de session à la connexion, protection CSRF sur les formulaires d'écriture, échappement systématique des textes libres. **Limite de 5 tentatives** puis délai sur la connexion et la saisie du code d'invitation.
 
+Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référence : recommandation de la CNIL sur les mots de passe (délibération de 2022), au niveau le plus exigeant (« mot de passe seul »), bien que la limitation des tentatives autoriserait un niveau inférieur.
+
+**Limitation des tentatives**
+
+- 5 échecs en 15 minutes déclenchent une attente de 15 minutes avant tout nouvel essai.
+- Comptage par pseudo **et** par session : changer de pseudo ou de session ne remet pas le compteur à zéro.
+- S'applique à la connexion (A3) et à toute vérification d'un code d'invitation (saisie en B1, code reçu par lien et rejoué après inscription ou connexion).
+- L'attente est annoncée en texte, avec l'heure à laquelle réessayer ; jamais de blocage définitif du compte.
+
+**Mot de passe**
+
+- 12 à 64 caractères ; espaces et accents acceptés.
+- Au moins une majuscule, une minuscule, un chiffre et un caractère spécial.
+- Refusé s'il figure dans une liste des mots de passe les plus courants, ou s'il contient le pseudo.
+- Jamais de renouvellement imposé ; copier-coller autorisé (gestionnaires de mots de passe).
+- Chaque critère manquant est nommé en texte, à côté du champ (§ 9).
+- Stockage par `password_hash` : Argon2id si l'hébergement le permet, sinon l'algorithme par défaut de PHP, dont la limite de 72 octets est alors contrôlée à la saisie.
+
+**Pseudo**
+
+- 3 à 30 caractères : lettres (accents acceptés), chiffres, tiret, tiret bas et point ; pas d'espace.
+- Unique sans tenir compte des majuscules : « Matteo » et « matteo » ne peuvent pas coexister.
+
+Ces règles rendent plus probable l'oubli du mot de passe, qui fait perdre le compte (§ 10) : l'avertissement à l'inscription et l'autorisation du copier-coller en sont la contrepartie.
+
 ### 6.7 Sessions multiples et idempotence
 
 Un même compte ouvert sur deux appareils est le scénario normal de la soutenance. Les sessions PHP restent indépendantes et toute écriture doit être idempotente côté base. La contrainte d'unicité sur le tirage quotidien couvre le cas principal ; vérifier aussi la double validation d'une même mission.
@@ -266,12 +292,12 @@ Un même compte ouvert sur deux appareils est le scénario normal de la soutenan
 
 ## 7. Modèle de données
 
-Préliminaire, à affiner puis faire valider en S8.
+Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.md`](../04-technique/modele-donnees.md). Noms alignés sur le glossaire (`GLOSSARY.md`) le 14/10 : `joueur` et `duo`, jamais « utilisateur » ni « couple » dans le code.
 
 | Table | Champs principaux | Contraintes |
 |---|---|---|
-| `utilisateur` | id, pseudo, mdp_hash, couple_id (nullable), pv, date_creation | Pas d'adresse électronique ; compte réappairable après dissolution |
-| `couple` | id, code_invitation, date_expiration_code, date_creation | Code à usage unique, valable 60 minutes, régénérable ; suppression en cascade |
+| `joueur` | id, pseudo, mdp_hash, duo_id (nullable), pv, date_creation | Pas d'adresse électronique ; pseudo unique sans tenir compte des majuscules (§ 6.6) ; compte réappairable après dissolution |
+| `duo` | id, code_invitation, date_expiration_code, date_creation | Code à usage unique, valable 60 minutes, régénérable ; suppression en cascade |
 | `participation` | id, joueur_id, date_jour, reponse, date_reponse | Unicité (`joueur_id`, `date_jour`) |
 | `categorie` | id, libelle | — |
 | `defi` | id, titre, description, categorie_id | — |
@@ -545,10 +571,13 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 | 13 | Recrutement du couple témoin | S9 | A |
 | 14 | Faisabilité de l'envoi de courriel sur Azrael | S10 | B |
 | 15 | Devenir de l'hébergement après la soutenance | S13 | Commun |
+| 18 | Démarrage du code PHP avant S10 : le rétroplanning (§ 12) le place en S10, la question est posée à l'encadrant (courriel du 09/10, réponse attendue au cours du 14/10). Si oui, le rétroplanning est modifié ici avant toute ligne de code. | S5 | Commun |
 
 **Tranchées le 15/09** : 4 (A1, A2), 6 (A4 et voix), 8 (adresse électronique), 9 (sort des comptes), 16 (0 PV au lot 1), 17 (frontière A / B).
 
 **Tranchées le 16/09** : action « reposer la carte » supprimée ; aucune mention de contestabilité côté destinataire ; régénération du code en B1 ; sortie de la salle d'attente vers le profil ; retour d'A2 et A3 vers A1 · invitation si un code a été reçu ; inscription avec code valide vers B2, sinon B1 avec message d'erreur ; mode démo supprimé ; joueur déjà en duo : connexion vers C1, variante « déjà en duo » de la salle d'attente.
+
+**Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8).
 
 ## 17. Note de fusion
 

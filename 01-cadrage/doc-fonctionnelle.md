@@ -4,7 +4,7 @@
 > Référence : cadrage unifié V2.9 (18/09/2026) · inventaire des écrans v2.2. En cas d'écart, le cadrage fait foi.
 >
 > **Version 1.1 — 14 octobre 2026.**
-> Changements depuis la V1.0 (02/10/2026) : codes d'écrans ajoutés dans la répartition en lots et gestion du temps au lot 1 (§ Lots, remarques n° 4 et n° 5 de l'encadrant du 07/10) ; variante d'erreur rattachée à G1, conformément à l'inventaire v2.2.
+> Changements depuis la V1.0 (02/10/2026) : codes d'écrans ajoutés dans la répartition en lots et gestion du temps au lot 1 (§ Lots, remarques n° 4 et n° 5 de l'encadrant du 07/10) ; variante d'erreur rattachée à G1, conformément à l'inventaire v2.2 ; renvoi aux règles des comptes du cadrage § 6.6 (§ Sécurité).
 
 ## Description synthétique
 
@@ -157,7 +157,8 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 
 ### Sécurité et limites fonctionnelles visibles
 
-- **Limite de 5 tentatives** : au-delà de 5 essais infructueux sur la connexion ou la saisie d'un code d'invitation, un délai s'applique avant de pouvoir réessayer — visible du joueur comme un message d'attente, pas comme un blocage définitif.
+- **Limite de 5 tentatives** : au-delà de 5 essais infructueux sur la connexion ou la saisie d'un code d'invitation, un délai s'applique avant de pouvoir réessayer — visible du joueur comme un message d'attente, pas comme un blocage définitif. Seuil et durée : cadrage § 6.6.
+- **Règles du mot de passe et du pseudo** : cadrage § 6.6. Elles sont rappelées en texte sous les champs de l'inscription (A2), et chaque critère manquant est nommé à côté du champ.
 - **Sessions multiples, double envoi** : un même compte ouvert sur deux appareils est un usage normal (c'est le scénario de la démonstration). Répondre deux fois à la même question ou valider deux fois le même défi depuis deux appareils n'a pas d'effet double : la première réponse enregistrée fait foi, l'affichage se corrige au rechargement sur l'autre appareil.
 
 ## Description fonctionnelle
