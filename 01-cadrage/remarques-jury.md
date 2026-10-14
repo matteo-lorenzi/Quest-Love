@@ -3,7 +3,8 @@
 > Toutes les remarques reçues de l'encadrant (Yannis Delmas) et, à terme, du jury : par courriel, en cours ou en soutenance. Chaque remarque est datée, rattachée à sa source et suivie jusqu'à sa résolution.
 > Ce document ne fixe aucune règle : une remarque qui change une règle est d'abord reportée dans le cadrage, puis marquée « traitée » ici avec le renvoi.
 >
-> **Version 1.0 — 14 octobre 2026.** Remarques des courriels du 17/09, du 18/09, du 07/10 et du 12/10/2026.
+> **Version 1.1 — 14 octobre 2026.** Ajout des réponses du cours du 14/10.
+> Version 1.0 du 14 octobre 2026 : remarques des courriels du 17/09, du 18/09, du 07/10 et du 12/10/2026.
 
 ## Comment tenir ce document
 
@@ -17,10 +18,10 @@
 | Statut | Nombre |
 |---|---|
 | Ouvertes | 3 |
-| En cours | 4 |
-| Traitées | 12 |
+| En cours | 2 |
+| Traitées | 17 |
 
-Les trois remarques ouvertes concernent la documentation fonctionnelle (07-2, 07-3, 07-4) : à traiter avant la livraison de S6.
+Les trois remarques ouvertes concernent la documentation fonctionnelle (07-2, 07-3, 07-4) : à traiter avant le prochain checkpoint (cadrage § 12).
 
 ## Courriel du 17/09/2026 — maquettes de zonage
 
@@ -56,12 +57,20 @@ Points positifs relevés : le projet est clair ; le MVP est bien décrit et la r
 | # | Remarque | Statut | Réponse |
 |---|---|---|---|
 | 12-1 | Les MVC vont souvent avec des frameworks (ORM, gabarits) qui ne convergent pas toujours avec les bonnes pratiques du web : confirmer que le binôme assume cet écart avec les objectifs du cours. | En cours | ADR-0001, section « Un MVC sans framework » ; confirmation orale à donner au cours du 14/10. |
-| 12-2 | Tests acceptés, à condition que tout soit accessible à l'encadrant. | En cours | Doc technique § 6.4. Reste à vérifier que l'encadrant a accès au dépôt GitHub [à vérifier]. |
+| 12-2 | Tests acceptés, à condition que tout soit accessible à l'encadrant. | Traitée | Doc technique § 6.4 ; l'encadrant a accès au dépôt GitHub (14-1). |
 | 12-3 | Développement local possible, mais intérêt discutable : trois bases à maintenir synchronisées. | Traitée | Doc technique § 6.3 : une seule source (`sql/`), bases locales reconstructibles en une commande, garde-fou contre l'effacement d'Azrael. |
 | 12-4 | `.htaccess` pris en compte sur Azrael. | Traitée | Doc technique § 1.1, § 6.1 ; ADR-0001. |
 | 12-5 | Pas d'accès SSH en l'état ; discutable s'il est justifié, mais refus maintenu si une IA lance des commandes sur des machines personnelles avec les clés d'accès. | Traitée | Doc technique § 1.1, § 6.1 : déploiement par SFTP, tests et bases en local. **Contrainte à respecter** : aucune clé d'accès à Azrael confiée à un outil d'IA. |
-| 12-6 | Démarrage du code avant la validation du schéma : à discuter au cours. | En cours | Cadrage § 16, décision ouverte n° 18 ; réponse attendue au cours du 14/10. |
+| 12-6 | Démarrage du code avant la validation du schéma : à discuter au cours. | Traitée | Pas de calendrier imposé, démarrage autorisé (14-3) ; cadrage § 12 et § 16. |
 | 12-7 | Code aussi léger et simple que possible, pour la maintenabilité et l'évolutivité ; BEM approuvé, surtout avec un design system. | Traitée | Doc technique § 2.4 (HTML sémantique, BEM, garde-fou de simplicité), § 4.5. |
+
+## Cours du 14/10/2026 (oral, rapporté par Matteo)
+
+| # | Remarque | Statut | Réponse |
+|---|---|---|---|
+| 14-1 | L'encadrant a accès au dépôt GitHub. | Traitée | Doc technique § 6.4 ; ferme 12-2. |
+| 14-2 | L'outil d'administration de base sur Azrael est phpMyAdmin. | Traitée | Doc technique § 6.3. |
+| 14-3 | Il n'y a pas vraiment de planning à suivre : le plus important est de faire des retours réguliers (checkpoints) aux enseignants. | Traitée | Cadrage § 12 (statut du rétroplanning, checkpoints) et § 3 (schéma présenté à un checkpoint) ; ferme 12-6. |
 
 ## Questions de jury anticipées
 

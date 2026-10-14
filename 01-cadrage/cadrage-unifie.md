@@ -3,7 +3,7 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; consigne les décisions du 14/10 et la décision ouverte sur le démarrage du code (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
+> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
 > La V2.9 (18 septembre 2026) intégrait la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
 ---
@@ -110,7 +110,7 @@ Règle auto-appliquante, qui pousse structurellement vers la livraison.
 |---|---|
 | Hébergement Azrael, HTTPS obligatoire | Application réellement en ligne, sessions PHP, RGPD applicable |
 | PHP 8.2 | Rendu côté serveur, `password_hash()`, PDO en requêtes préparées |
-| MariaDB 10 | Schéma validé par l'enseignant avant implémentation |
+| MariaDB 10 | Schéma présenté et validé avec l'enseignant lors d'un checkpoint (§ 12) ; d'ici là, tables provisoires reconstruites depuis `sql/` (description technique § 6.3) |
 | Aucune tâche planifiée (cron) | Expiration et révélation calculées paresseusement au chargement de page |
 | Livraison par lots validés | Le lot 1 doit être complet de bout en bout |
 | `debug.php` à installer dans le dossier | Dès S2 |
@@ -474,6 +474,15 @@ Le **lot 2 est une variable d'ajustement** : si le lot 1 n'est pas terminé en S
 
 **Hypothèse de dates**, à recaler dès communication : rendu du dossier le **mercredi 16 décembre 2026**, soutenance le **vendredi 18 décembre 2026**.
 
+**Statut du rétroplanning (14/10)** : indicatif. L'encadrant n'impose pas de calendrier par semaine ; ce qui compte est de lui faire des retours réguliers. Le code peut donc commencer avant S10, par tickets (description technique § 6.2). Les dates de rendu, de soutenance et le gel du code restent fermes.
+
+### Checkpoints avec l'encadrant
+
+- **Quand** : à chaque cours ou TD de projet, et dès qu'une décision structurante est prise entre deux séances.
+- **Ce qu'on montre** : les tickets fermés depuis le point précédent ; ce qui est fusionné, en démonstration sur Azrael quand c'est possible ; les décisions prises et les questions ouvertes.
+- **Ce qu'on garde** : chaque remarque est consignée le jour même dans [`remarques-jury.md`](remarques-jury.md) ; une décision prise à l'oral fait l'objet d'un court courriel de confirmation, pour en garder une trace écrite.
+- **Le schéma de la base** est présenté à l'un de ces points pour validation ; la règle « toute évolution de règle après validation part en lot 4 » s'applique à partir de cette validation.
+
 | Sem. | Dates | Étape | Travail | Jalon |
 |---|---|---|---|---|
 | S1 | 14–20 sept | 1 | Pitch, règles du jeu, MVP | Validation du pitch |
@@ -496,7 +505,7 @@ Le **lot 2 est une variable d'ajustement** : si le lot 1 n'est pas terminé en S
 
 `Arbitrages (S3) → Conception fonctionnelle (S4) → Schéma validé (S8) → BDD (S9) → PHP (S10–S11)`
 
-Tout retard sur la validation du schéma en S8 décale mécaniquement la fin : point de vigilance numéro un.
+Tout retard sur la validation du schéma décale mécaniquement la fin : point de vigilance numéro un. Depuis le 14/10, le code avance par tickets en parallèle de ce chemin (§ 12, statut du rétroplanning).
 
 ### Points de vigilance
 
@@ -571,13 +580,12 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 | 13 | Recrutement du couple témoin | S9 | A |
 | 14 | Faisabilité de l'envoi de courriel sur Azrael | S10 | B |
 | 15 | Devenir de l'hébergement après la soutenance | S13 | Commun |
-| 18 | Démarrage du code PHP avant S10 : le rétroplanning (§ 12) le place en S10, la question est posée à l'encadrant (courriel du 09/10, réponse attendue au cours du 14/10). Si oui, le rétroplanning est modifié ici avant toute ligne de code. | S5 | Commun |
 
 **Tranchées le 15/09** : 4 (A1, A2), 6 (A4 et voix), 8 (adresse électronique), 9 (sort des comptes), 16 (0 PV au lot 1), 17 (frontière A / B).
 
 **Tranchées le 16/09** : action « reposer la carte » supprimée ; aucune mention de contestabilité côté destinataire ; régénération du code en B1 ; sortie de la salle d'attente vers le profil ; retour d'A2 et A3 vers A1 · invitation si un code a été reçu ; inscription avec code valide vers B2, sinon B1 avec message d'erreur ; mode démo supprimé ; joueur déjà en duo : connexion vers C1, variante « déjà en duo » de la salle d'attente.
 
-**Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8).
+**Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8) ; rétroplanning indicatif, démarrage du code autorisé, checkpoints réguliers avec l'encadrant (§ 12, décision ouverte n° 18 close).
 
 ## 17. Note de fusion
 

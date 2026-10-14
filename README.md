@@ -23,7 +23,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 
 | Document | Rôle | Statut |
 |---|---|---|
-| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.10 (14/10/2026) — règles des comptes, vocabulaire du glossaire |
+| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.10 (14/10/2026) — règles des comptes, vocabulaire du glossaire, rétroplanning indicatif et checkpoints |
 | `01-cadrage/doc-fonctionnelle.md` | Documentation fonctionnelle : écrans, règles, lots. | V1.1 (14/10/2026) — codes d'écrans dans les lots, gestion du temps au lot 1 |
 | `01-cadrage/remarques-jury.md` | Suivi des remarques de l'encadrant et du jury : source, statut, réponse ; questions de soutenance anticipées. | V1.0 (14/10/2026) — 3 remarques ouvertes |
 | `01-cadrage/lean-canvas.json` | Cadrage stratégique : problème, utilisateurs, hypothèses. | Encadrés 7 et 8 à compléter |
