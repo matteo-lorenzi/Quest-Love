@@ -101,6 +101,20 @@ class CompteServiceTest extends TestCase
         $this->assertEquals(new DateTimeImmutable('2026-10-15 12:19:00'), $resultat);
     }
 
+    public function testUnIdentifiantTropLongEstRefuseSansToucherLaBase(): void
+    {
+        // Plus long que la colonne tentative.cle : en mode strict (MariaDB d'Azrael), l'écrire lèverait une erreur.
+        $tropLong = str_repeat('a', 70);
+        for ($i = 0; $i < 5; $i++) {
+            $this->assertNull($this->service->connecter($tropLong, 'mauvais', 'session-a', $this->midi->modify("+$i minutes")));
+        }
+
+        // Rien n'a été compté sur la session : Lou se connecte.
+        $resultat = $this->service->connecter('Lou', self::MDP, 'session-a', new DateTimeImmutable('2026-10-15 12:05:00'));
+
+        $this->assertInstanceOf(Joueur::class, $resultat);
+    }
+
     // Un échec par minute à partir de midi : 12 h 00, 12 h 01…
     private function echouer(int $nombre, string $identifiant, string $cleSession): void
     {

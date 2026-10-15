@@ -4,27 +4,28 @@
 
 // Étape 6 — rendu. Textes validés au ticket #3 (RGAA 11.10, WCAG 3.3.1) ; le message d'identifiants faux ne dit pas quel champ est faux (exception de sécurité du WCAG 3.3.3).
 $messages = [
-    'general' => 'Identifiant ou mot de passe incorrect. Vérifie ta saisie, puis réessaie.',
     'identifiant' => 'Saisis ton identifiant.',
     'mdp' => 'Saisis ton mot de passe.',
 ];
-if ($attente !== null) {
-    // Heure au format français, sans les secondes : « 14 h 32 », lu correctement par les lecteurs d'écran.
-    $erreurs['general'] = 'attente';
-    $messages['general'] = 'Trop d\'essais de connexion. Par sécurité, tu pourras réessayer à ' . $attente->format('G \h i') . '.';
-}
+// Message général, en tête du formulaire : attente en cours, ou identifiants incorrects.
+// Heure au format français, sans les secondes : « 14 h 32 », lu correctement par les lecteurs d'écran.
+$messageGeneral = match (true) {
+    $attente !== null => 'Trop d\'essais de connexion. Par sécurité, tu pourras réessayer à ' . $attente->format('G \h i') . '.',
+    isset($erreurs['general']) => 'Identifiant ou mot de passe incorrect. Vérifie ta saisie, puis réessaie.',
+    default => null,
+};
 
-// Chaque champ en erreur pointe vers son propre message ; une erreur générale concerne les deux champs.
-$decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : (isset($erreurs['general']) ? 'erreur-general' : null);
+// Chaque champ en erreur pointe vers son propre message ; un message général concerne les deux champs.
+$decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : ($messageGeneral !== null ? 'erreur-general' : null);
 ?>
 <header class="entete-ecran">
     <a class="entete-ecran__retour" href="index.php?ecran=bienvenue" aria-label="Retour à l'accueil">←</a>
     <h1 class="entete-ecran__titre">Connexion</h1>
 </header>
 <main class="connexion">
-    <?php if (isset($erreurs['general'])): ?>
+    <?php if ($messageGeneral !== null): ?>
         <!-- En tête du formulaire, pour être lue en premier après l'annonce du titre « Erreur : ». -->
-        <p class="connexion__erreur" id="erreur-general"><?= e($messages['general']) ?></p>
+        <p class="connexion__erreur" id="erreur-general"><?= e($messageGeneral) ?></p>
     <?php endif ?>
 
     <form class="formulaire" method="post" action="index.php?ecran=connexion">
@@ -38,7 +39,7 @@ $decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : (iss
                 <input
                     id="<?= $champ ?>" name="<?= $champ ?>" required
                     <?php if ($champ === 'identifiant'): ?>
-                        type="text" autocomplete="username" value="<?= e($identifiant) ?>"
+                        type="text" autocomplete="username" maxlength="<?= CompteService::IDENTIFIANT_MAX ?>" value="<?= e($identifiant) ?>"
                     <?php else: ?>
                         type="password" autocomplete="current-password"
                     <?php endif ?>
