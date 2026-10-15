@@ -57,6 +57,16 @@ Déclaration d'usage : le binôme se sert de Claude Code comme assistant. Chaque
 
 Graphe : `graphify extract . --code-only` (résultat dans `graphify-out/`, non versionné).
 
+## Environnement local
+
+| Outil | Rôle | Installation |
+|---|---|---|
+| WAMP, PHP 8.2, MySQL | Faire tourner l'application et `sql/reinitialiser.php` | `bash scripts/installer-wamp.sh` dans Git Bash (doc technique § 6.3) |
+| GitHub CLI (`gh`) | Tickets et PR depuis le terminal | `winget install --id GitHub.cli`, puis `gh auth login` |
+| Garde-fous | Refus des commits attribués à un outil d'IA | `git config core.hooksPath .githooks`, une fois par clone |
+
+Vérifications mécaniques du code, aussi lancées par la CI à chaque PR : `bash scripts/verifier.sh`. Après une installation, relancer VS Code pour qu'il voie le nouveau PATH.
+
 ## Convention de nommage
 
 - Noms de fichiers en minuscules, mots séparés par des tirets, **sans accent ni espace** (les accents cassent l'encodage entre systèmes ; ils restent obligatoires dans le contenu des documents).

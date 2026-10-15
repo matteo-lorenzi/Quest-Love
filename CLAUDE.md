@@ -2,21 +2,7 @@
 
 ## Contraintes académiques non négociables
 
-Validées avec l'enseignant référent ; aucune autre règle n'est imposée.
-
-**Couches et patterns** (ADR-0001, doc technique § 2.1 et § 2.4)
-- Contrôleur frontal unique : `app/public/index.php`.
-- Contrôleurs fins : lire la requête, appeler un service, rediriger ou rendre la vue.
-- Modèle en trois rôles : entités en lecture seule, dépôts (seul endroit du SQL, requêtes préparées), services (règles du jeu et transactions).
-- Un écran, un contrôleur, une vue.
-- Ni framework, ni ORM, ni moteur de gabarits, ni bibliothèque, ni gestionnaire de dépendances.
-
-**Commentaires** (doc technique § 2.4)
-- Chaque fichier commence par une ligne : rôle, code d'écran, lot, périmètre.
-- On commente le pourquoi d'une décision non évidente, jamais le quoi.
-- `public/index.php`, `noyau/Routeur.php` et l'écran de référence A3 (`ConnexionControleur`, sa vue, `CompteService`) sont annotés étape par étape, avec les numéros du § 2.2.
-
-Ponytail ne supprime, ne fusionne ni ne contourne jamais ces couches ni ces commentaires, même pour raccourcir un diff.
+Les couches MVC (ADR-0001) et les règles de commentaires (doc technique § 2.4, y compris les fichiers annotés étape par étape) sont validées avec l'enseignant référent ; aucune autre règle n'est imposée. Ponytail ne supprime, ne fusionne ni ne contourne jamais ces couches ni ces commentaires, même pour raccourcir un diff.
 
 ## Ponytail
 

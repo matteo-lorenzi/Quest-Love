@@ -2,6 +2,11 @@
   "env": {
     "PONYTAIL_DEFAULT_MODE": "full"
   },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "extraKnownMarketplaces": {
     "ponytail": {
       "source": {

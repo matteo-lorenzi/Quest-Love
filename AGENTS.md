@@ -4,18 +4,13 @@ Cadrage de référence : `01-cadrage/cadrage-unifie.md` (fait foi en cas d'écar
 
 ## Standards de code
 
-Référence complète : `04-technique/doc-technique.md` § 2.4 ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`.
+Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête) : `bash scripts/verifier.sh`, relancé par la CI.
 
-- MVC à contrôleur frontal : `app/public/index.php` est le seul fichier public ; contrôleurs fins, SQL dans les dépôts seulement, règles du jeu dans les services.
-- Tout service dépendant de l'heure reçoit `DateTimeImmutable $maintenant` ; seul `index.php` lit l'horloge.
-- Code en français sans accent (classes, méthodes, tables), vocabulaire de `GLOSSARY.md`.
-- Vues préfixées du code d'écran de l'inventaire (`vues/ecrans/c1-accueil.php`) ; tickets et tests citent l'écran et le parcours couverts.
-- HTML sémantique avant tout `div` ; classes CSS en BEM français (`carte-defi__titre`).
-- Aucune bibliothèque tierce dans `app/`.
+- Tickets et tests citent l'écran et le parcours couverts.
 
 ## Commits, PR et tickets
 
-Rédigés au nom du binôme, en français : un titre, le détail du changement, puis `Closes #N` s'il y a lieu, et rien d'autre. Garde-fou : aucune attribution à un outil d'IA, ni ligne `Co-Authored-By: Claude…` ou `Claude-Session:`, ni pied de page « Generated with / by Claude Code », ni lien `claude.ai/code`.
+Rédigés au nom du binôme, en français : un titre, le détail du changement, puis `Closes #N` s'il y a lieu, et rien d'autre. Garde-fou : aucune attribution à un outil d'IA, ni ligne `Co-Authored-By: Claude…` ou `Claude-Session:`, ni pied de page « Generated with / by Claude Code », ni lien `claude.ai/code`. Vérifié par `.githooks/commit-msg` et par la CI sur les PR, tickets et commentaires.
 
 ## Agent skills
 

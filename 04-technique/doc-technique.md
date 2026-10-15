@@ -425,8 +425,8 @@ Toutes les bases se construisent à partir des mêmes fichiers, chargés dans ce
 
 #### Créer sa base locale (une fois)
 
-1. Dans phpMyAdmin (WAMP), créer une base vide nommée `quest_love`, interclassement `utf8mb4_unicode_ci`.
-2. Copier `app/config/config.exemple.php` en `app/config/config.php` et y renseigner les identifiants de WAMP (souvent `root` sans mot de passe [à vérifier selon l'installation]).
+1. Dans Git Bash : `bash scripts/installer-wamp.sh`. Le script guide l'installation de WAMP, met PHP 8.2 dans le PATH, crée la base vide `quest_love` (`utf8mb4_unicode_ci`) et le VirtualHost `quest-love.local` sur `app/public/`. PHP 8.5 de WAMP est à éviter : son extension Xdebug ne se charge pas.
+2. Copier `app/config/config.exemple.php` en `app/config/config.php` et y renseigner les identifiants de WAMP (`root` sans mot de passe par défaut).
 3. En ligne de commande, depuis la racine du dépôt : `php sql/reinitialiser.php`.
 
 #### Réinitialiser sa base locale (à volonté)
@@ -435,6 +435,8 @@ Une commande : `php sql/reinitialiser.php`. Le script lit `app/config/config.php
 
 - il ne s'exécute qu'en ligne de commande, jamais depuis le web ;
 - il refuse de s'exécuter si l'hôte de la base n'est pas `localhost` ou `127.0.0.1` : une erreur de configuration ne peut donc jamais effacer la base d'Azrael.
+
+Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne relit un fichier PHP modifié, `config.php` compris, qu'au bout de 2 secondes. Un changement de `HORLOGE_DECALAGE` testé immédiatement semble donc sans effet.
 
 #### Faire évoluer le schéma
 
