@@ -1,0 +1,22 @@
+{
+  "env": {
+    "PONYTAIL_DEFAULT_MODE": "full"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/DietrichGebert/ponytail.git"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ponytail@ponytail": true,
+    "claude-code-setup@claude-plugins-official": true
+  }
+}

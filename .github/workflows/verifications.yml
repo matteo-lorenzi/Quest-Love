@@ -1,0 +1,31 @@
+# Garde-fous du dépôt : vérifications mécaniques du code et refus de toute attribution à un outil d'IA (AGENTS.md).
+name: Vérifications
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  code:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/verifier.sh
+
+  attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Corps du ticket, de la PR ou du commentaire
+        run: jq -r '.comment.body // .issue.body // .pull_request.body // ""' "$GITHUB_EVENT_PATH" | bash scripts/verifier-attribution.sh
+      - name: Messages des commits de la PR
+        if: github.event_name == 'pull_request'
+        run: git log --format=%B "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" | bash scripts/verifier-attribution.sh

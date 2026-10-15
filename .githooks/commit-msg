@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Hook commit-msg — refuse un message de commit qui attribue le travail à un outil d'IA. Activation : git config core.hooksPath .githooks
+
+bash "$(git rev-parse --show-toplevel)/scripts/verifier-attribution.sh" < "$1"
