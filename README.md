@@ -45,6 +45,18 @@ Les fichiers `.json` sont les fichiers de travail générés par l'outil de conc
 - Application déployée : https://azrael.sha.univ-poitiers.fr/~mlorenzi/
 - Code source : https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php
 
+## Outillage IA
+
+Déclaration d'usage : le binôme se sert de Claude Code comme assistant. Chaque ligne de code est relue et doit pouvoir être expliquée par l'un ou l'autre membre (ADR-0001) ; les consignes données à l'outil sont dans [`CLAUDE.md`](CLAUDE.md) et [`AGENTS.md`](AGENTS.md).
+
+| Outil | Rôle | Installation |
+|---|---|---|
+| Ponytail (plugin) | Pousse vers le changement le plus petit, sans toucher aux couches MVC ; audit (`/ponytail-audit`) et registre des raccourcis (`/ponytail-debt TODO(simplif)`) | proposé à l'ouverture du projet (`.claude/settings.json`) |
+| claude-code-setup (plugin) | Recommandations de configuration de Claude Code, appliquées seulement après accord | idem |
+| Graphify (CLI Python) | Graphe local du code (analyse syntaxique, aucun envoi à un LLM ni au cloud) | `winget install --id=astral-sh.uv -e`, puis `uv tool install graphifyy` |
+
+Graphe : `graphify extract . --code-only` (résultat dans `graphify-out/`, non versionné).
+
 ## Convention de nommage
 
 - Noms de fichiers en minuscules, mots séparés par des tirets, **sans accent ni espace** (les accents cassent l'encodage entre systèmes ; ils restent obligatoires dans le contenu des documents).
