@@ -80,7 +80,7 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
   - `amorce.php` — autoloader, fuseau, session, jeton CSRF, connexion PDO
   - `Routeur.php` — table de routage, préconditions d'accès, aiguillage vers le contrôleur
   - `Bdd.php` — connexion PDO, mode exception, jeu de caractères `utf8mb4`
-  - `Securite.php` — jeton CSRF, limitation des tentatives
+  - `Securite.php` — jeton CSRF
   - `Vue.php` — rendu d'une vue dans le gabarit, fonction d'échappement unique
 - **`app/controleurs/`** — un contrôleur par écran de l'inventaire (table § 2.3)
 - **`app/modeles/`** — le M du MVC, en trois rôles
@@ -223,7 +223,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 
 ### 3.7 Sécurité
 
-- **Classe** : `noyau/Securite.php`.
+- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `CompteService` et `TentativeDepot` pour la limitation des tentatives, qui demande du SQL et vit donc dans le modèle (§ 2.4).
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
@@ -308,7 +308,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [ ] `public/index.php` — contrôleur frontal
 - [ ] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage
 - [ ] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
-- [ ] `noyau/Securite.php` — CSRF, limitation des tentatives
+- [ ] `noyau/Securite.php` — jeton CSRF
 - [ ] `noyau/Vue.php` — rendu et échappement de sortie
 - [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php`
 - [ ] `public/styles/base.css`, `composants.css`, `ecrans.css`

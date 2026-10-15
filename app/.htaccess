@@ -1,0 +1,3 @@
+# Accès aux dossiers internes — aucun écran — lot 1 — commun. Seul public/ est joignable par URL (ADR-0001).
+# TODO(simplif): l'URL de app/ renvoie 403 au lieu de rediriger vers public/, à régler au premier dépôt sur Azrael.
+Require all denied
