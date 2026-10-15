@@ -31,7 +31,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 ### _Minimum viable product_{lang=en} (MVP)
 
 - Compte et duo
-  - Inscription et connexion par pseudo et mot de passe, sans adresse électronique
+  - Inscription et connexion par identifiant et mot de passe, avec un pseudo libre affiché au partenaire, sans adresse électronique
   - Appairage par code d'invitation (60 minutes, usage unique, régénérable)
 - Journée de jeu
   - Accueil face-à-face : les deux joueurs côte à côte, points de vie et état du jour
@@ -158,7 +158,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 ### Sécurité et limites fonctionnelles visibles
 
 - **Limite de 5 tentatives** : au-delà de 5 essais infructueux sur la connexion ou la saisie d'un code d'invitation, un délai s'applique avant de pouvoir réessayer — visible du joueur comme un message d'attente, pas comme un blocage définitif. Seuil et durée : cadrage § 6.6.
-- **Règles du mot de passe et du pseudo** : cadrage § 6.6. Elles sont rappelées en texte sous les champs de l'inscription (A2), et chaque critère manquant est nommé à côté du champ.
+- **Règles du mot de passe, de l'identifiant et du pseudo** : cadrage § 6.6. Elles sont rappelées en texte sous les champs de l'inscription (A2), et chaque critère manquant est nommé à côté du champ.
 - **Sessions multiples, double envoi** : un même compte ouvert sur deux appareils est un usage normal (c'est le scénario de la démonstration). Répondre deux fois à la même question ou valider deux fois le même défi depuis deux appareils n'a pas d'effet double : la première réponse enregistrée fait foi, l'affichage se corrige au rechargement sur l'autre appareil.
 
 ## Description fonctionnelle
@@ -178,94 +178,94 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 
 Schéma des enchaînements entre écrans, à l'échelle de l'application. Détail par parcours, dans Figma :
 
-- [Parcours 1 — arrivée et appairage](https://www.figma.com/board/2OL6KmD8ZdFMPjKEeg4nKe/Quest---Love---Parcours-1---arriv%C3%A9e-et-appairage--v3-?node-id=0-1)
-- [Parcours 2 — journée de jeu](https://www.figma.com/board/EALHmvQwl5XW95yqfv0ek4/Quest---Love---Parcours-2---journ%C3%A9e-de-jeu--v3-)
-- [Parcours 3 — fin de défi et événements](https://www.figma.com/board/468gJJ44NTXHyviYEMsgW3/Quest---Love---Parcours-3---fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-)
+- [Parcours 1 — arrivée et appairage](https://www.figma.com/board/NDb4YHNxJ62zUXGGJ9a3Vn/Quest---Love---Parcours-1-_-arriv%C3%A9e-et-appairage--v3-?node-id=0-1)
+- [Parcours 2 — journée de jeu](https://www.figma.com/board/vBm24iEeigI92RZ99AyWxM/Quest---Love---Parcours-2-_-journ%C3%A9e-de-jeu--v3-)
+- [Parcours 3 — fin de défi et événements](https://www.figma.com/board/UHsyf9H1fFEcpqHKkIm49F/Quest---Love---Parcours-3-_-fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-)
 
 ### Maquettes et écrans
 
 > Pour chaque écran : maquette, éléments affichés, actions possibles, destinations, cas d'erreur. Nomenclature identique à l'inventaire et au fichier Figma.
 > Une variante notée en sous-point n'a pas de cadre dédié dans le Figma : elle est documentée en note sous le cadre concerné (§ 8.5 du cadrage).
-> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 27 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
+> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 27 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
 
 #### Bande 01 — Arrivée et appairage
 
-- **A1 · Accueil public** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=35-164)
+- **A1 · Accueil public** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=35-164)
   Écran d'entrée non connecté : présente l'application (pitch, ton) et propose de créer un compte ou de se connecter.
   - Variante : invitation reçue (créer un compte / j'ai déjà un compte) — note sous le cadre A1, pas de cadre dédié
-- **A2 · Inscription** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-183)
-  Formulaire pseudo + mot de passe.
+- **A2 · Inscription** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-183)
+  Formulaire identifiant + pseudo + mot de passe.
   - Avertissement mot de passe, mention CGU, code prérempli, erreurs
   - Destinations : B2 (code valide), B1 (sans code ou code invalide), retour A1
-- **A3 · Connexion** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-219)
-  Formulaire pseudo + mot de passe.
+- **A3 · Connexion** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-219)
+  Formulaire identifiant + mot de passe.
   - Erreurs, délai après 5 échecs, code conservé
   - Destinations : C1 (en duo), B2 (code valide), B1
-- **A4 · Pages légales** (gabarit unique) — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-243)
+- **A4 · Pages légales** (gabarit unique) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-243)
   Un seul gabarit, trois contenus sélectionnés par paramètre d'URL.
   - Mentions légales · Politique de confidentialité · Conditions d'utilisation
-- **B1 · Salle d'attente** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-277)
+- **B1 · Salle d'attente** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-277)
   Affiche le code d'invitation à partager (valable 60 minutes) et un champ pour saisir un code reçu.
   - Code à partager, lien « nouveau code », saisie, erreurs, flèche ← vers F1
-  - Cas : déjà en duo (rappel du duo, retour C1, quitter mon duo → F2) — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=43-162)
-- **B2 · Duo formé et onboarding** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-162)
+  - Cas : déjà en duo (rappel du duo, retour C1, quitter mon duo → F2) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=43-162)
+- **B2 · Duo formé et onboarding** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-162)
   Présente les règles du jeu une par une, à la formation du duo.
   - Une règle par écran, bouton « Passer »
-- **B3 · Règles du jeu** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-200)
+- **B3 · Règles du jeu** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-200)
   Rappel des règles du jeu, accessible à tout moment depuis le profil (F1), hors du parcours d'onboarding.
 
 #### Bande 02 — Journée de jeu
 
-- **C1 · Accueil face-à-face** : structure commune — [maquette Figma (socle annoté sur l'état 1)](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=26-2)
+- **C1 · Accueil face-à-face** : structure commune — [maquette Figma (socle annoté sur l'état 1)](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=26-2)
   Socle partagé par tous les états de l'accueil : deux colonnes symétriques (une par joueur) et une zone d'action pleine largeur en dessous. Pas de cadrage « versus » : aucun score, aucun signe de rivalité.
   - Colonnes des deux joueurs (avatar, pseudo, jauge PV, état du jour)
   - Élément commun, zone d'action pleine largeur
 - **C1 · États de l'accueil** — un cadre Figma par état
   Le même socle affiche un des six états selon l'avancement de la journée, plus le cas « aucun jeu aujourd'hui » :
-  - État 1 : on joue aujourd'hui ? — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=26-2)
+  - État 1 : on joue aujourd'hui ? — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=26-2)
     - Variante : confirmation « pas aujourd'hui » (panneau bas, erreur hors délai)
-  - État 2 : attente du partenaire — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=17-63)
-  - État 3 : à toi de piocher — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-2)
-  - État 4 : défi envoyé, en attente de révélation — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=17-126)
-  - État 5 : révélation — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-59)
-  - État 6 : défi reçu en cours — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-118)
+  - État 2 : attente du partenaire — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=17-63)
+  - État 3 : à toi de piocher — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-2)
+  - État 4 : défi envoyé, en attente de révélation — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=17-126)
+  - État 5 : révélation — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-59)
+  - État 6 : défi reçu en cours — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-118)
     - Variante : défi réalisé, statut du défi envoyé (ex-état 7, même cadre que l'état 6)
-  - Cas : aucun jeu aujourd'hui — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-30)
+  - Cas : aucun jeu aujourd'hui — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-30)
     - Journée blanche (3 variantes de texte)
     - Variante : premier jour de jeu demain
-- **C2 · Tirage** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-2)
+- **C2 · Tirage** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-2)
   Présente les 3 défis piochés en éventail, face cachée.
   - Éventail de 3 cartes
-  - Carte piochée, remplacement par une autre carte, « Attribuer » — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-27)
-- **C3 · Défi reçu** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=4-96)
+  - Carte piochée, remplacement par une autre carte, « Attribuer » — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-27)
+- **C3 · Défi reçu** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=4-96)
   Affiche le défi reçu et son état.
   - En cours · confirmation « réalisé » · réalisé (un seul cadre, les deux derniers états en variantes ; confirmation par le panneau bas partagé)
   - Sans navigation, sans mention de contestabilité
-- **D2 · Événement : le hasard a choisi pour toi** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-2)
+- **D2 · Événement : le hasard a choisi pour toi** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-2)
   Écran d'événement annonçant qu'un défi a été attribué au hasard, faute de choix avant midi.
 
 #### Bande 03 — Fin de défi et événements
 
-- **D1 · Défi expiré, −1 PV** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-66)
+- **D1 · Défi expiré, −1 PV** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-66)
   Écran d'événement affiché au premier chargement de page après minuit, si un défi n'a pas été réalisé.
   - Variante « jamais découvert »
-- **D5 · 0 PV, retour à 5** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-154)
+- **D5 · 0 PV, retour à 5** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-154)
   Écran d'événement affiché quand les points de vie atteignent 0 : annonce le retour immédiat à 5 (lot 1) ou le déclenchement d'un gage (lot 2).
-- **D3 · Duo dissous** (vu par le partenaire) — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-163)
+- **D3 · Duo dissous** (vu par le partenaire) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-163)
   Écran d'événement informant le partenaire que l'autre joueur a dissous le duo ; redirige ensuite vers la salle d'attente.
 - **Ordre d'enchaînement des écrans d'événement** : quand plusieurs événements se sont produits depuis la dernière visite, ils s'affichent un par un, dans cet ordre : duo dissous, expiration, passage à zéro, défi aléatoire (cadrage § 6.1, détail : description technique (`04-technique/doc-technique.md`) § 3.2).
 
 #### Bande 04 — Profil, duo et système
 
-- **F1 · Profil** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-183)
+- **F1 · Profil** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-183)
   Regroupe pseudo, partenaire, accès aux règles et pages légales, déconnexion et suppression de compte.
-  - Cas : sans duo (accès depuis B1, sans partenaire ni option de dissolution, flèche ← vers B1) — [Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-229)
-- **F2 · Dissolution du duo** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-162)
+  - Cas : sans duo (accès depuis B1, sans partenaire ni option de dissolution, flèche ← vers B1) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-229)
+- **F2 · Dissolution du duo** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-162)
   Écran dédié, exigé par le cadrage (§ 10) en exception à la règle générale du panneau bas de confirmation.
   - Avertissement d'irréversibilité, données supprimées
-- **F3 · Suppression de compte** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-200)
+- **F3 · Suppression de compte** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-200)
   Écran dédié, même exception que F2 ; confirmation sans ressaisie du mot de passe.
-- **G1 · Écrans d'erreur — page introuvable** — [maquette Figma](https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-226)
+- **G1 · Écrans d'erreur — page introuvable** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-226)
   Gabarit d'erreur générique.
   - Variante : erreur serveur ou action impossible (ex-G2) — même gabarit, note sous le cadre G1, pas de cadre dédié
 
@@ -291,7 +291,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 ### Données personnelles côté utilisateur
 
-- **Données collectées** : un pseudonyme et une empreinte de mot de passe, rien d'autre — ni nom, ni date de naissance, ni adresse électronique, ni géolocalisation. Aucune adresse électronique n'étant demandée, un mot de passe oublié rend le compte définitivement perdu (avertissement affiché à l'inscription).
+- **Données collectées** : un identifiant, un pseudo (prénom ou surnom, au choix du joueur) et une empreinte de mot de passe, rien d'autre — ni nom, ni date de naissance, ni adresse électronique, ni géolocalisation. Aucune adresse électronique n'étant demandée, un mot de passe oublié rend le compte définitivement perdu (avertissement affiché à l'inscription).
 - **Contenus libres non modérés** : les gages sont rédigés librement par les joueurs, sans modération ni signalement — acceptable dans un duo fermé et consenti, mais rappelé dans les conditions d'utilisation.
 - **Effets de la dissolution et de la suppression** : dissoudre le duo supprime définitivement et immédiatement les missions, tirages, participations et gages du duo, sans corbeille ; les deux comptes sont conservés et réappairables, le partenaire étant informé à sa prochaine connexion. Supprimer son compte entraîne en plus la dissolution du duo s'il existe, puis la suppression du compte lui-même. Un écran de confirmation explicite précède les deux actions.
 
