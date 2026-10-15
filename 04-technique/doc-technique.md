@@ -211,7 +211,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.6 Compte, session et appairage
 
 - **Services** : `CompteService`, `AppairageService`.
-- **Mot de passe** : `password_hash` au stockage (Argon2id si l'hébergement le permet [à vérifier sur Azrael avec `password_algos()`]), `password_verify` à la vérification. Règles de longueur, de composition, de liste noire et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
+- **Mot de passe** : `password_hash` au stockage (Argon2id si l'hébergement le permet [à vérifier sur Azrael avec `password_algos()`]), `password_verify` à la vérification. Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
@@ -227,7 +227,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
-- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base (table `tentative`), par pseudo et par session ; seuil, fenêtre et durée : cadrage § 6.6. Les échecs sont datés avec `$maintenant` (§ 3.8), ce qui rend le délai testable.
+- **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base (table `tentative`), par identifiant et par session ; seuil, fenêtre et durée : cadrage § 6.6. Les échecs sont datés avec `$maintenant` (§ 3.8), ce qui rend le délai testable.
 - **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Hors périmètre, à écrire dans le dossier** : pas de double authentification, pas de journalisation des accès, pas de politique de sécurité de contenu.
 - **Règle** : cadrage § 6.6.
@@ -451,7 +451,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 
 ### 6.4 Tests
 
-- **Outil** : PHPUnit, sous forme d'archive `phpunit.phar` téléchargée une fois et rangée **hors du dépôt**, sans Composer. Version 11, compatible avec PHP 8.2 [à vérifier au téléchargement]. Accord de l'enseignant : courriel du 12/10.
+- **Outil** : PHPUnit, sous forme d'archive `phpunit.phar` téléchargée une fois et rangée **hors du dépôt**, sans Composer. Version 11, compatible avec PHP 8.2 (11.5.57 vérifiée le 15/10). `phpunit.xml`, à la racine, charge l'amorce des tests. Accord de l'enseignant : courriel du 12/10.
 - **Périmètre** : la couche modèle (entités, dépôts, services). Les contrôleurs et les vues ne sont pas testés automatiquement : leur vérification passe par la recette (§ 6.6).
 - **Où** : en local seulement, sur la base locale de chacun (§ 6.3). Le dossier `tests/` est versionné mais jamais déployé sur Azrael ; l'enseignant le consulte dans le dépôt GitHub, auquel il a accès (confirmé le 14/10).
 - **Lancement** : `php chemin/vers/phpunit.phar tests/` depuis la racine du dépôt.
