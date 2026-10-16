@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.11 — 15 octobre 2026.** Sépare l'identifiant de connexion, unique, du pseudo affiché, libre (§ 6.6, § 7, § 10) ; unicité de l'identifiant insensible aussi aux accents (§ 6.6) ; consigne les décisions du 15/10 (§ 16).
+> **Version 2.12 — 16 octobre 2026.** Précise la place de l'espace dans le mot de passe : acceptée à l'intérieur, comptée comme caractère spécial, refusée en début et en fin (§ 6.6) ; consigne les décisions du 16/10 (§ 16).
+>
+> La V2.11 (15 octobre 2026) séparait l'identifiant de connexion, unique, du pseudo affiché, libre (§ 6.6, § 7, § 10) ; unicité de l'identifiant insensible aussi aux accents (§ 6.6) ; consigne les décisions du 15/10 (§ 16).
 > La V2.10 (14 octobre 2026) fixait les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; clôt l'arbitrage A3 et requalifie le courriel en piste du lot 4 (§ 6.5, § 11) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
 > La V2.9 (18 septembre 2026) intégrait la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
@@ -272,6 +274,7 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 **Mot de passe**
 
 - 12 à 64 caractères ; espaces et accents acceptés.
+- L'espace compte comme caractère spécial (liste de l'OWASP), ce qui permet les phrases de passe et porte l'ensemble des caractères spéciaux au-delà des 37 demandés par la CNIL (ponctuation du clavier, espace, `€ £ § ° µ ²`…). Elle est refusée en début et en fin de mot de passe, où elle serait invisible dans un champ masqué.
 - Au moins une majuscule, une minuscule, un chiffre et un caractère spécial.
 - Refusé s'il figure dans une liste des mots de passe les plus courants, ou s'il contient l'identifiant ou le pseudo.
 - Jamais de renouvellement imposé ; copier-coller autorisé (gestionnaires de mots de passe).
@@ -599,6 +602,8 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 **Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8) ; rétroplanning indicatif, démarrage du code autorisé, checkpoints réguliers avec l'encadrant (§ 12, décision ouverte n° 18 close) ; arbitrage A3 clos, aucune notification au lot 1, courriel en lot 4 (§ 6.5, décisions ouvertes n° 5 et 14 closes).
 
 **Tranchées le 15/10** : l'identifiant de connexion, unique sans tenir compte des majuscules ni des accents, est séparé du pseudo affiché, libre et non unique, pour que chacun puisse être reconnu de son partenaire par son prénom (§ 6.6, § 7) ; compteur d'échecs par identifiant et par session.
+
+**Tranchées le 16/10** : l'espace est acceptée dans le mot de passe et compte comme caractère spécial, mais refusée en début et en fin (§ 6.6). Références comparées : CNIL 2022-100 (points 8, 22, 41), NIST SP 800-63B rév. 4 (§ 3.1.1.2), OWASP, Microsoft Entra ID, Google ; aucune n'interdit l'espace.
 
 ## 17. Note de fusion
 
