@@ -211,7 +211,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.6 Compte, session et appairage
 
 - **Services** : `CompteService`, `AppairageService`.
-- **Mot de passe** : `password_hash` au stockage (Argon2id si l'hébergement le permet [à vérifier sur Azrael avec `password_algos()`]), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC (`Normalizer::normalize`, extension `intl` [à vérifier sur Azrael]) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
+- **Mot de passe** : `password_hash` au stockage (Argon2id, disponible sur Azrael et sur WAMP : vérifié le 16/10, #10), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC (`Normalizer::normalize`, extension `intl`, active sur Azrael en PHP 8.2.30 et sur WAMP en PHP 8.2.29) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
@@ -426,7 +426,7 @@ Toutes les bases se construisent à partir des mêmes fichiers, chargés dans ce
 
 #### Créer sa base locale (une fois)
 
-1. Dans Git Bash : `bash scripts/installer-wamp.sh`. Le script guide l'installation de WAMP, met PHP 8.2 dans le PATH, crée la base vide `quest_love` (`utf8mb4_unicode_ci`) et le VirtualHost `quest-love.local` sur `app/public/`. PHP 8.5 de WAMP est à éviter : son extension Xdebug ne se charge pas.
+1. Dans Git Bash : `bash scripts/installer-wamp.sh`. Le script guide l'installation de WAMP, met PHP 8.2 dans le PATH, crée la base vide `quest_love` (`utf8mb4_unicode_ci`) et le VirtualHost `quest-love.local` sur `app/public/`. PHP 8.5 de WAMP est à éviter : son extension Xdebug ne se charge pas. Le script l'ajoute au PATH utilisateur ; or un autre PHP présent dans le PATH système passe devant. Vérifier avec `where php` que le PHP de WAMP sort en premier, sinon le placer en tête du PATH système (droits administrateur).
 2. Copier `app/config/config.exemple.php` en `app/config/config.php` et y renseigner les identifiants de WAMP (`root` sans mot de passe par défaut).
 3. En ligne de commande, depuis la racine du dépôt : `php sql/reinitialiser.php`.
 
