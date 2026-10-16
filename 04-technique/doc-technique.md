@@ -303,25 +303,26 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Socle** _(commun)_
 
-- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8)
+- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur` et `tentative` ; les autres tables arrivent avec leurs écrans)_
 - [ ] `sql/defis.sql` — bibliothèque des 50 défis et leurs catégories
-- [ ] `public/index.php` — contrôleur frontal
-- [ ] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage
-- [ ] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
-- [ ] `noyau/Securite.php` — jeton CSRF
-- [ ] `noyau/Vue.php` — rendu et échappement de sortie
-- [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php`
+- [x] `public/index.php` — contrôleur frontal
+- [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
+- [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
+- [x] `noyau/Securite.php` — jeton CSRF
+- [x] `noyau/Vue.php` — rendu et échappement de sortie
+- [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(en cours : `entete.php` et `pied.php` faits)_
 - [ ] `public/styles/base.css`, `composants.css`, `ecrans.css`
-- [ ] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
-- [ ] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
+- [x] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
+- [x] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
 
 **Compte et duo** _(A)_
 
-- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
-- [ ] `CompteService` — inscription, connexion, suppression
+- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot` _(en cours : `Joueur`, `JoueurDepot` en lecture, `TentativeDepot`)_
+- [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion)_
 - [ ] `AppairageService` — code d'invitation, formation, dissolution
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
-- [ ] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4) · A2 `InscriptionControleur`
+- [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
+- [ ] A2 `InscriptionControleur`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [ ] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
@@ -347,11 +348,11 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 - [ ] `vues/composants/bloc-evenement.php`
 - [ ] D1, D2, D3, D5 `EvenementControleur`
-- [ ] G1 `ErreurControleur` — page introuvable et erreur serveur
+- [ ] G1 `ErreurControleur` — page introuvable et erreur serveur _(en cours : version minimale pour le routeur)_
 
 **Exploitation** _(commun)_
 
-- [ ] `sql/demonstration.sql` — jeu de données reproductible (§ 6.5)
+- [ ] `sql/demonstration.sql` — jeu de données reproductible (§ 6.5) _(en cours : joueurs d'A3, complété ticket par ticket)_
 - [ ] `debug.php` déposé à la racine du dossier Azrael
 
 ### 5.2 Lot 2 — gamification
