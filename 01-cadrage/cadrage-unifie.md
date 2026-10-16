@@ -3,7 +3,8 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.10 — 14 octobre 2026.** Fixe les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; clôt l'arbitrage A3 et requalifie le courriel en piste du lot 4 (§ 6.5, § 11) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
+> **Version 2.11 — 15 octobre 2026.** Sépare l'identifiant de connexion, unique, du pseudo affiché, libre (§ 6.6, § 7, § 10) ; unicité de l'identifiant insensible aussi aux accents (§ 6.6) ; consigne les décisions du 15/10 (§ 16).
+> La V2.10 (14 octobre 2026) fixait les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; clôt l'arbitrage A3 et requalifie le courriel en piste du lot 4 (§ 6.5, § 11) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
 > La V2.9 (18 septembre 2026) intégrait la reprise du zonage Figma suite au retour du professeur sur la lisibilité des maquettes (annotations, regroupement, variantes). La V2.8 intégrait les décisions de la séance de conception (étape 1, inventaire, parcours, zonage) ; la V2.0 fusionnait le document de référence V1 et le complément V1.1.
 
 ---
@@ -264,7 +265,7 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 **Limitation des tentatives**
 
 - 5 échecs en 15 minutes déclenchent une attente de 15 minutes avant tout nouvel essai.
-- Comptage par pseudo **et** par session : changer de pseudo ou de session ne remet pas le compteur à zéro.
+- Comptage par identifiant **et** par session : changer d'identifiant ou de session ne remet pas le compteur à zéro.
 - S'applique à la connexion (A3) et à toute vérification d'un code d'invitation (saisie en B1, code reçu par lien et rejoué après inscription ou connexion).
 - L'attente est annoncée en texte, avec l'heure à laquelle réessayer ; jamais de blocage définitif du compte.
 
@@ -272,15 +273,21 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 
 - 12 à 64 caractères ; espaces et accents acceptés.
 - Au moins une majuscule, une minuscule, un chiffre et un caractère spécial.
-- Refusé s'il figure dans une liste des mots de passe les plus courants, ou s'il contient le pseudo.
+- Refusé s'il figure dans une liste des mots de passe les plus courants, ou s'il contient l'identifiant ou le pseudo.
 - Jamais de renouvellement imposé ; copier-coller autorisé (gestionnaires de mots de passe).
 - Chaque critère manquant est nommé en texte, à côté du champ (§ 9).
 - Stockage par `password_hash` : Argon2id si l'hébergement le permet, sinon l'algorithme par défaut de PHP, dont la limite de 72 octets est alors contrôlée à la saisie.
 
-**Pseudo**
+**Identifiant** (sert à se connecter, jamais affiché au partenaire)
 
 - 3 à 30 caractères : lettres (accents acceptés), chiffres, tiret, tiret bas et point ; pas d'espace.
-- Unique sans tenir compte des majuscules : « Matteo » et « matteo » ne peuvent pas coexister.
+- Unique sans tenir compte des majuscules ni des accents : « Matteo » et « matteo », ou « Léa » et « Lea », ne peuvent pas coexister.
+
+**Pseudo** (prénom ou surnom affiché au partenaire)
+
+- 1 à 30 caractères imprimables, espaces, accents et émojis acceptés.
+- Aucune unicité : plusieurs joueurs, même au sein d'un duo, peuvent porter le même pseudo.
+- Échappé à l'affichage comme tout texte libre.
 
 Ces règles rendent plus probable l'oubli du mot de passe, qui fait perdre le compte (§ 10) : l'avertissement à l'inscription et l'autorisation du copier-coller en sont la contrepartie.
 
@@ -302,7 +309,7 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 
 | Table | Champs principaux | Contraintes |
 |---|---|---|
-| `joueur` | id, pseudo, mdp_hash, duo_id (nullable), pv, date_creation | Pas d'adresse électronique ; pseudo unique sans tenir compte des majuscules (§ 6.6) ; compte réappairable après dissolution |
+| `joueur` | id, identifiant, pseudo, mdp_hash, duo_id (nullable), pv, date_creation | Pas d'adresse électronique ; identifiant unique sans tenir compte des majuscules ni des accents, pseudo libre (§ 6.6) ; compte réappairable après dissolution |
 | `duo` | id, code_invitation, date_expiration_code, date_creation | Code à usage unique, valable 60 minutes, régénérable ; suppression en cascade |
 | `participation` | id, joueur_id, date_jour, reponse, date_reponse | Unicité (`joueur_id`, `date_jour`) |
 | `categorie` | id, libelle | — |
@@ -311,7 +318,7 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 | `tirage_proposition` | id, tirage_id, defi_id, choisi | `choisi` renseignable par le système |
 | `mission` | id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | — |
 | `gage` | id, auteur_id, destinataire_id, texte, date_creation, statut, nb_contestations | Une contestation maximum |
-| `tentative` | id, cle (pseudo ou session), type (`connexion` / `code`), date | Limitation des essais |
+| `tentative` | id, cle (identifiant ou session), type (`connexion` / `code`), date | Limitation des essais |
 
 ### Statuts de `mission`
 
@@ -433,7 +440,7 @@ Application publique stockant des contenus produits par des personnes identifiab
 
 ### Minimisation
 
-Le modèle est déjà vertueux : un pseudonyme et une empreinte de mot de passe, ni nom, ni date de naissance, ni géolocalisation.
+Le modèle est déjà vertueux : un identifiant, un pseudo (prénom ou surnom, au choix du joueur) et une empreinte de mot de passe, ni nom, ni date de naissance, ni géolocalisation.
 
 ### Adresse électronique (tranché le 15/09)
 
@@ -590,6 +597,8 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 **Tranchées le 16/09** : action « reposer la carte » supprimée ; aucune mention de contestabilité côté destinataire ; régénération du code en B1 ; sortie de la salle d'attente vers le profil ; retour d'A2 et A3 vers A1 · invitation si un code a été reçu ; inscription avec code valide vers B2, sinon B1 avec message d'erreur ; mode démo supprimé ; joueur déjà en duo : connexion vers C1, variante « déjà en duo » de la salle d'attente.
 
 **Tranchées le 14/10** : délai de 15 minutes après 5 échecs en 15 minutes, compté par pseudo et par session ; règles du mot de passe (CNIL, niveau le plus exigeant) et du pseudo (§ 6.6) ; vocabulaire du modèle de données aligné sur le glossaire (§ 7) ; architecture MVC à contrôleur frontal, sans framework (ADR-0001) ; simulation du temps par décalage d'horloge réglé côté serveur (description technique § 3.8) ; rétroplanning indicatif, démarrage du code autorisé, checkpoints réguliers avec l'encadrant (§ 12, décision ouverte n° 18 close) ; arbitrage A3 clos, aucune notification au lot 1, courriel en lot 4 (§ 6.5, décisions ouvertes n° 5 et 14 closes).
+
+**Tranchées le 15/10** : l'identifiant de connexion, unique sans tenir compte des majuscules ni des accents, est séparé du pseudo affiché, libre et non unique, pour que chacun puisse être reconnu de son partenaire par son prénom (§ 6.6, § 7) ; compteur d'échecs par identifiant et par session.
 
 ## 17. Note de fusion
 

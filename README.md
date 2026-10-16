@@ -32,16 +32,16 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 | `02-recherche-utilisateur/guide-animation-focus-group.md` | Déroulé et questions du focus group (2 h, 6 à 8 participants). | v0.3 (07/10/2026) — exercice, séance non tenue |
 | `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (27/27 cadres) |
 | `04-technique/doc-technique.md` | Description technique : architecture MVC, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.2 (14/10/2026) — horloge et simulation du temps, méthode des bases, tests, déconnexion en `POST` |
-| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.2 (14/10/2026) — tables `joueur` et `duo`, pseudo unique sans tenir compte des majuscules · **à valider en S8** |
+| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.3 (15/10/2026) — tables `joueur` et `duo`, identifiant de connexion unique séparé du pseudo affiché · **à valider en S8** |
 
 Les fichiers `.json` sont les fichiers de travail générés par l'outil de conception ; les `.md` du même nom en sont la version lisible. Les deux se modifient ensemble.
 
 ## Ressources externes
 
-- Fichier Figma de zonage (maquettes du lot 1, 27 cadres) : https://www.figma.com/design/K4aQOZqlqUUh6oKx3lLloG/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
-- Parcours 1 — arrivée et appairage (FigJam) : https://www.figma.com/board/2OL6KmD8ZdFMPjKEeg4nKe/Quest---Love---Parcours-1---arriv%C3%A9e-et-appairage--v3-?node-id=0-1
-- Parcours 2 — journée de jeu (FigJam) : https://www.figma.com/board/EALHmvQwl5XW95yqfv0ek4/Quest---Love---Parcours-2---journ%C3%A9e-de-jeu--v3-
-- Parcours 3 — fin de défi et événements (FigJam) : https://www.figma.com/board/468gJJ44NTXHyviYEMsgW3/Quest---Love---Parcours-3---fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-
+- Fichier Figma de zonage (maquettes du lot 1, 27 cadres) : https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
+- Parcours 1 — arrivée et appairage (FigJam) : https://www.figma.com/board/NDb4YHNxJ62zUXGGJ9a3Vn/Quest---Love---Parcours-1-_-arriv%C3%A9e-et-appairage--v3-?node-id=0-1
+- Parcours 2 — journée de jeu (FigJam) : https://www.figma.com/board/vBm24iEeigI92RZ99AyWxM/Quest---Love---Parcours-2-_-journ%C3%A9e-de-jeu--v3-
+- Parcours 3 — fin de défi et événements (FigJam) : https://www.figma.com/board/UHsyf9H1fFEcpqHKkIm49F/Quest---Love---Parcours-3-_-fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-
 - Application déployée : https://azrael.sha.univ-poitiers.fr/~mlorenzi/
 - Code source : https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php
 

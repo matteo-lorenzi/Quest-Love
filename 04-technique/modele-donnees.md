@@ -5,7 +5,8 @@
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.2 — 14 octobre 2026.** Unicité du pseudo sans tenir compte des majuscules (cadrage § 6.6) ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
+> **Version 1.3 — 15 octobre 2026.** Identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
+> Version 1.2 du 14 octobre 2026 : unicité du pseudo sans tenir compte des majuscules ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
 > Version 1.1 du 9 octobre 2026 : tables renommées selon le glossaire (`utilisateur` devient `joueur`, `couple` devient `duo`). Version 1.0 du 18 septembre 2026.
 
 ## 1. Vue d'ensemble
@@ -29,7 +30,8 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `pseudo` | chaîne 30 | unique sans tenir compte des majuscules (interclassement `utf8mb4_unicode_ci`), non nul ; format : cadrage § 6.6 |
+| `identifiant` | chaîne 30 | unique sans tenir compte des majuscules ni des accents (interclassement `utf8mb4_unicode_ci`), non nul ; format : cadrage § 6.6 |
+| `pseudo` | chaîne 30 | non nul, non unique ; format : cadrage § 6.6 |
 | `mdp_hash` | chaîne 255 | non nul, produit par `password_hash` |
 | `duo_id` | entier non signé | nullable, clé étrangère vers `duo` |
 | `pv` | entier très court non signé | non nul, défaut 5 |
@@ -124,7 +126,7 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `cle` | chaîne 64 | pseudo ou identifiant de session |
+| `cle` | chaîne 64 | identifiant du joueur ou identifiant de session |
 | `type` | énumération `connexion` / `code` | non nul |
 | `date` | date-heure | non nul |
 

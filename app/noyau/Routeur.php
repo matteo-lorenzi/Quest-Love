@@ -7,6 +7,8 @@ class Routeur
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte ou duo.
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
     private const ECRANS = [
+        'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
+        'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
     ];
 
@@ -41,7 +43,11 @@ class Routeur
         if ($acces !== 'public' && !$connecte) {
             self::rediriger('connexion');
         }
-        // TODO(simplif): niveau duo non vérifié, à lire via JoueurDepot (duo_id) avec #3 ; aucun écran ne l'utilise encore.
+        // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
+        // Le duo est relu en base à chaque requête : une dissolution par le partenaire prend effet aussitôt.
+        if ($acces === 'duo' && (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id'])?->duoId === null) {
+            self::rediriger('salle-attente');
+        }
 
         // Étape 6 — CSRF, puis appel du contrôleur.
         // Toute écriture passe par POST, donc tout POST doit porter le jeton de la session ; sinon G1 (403).

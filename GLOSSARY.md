@@ -5,8 +5,16 @@ Jeu quotidien à deux : chaque jour, chaque joueur attribue un défi à son part
 ## Joueurs
 
 **Joueur** :
-Personne inscrite à l'application, identifiée par son pseudo, avec ou sans duo.
+Personne inscrite à l'application, avec ou sans duo. Se connecte avec son identifiant, apparaît à son partenaire sous son pseudo.
 _Éviter_ : utilisateur, membre, compte (le compte désigne seulement les identifiants)
+
+**Identifiant** :
+Nom unique et privé avec lequel le joueur se connecte. Jamais affiché au partenaire.
+_Éviter_ : login, nom d'utilisateur
+
+**Pseudo** :
+Prénom ou surnom libre sous lequel le joueur apparaît à son partenaire. Plusieurs joueurs peuvent porter le même.
+_Éviter_ : nom affiché, surnom
 
 **Duo** :
 Deux joueurs appairés qui jouent ensemble. Un joueur appartient à au plus un duo.
