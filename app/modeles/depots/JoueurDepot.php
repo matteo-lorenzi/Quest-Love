@@ -41,6 +41,68 @@ class JoueurDepot
         return (int) $this->pdo->lastInsertId();
     }
 
+    // L'autre joueur du duo, pour la variante « déjà en duo » de B1. Nul si le joueur est sans duo.
+    public function trouverPartenaire(Joueur $joueur): ?Joueur
+    {
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE duo_id = ? AND id <> ?');
+        $requete->execute([$joueur->duoId, $joueur->id]);
+        $ligne = $requete->fetch();
+        return $ligne ? $this->hydrater($ligne) : null;
+    }
+
+    // Le code est sensible à la casse (colonne ascii_bin) : le service le normalise avant de chercher.
+    public function trouverParCode(string $code): ?Joueur
+    {
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE code_invitation = ?');
+        $requete->execute([$code]);
+        $ligne = $requete->fetch();
+        return $ligne ? $this->hydrater($ligne) : null;
+    }
+
+    // Verrou en écriture jusqu'à la fin de la transaction, pris dans l'ordre des numéros : deux appairages croisés ne se bloquent pas l'un l'autre.
+    /** @return Joueur[] indexés par numéro */
+    public function verrouiller(array $ids): array
+    {
+        sort($ids);
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') ORDER BY id FOR UPDATE');
+        $requete->execute($ids);
+        $joueurs = [];
+        foreach ($requete->fetchAll() as $ligne) {
+            $joueurs[(int) $ligne['id']] = $this->hydrater($ligne);
+        }
+        return $joueurs;
+    }
+
+    // Le code ne sert qu'une fois : il disparaît avec le rattachement.
+    public function rattacherAuDuo(int $id, int $duoId): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET duo_id = ?, code_invitation = NULL, date_expiration_code = NULL WHERE id = ?')
+            ->execute([$duoId, $id]);
+    }
+
+    // Écrase le code du joueur et repousse l'échéance : c'est ce qui invalide l'ancien (ADR-0002).
+    // Sans effet sur un joueur déjà en duo : une régénération qui croise la formation ne doit pas lui recréer un code.
+    // Avec $siExpireAvant, sans effet non plus si un code encore valable existe : un autre appareil vient de le créer, on ne l'écrase pas.
+    // Faux si le code est déjà porté par un autre joueur : la clé unique tranche, et c'est ici qu'on reconnaît son erreur (1062), comme pour ajouter().
+    public function enregistrerCode(int $id, string $code, DateTimeImmutable $expiration, ?DateTimeImmutable $siExpireAvant = null): bool
+    {
+        $sql = 'UPDATE joueur SET code_invitation = ?, date_expiration_code = ? WHERE id = ? AND duo_id IS NULL';
+        $valeurs = [$code, $expiration->format('Y-m-d H:i:s'), $id];
+        if ($siExpireAvant !== null) {
+            $sql .= ' AND (code_invitation IS NULL OR date_expiration_code <= ?)';
+            $valeurs[] = $siExpireAvant->format('Y-m-d H:i:s');
+        }
+        try {
+            $this->pdo->prepare($sql)->execute($valeurs);
+        } catch (PDOException $erreur) {
+            if (($erreur->errorInfo[1] ?? null) === 1062) {
+                return false;
+            }
+            throw $erreur;
+        }
+        return true;
+    }
+
     private function hydrater(array $ligne): Joueur
     {
         return new Joueur(
@@ -48,6 +110,8 @@ class JoueurDepot
             $ligne['identifiant'],
             $ligne['pseudo'],
             $ligne['mdp_hash'],
+            $ligne['code_invitation'],
+            $ligne['date_expiration_code'] === null ? null : DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_expiration_code']),
             $ligne['duo_id'] === null ? null : (int) $ligne['duo_id'],
             (int) $ligne['pv'],
             // createFromFormat lit une date stockée ; il ne consulte pas l'horloge (§ 2.4).

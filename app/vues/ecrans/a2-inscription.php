@@ -50,6 +50,10 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
     <h1 class="entete-ecran__titre">Inscription</h1>
 </header>
 <main class="inscription">
+    <?php if ($codeRecu !== null): ?>
+        <!-- Le code d'un lien d'invitation : affiché tel que reçu, il n'est validé que si tu le valides en salle d'attente. -->
+        <p class="invitation">Tu as reçu un code d'invitation : <strong><?= e($codeRecu) ?></strong>. Il sera prérempli dans la salle d'attente dès que tu seras connecté.</p>
+    <?php endif ?>
     <form class="formulaire" method="post" action="index.php?ecran=inscription">
         <p class="formulaire__consigne">Tous les champs sont obligatoires.</p>
         <input type="hidden" name="jeton" value="<?= e($jeton) ?>">

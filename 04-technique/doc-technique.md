@@ -214,16 +214,17 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Mot de passe** : `password_hash` au stockage (`PASSWORD_ARGON2ID` imposé, sans repli sur l'algorithme par défaut ni limite de 72 octets : disponible sur Azrael et sur WAMP, vérifié le 16/10, #10), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC, comme l'identifiant et le pseudo, par une seule fonction privée de `CompteService` qui refuse un texte non UTF-8 (`Normalizer::normalize`, extension `intl`, active sur Azrael en PHP 8.2.30 et sur WAMP en PHP 8.2.29) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
-- **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
-- **Code conservé** : un code reçu avant authentification est gardé en session et rejoué après inscription ou connexion.
-- **Aiguillage après authentification** : en duo vers C1 ; sans duo avec code valide vers B2 ; sinon vers B1, avec message d'erreur si le code était invalide.
-- **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps.
-- **Cas d'erreur à couvrir** : propre code, code expiré, code régénéré, code d'un joueur déjà en duo, trop de tentatives.
+- **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide. Il est créé au premier affichage de B1 (initialisation idempotente : le seul écrit d'un GET, qui n'est pas une action du joueur). Il vit dans `joueur` (`code_invitation`, `date_expiration_code`), la ligne `duo` n'étant créée qu'à la formation ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Huit caractères parmi `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, tirés par `random_bytes` ; une collision sur la clé unique relance le tirage. La saisie est normalisée (NFC, séparateurs retirés, majuscules) avant toute recherche.
+- **Code conservé** : un code reçu avant authentification est gardé en session, tel que reçu, et prérempli en B1 après inscription ou connexion. Le joueur le valide d'un clic, avec les mêmes règles et la même limite que toute saisie : aucun duo ne se forme sans ce geste.
+- **Aiguillage après authentification** : en duo vers C1, sinon vers B1 (code conservé prérempli). B2 suit la formation du duo.
+- **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; avec un duo formé, il renvoie vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo »).
+- **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` et de rattacher les deux joueurs ; les codes sont remis à nul. Un refus ne modifie rien ; l'échec est enregistré une fois la transaction terminée.
+- **Cas d'erreur à couvrir** : attente en cours (pas compté), propre code, code expiré, code pas valable (faux, régénéré ou dont le propriétaire est déjà en duo : non distingués, `TODO(simplif)` en code), texte sans forme de code (pas compté), joueur déjà en duo (pas compté). Règle de comptage : cadrage § 6.6.
 - **Dissolution et suppression** : effets sur les données en annexe § 6 ; règles en cadrage § 10.
 
 ### 3.7 Sécurité
 
-- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `CompteService` et `TentativeDepot` pour la limitation des tentatives, qui demande du SQL et vit donc dans le modèle (§ 2.4).
+- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService` : chaque essai est écrit avant d'être vérifié, et libéré s'il réussit ; seuls comptent les essais écrits plus tôt, donc des requêtes simultanées ne dépassent pas 5, qui demande du SQL et vit donc dans le modèle (§ 2.4).
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
@@ -303,7 +304,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Socle** _(commun)_
 
-- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur` et `tentative` ; les autres tables arrivent avec leurs écrans)_
+- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur`, `duo` et `tentative` ; les autres tables arrivent avec leurs écrans)_
 - [ ] `sql/defis.sql` — bibliothèque des 50 défis et leurs catégories
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
@@ -317,14 +318,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Compte et duo** _(A)_
 
-- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot` _(en cours : `Joueur`, `JoueurDepot` en lecture et en inscription, `TentativeDepot`)_
+- [x] Entités `Joueur`, `Duo`, `RefusCode` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
 - [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
-- [ ] `AppairageService` — code d'invitation, formation, dissolution
+- [x] `AppairageService` — code d'invitation, formation · `LimiteTentativesService` _(la dissolution arrive avec F2)_
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
-- [ ] B1 `SalleAttenteControleur` — et cas « déjà en duo »
+- [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
 - [ ] F1 `ProfilControleur` — et cas « sans duo »
 - [ ] F2 `QuitterDuoControleur` · F3 `SupprimerCompteControleur`

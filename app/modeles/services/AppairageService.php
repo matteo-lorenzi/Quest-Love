@@ -1,0 +1,136 @@
+<?php
+// Service d'appairage — B1 Salle d'attente — lot 1 — A. Code d'invitation et formation du duo (cadrage § 6.6, § 7 ; doc technique § 3.6).
+
+class AppairageService
+{
+    // 8 caractères parmi 32 : A-Z sans I ni O, 2 à 9 (cadrage § 7). 32 = 2⁵, donc un octet masqué sur 5 bits tire sans biais.
+    private const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    private const LONGUEUR_CODE = 8;
+    private const VALIDITE = '60 minutes';
+    // Tirages avant d'abandonner sur une collision de la clé unique : 32⁸ codes possibles, une collision est déjà exceptionnelle.
+    private const ESSAIS_CODE = 5;
+
+    private LimiteTentativesService $limite;
+
+    // Le contrôleur construit les dépôts et les passe ici (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
+    // Le service reçoit aussi la connexion : la formation du duo est une transaction, et les transactions vivent dans les services.
+    public function __construct(
+        private PDO $pdo,
+        private JoueurDepot $joueurs,
+        private DuoDepot $duos,
+        TentativeDepot $tentatives,
+    ) {
+        $this->limite = new LimiteTentativesService($tentatives);
+    }
+
+    // B1 — le code du joueur s'il est encore valable (c'est celui qu'il a pu donner), sinon un nouveau.
+    public function code(Joueur $joueur, DateTimeImmutable $maintenant): Joueur
+    {
+        if ($joueur->codeInvitation !== null && $joueur->dateExpirationCode > $maintenant) {
+            return $joueur;
+        }
+        return $this->ecrireCode($joueur, $maintenant, $maintenant);
+    }
+
+    // B1 — lien « nouveau code » : écrase le code, ce qui invalide l'ancien. Renvoie le joueur à jour.
+    public function regenerer(Joueur $joueur, DateTimeImmutable $maintenant): Joueur
+    {
+        return $this->ecrireCode($joueur, $maintenant, null);
+    }
+
+    // $siExpireAvant : le premier affichage n'écrit que si aucun code valable n'existe, pour ne pas écraser celui qu'un autre appareil vient de créer.
+    // Le joueur relu porte ce que la base contient, que cet appel l'ait écrit ou non.
+    private function ecrireCode(Joueur $joueur, DateTimeImmutable $maintenant, ?DateTimeImmutable $siExpireAvant): Joueur
+    {
+        for ($essai = 0; $essai < self::ESSAIS_CODE; $essai++) {
+            if ($this->joueurs->enregistrerCode($joueur->id, $this->tirerCode(), $maintenant->modify('+' . self::VALIDITE), $siExpireAvant)) {
+                return $this->joueurs->trouverParId($joueur->id);
+            }
+        }
+        throw new RuntimeException('Aucun code libre après ' . self::ESSAIS_CODE . ' tirages.');
+    }
+
+    // B1 — saisie du code d'un partenaire. Résultat : le Duo formé, l'heure de réessai si le joueur doit attendre, ou la raison du refus.
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|DateTimeImmutable|RefusCode
+    {
+        // Texte sans forme de code : refusé sans toucher la base ni compter d'échec, comme connecter() (étape 6.0).
+        $code = $this->normaliserCode($saisie);
+        if ($code === null) {
+            return RefusCode::Format;
+        }
+        // Un joueur déjà en duo n'a pas de saisie en B1 : seule une requête forgée arrive ici, elle ne compte pas.
+        if ($invite->duoId !== null) {
+            return RefusCode::DejaEnDuo;
+        }
+        // Essai réservé avant la vérification, comme la connexion : des requêtes simultanées se comptent entre elles.
+        // Deux compteurs : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
+        // Un refus qui compte garde sa réservation ; la formation du duo et le refus « déjà en duo » la rendent.
+        $reservation = $this->limite->reserver([(string) $invite->id, $cleSession], TypeTentative::Code, $maintenant);
+        if ($reservation instanceof DateTimeImmutable) {
+            return $reservation;
+        }
+        $proprietaire = $this->joueurs->trouverParCode($code);
+        // TODO(simplif): faux, régénéré et propriétaire déjà en duo ne sont pas distingués (le code est écrasé ou remis à nul), à garder l'historique des codes si le support en a besoin.
+        if ($proprietaire === null) {
+            return RefusCode::PasValable;
+        }
+        if ($proprietaire->id === $invite->id) {
+            return RefusCode::PropreCode;
+        }
+        if ($proprietaire->dateExpirationCode <= $maintenant) {
+            return RefusCode::Expire;
+        }
+        // Formation : une transaction, sous verrou des deux joueurs. Ce qui a été lu plus haut a pu changer entre-temps
+        // (le propriétaire a régénéré son code, un autre invité l'a pris), donc tout est revérifié sur les lignes verrouillées.
+        $duoId = null;
+        $inviteFrais = null;
+        $this->pdo->beginTransaction();
+        try {
+            $verrouilles = $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
+            $inviteFrais = $verrouilles[$invite->id] ?? null;
+            $proprietaireFrais = $verrouilles[$proprietaire->id] ?? null;
+            if ($inviteFrais !== null && $inviteFrais->duoId === null && $proprietaireFrais !== null && $proprietaireFrais->duoId === null
+                && $proprietaireFrais->codeInvitation === $code && $proprietaireFrais->dateExpirationCode > $maintenant) {
+                $duoId = $this->duos->creer($maintenant);
+                $this->joueurs->rattacherAuDuo($invite->id, $duoId);
+                $this->joueurs->rattacherAuDuo($proprietaire->id, $duoId);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+        if ($duoId === null) {
+            // L'invité est entré en duo entre la lecture et le verrou (double clic, deux appareils) : ce n'est pas une erreur de saisie, elle ne compte pas.
+            if ($inviteFrais?->duoId !== null) {
+                $this->limite->liberer($reservation);
+                return RefusCode::DejaEnDuo;
+            }
+            return RefusCode::PasValable;
+        }
+        $this->limite->liberer($reservation);
+        return $this->duos->trouverParId($duoId);
+    }
+
+    // Le code tel qu'on le range : NFC, sans espaces ni tirets (copier-coller de « XXXX-XXXX »), en majuscules.
+    // null si ce ne peut pas être un code : UTF-8 invalide, ou autre chose que 8 caractères de l'alphabet.
+    private function normaliserCode(string $saisie): ?string
+    {
+        $texte = Normalizer::normalize($saisie, Normalizer::FORM_C);
+        if ($texte === false) {
+            return null;
+        }
+        // strtoupper et non mb_strtoupper : « ß » deviendrait « SS » et passerait pour deux caractères de l'alphabet.
+        $code = strtoupper(preg_replace('/[\p{Z}\p{Pd}]+/u', '', $texte));
+        return preg_match('/^[A-HJ-NP-Z2-9]{8}$/D', $code) ? $code : null;
+    }
+
+    private function tirerCode(): string
+    {
+        $code = '';
+        foreach (str_split(random_bytes(self::LONGUEUR_CODE)) as $octet) {
+            $code .= self::ALPHABET[ord($octet) & 31];
+        }
+        return $code;
+    }
+}

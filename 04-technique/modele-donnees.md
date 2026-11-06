@@ -1,11 +1,12 @@
 # Quest & Love — Modèle de données
 
 > **Statut : à valider en S8**, avec un enseignant, avant toute implémentation. Annexe de [`doc-technique.md`](doc-technique.md).
-> Référence : cadrage unifié V2.9, § 7. **En cas d'écart, le cadrage fait foi.**
+> Référence : cadrage unifié V2.14, § 7. **En cas d'écart, le cadrage fait foi.**
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.3 — 15 octobre 2026.** Identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
+> **Version 1.4 — 6 novembre 2026.** Le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
+> Version 1.3 du 15 octobre 2026 : identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
 > Version 1.2 du 14 octobre 2026 : unicité du pseudo sans tenir compte des majuscules ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
 > Version 1.1 du 9 octobre 2026 : tables renommées selon le glossaire (`utilisateur` devient `joueur`, `couple` devient `duo`). Version 1.0 du 18 septembre 2026.
 
@@ -19,7 +20,7 @@
 
 Relations :
 
-- un `duo` porte zéro à deux `joueur` ; un `joueur` appartient à zéro ou un `duo` ;
+- un `duo` porte exactement deux `joueur` ; un `joueur` appartient à zéro ou un `duo` ;
 - un `tirage` porte exactement trois `tirage_proposition` ;
 - une `mission` naît d'un `tirage` choisi ou d'une attribution aléatoire, et pointe un `defi`.
 
@@ -33,11 +34,14 @@ Relations :
 | `identifiant` | chaîne 30 | unique sans tenir compte des majuscules ni des accents (interclassement `utf8mb4_unicode_ci`), non nul ; format : cadrage § 6.6 |
 | `pseudo` | chaîne 30 | non nul, non unique ; format : cadrage § 6.6 |
 | `mdp_hash` | chaîne 255 | non nul, produit par `password_hash` |
-| `duo_id` | entier non signé | nullable, clé étrangère vers `duo` |
+| `code_invitation` | chaîne 8, ASCII sensible à la casse | unique, nullable : nul tant qu'aucun code n'est généré et une fois le duo formé |
+| `date_expiration_code` | date-heure | nullable, génération + 60 minutes |
+| `duo_id` | entier non signé | nullable, clé étrangère vers `duo`, suppression du duo = remise à nul |
 | `pv` | entier très court non signé | non nul, défaut 5 |
 | `date_creation` | date-heure | non nul |
 
 - `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ou C1.
+- La régénération écrase le code et repousse l'échéance : c'est ce qui invalide l'ancien. Un code expiré ou nul est régénéré au chargement de B1.
 - Aucune autre donnée personnelle : minimisation, cadrage § 10.
 
 ### `duo`
@@ -45,11 +49,10 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `code_invitation` | chaîne 8 | unique, nullable une fois le duo formé |
-| `date_expiration_code` | date-heure | nullable, création + 60 minutes |
 | `date_creation` | date-heure | non nul |
 
-- La régénération écrase le code et repousse l'échéance : c'est ce qui invalide l'ancien.
+- Créé en une transaction, quand le deuxième joueur saisit un code valide : il porte aussitôt ses deux joueurs.
+- Le code et son échéance ne sont pas ici : un joueur en attente n'a pas de `duo`, ce qui garde `joueur.duo_id` nul comme seule définition de « sans duo ».
 
 ### `participation`
 
@@ -126,7 +129,7 @@ Relations :
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `cle` | chaîne 64 | identifiant du joueur ou identifiant de session |
+| `cle` | chaîne 64 | connexion : identifiant saisi ou identifiant de session ; code : numéro du joueur ou identifiant de session |
 | `type` | énumération `connexion` / `code` | non nul |
 | `date` | date-heure | non nul |
 
@@ -186,7 +189,7 @@ Règles : cadrage § 10. Aucune corbeille, aucune conservation différée.
 
 ## 7. À trancher en S8
 
-- [ ] Longueur et alphabet du code d'invitation — 8 caractères non ambigus proposés.
+- [x] Longueur et alphabet du code d'invitation — 8 caractères parmi 32 : A à Z sans I ni O, 2 à 9 (tranché le 06/11).
 - [ ] Longueur maximale d'un titre et d'une description de défi, une fois les 15 premiers défis écrits (S5).
 - [ ] Longueur maximale d'un gage.
 - [ ] Purge des `tentative` : au rattrapage, ou par une instruction manuelle.

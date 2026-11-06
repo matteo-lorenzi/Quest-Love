@@ -15,6 +15,8 @@ class ConnexionControleur
     {
         $retour = $_SESSION[self::RETOUR] ?? ['identifiant' => '', 'erreurs' => [], 'attente' => null];
         unset($_SESSION[self::RETOUR]);
+        // Un lien d'invitation arrive avec ?code= : on le garde en session pour le préremplir en B1 après la connexion (doc technique § 3.6).
+        $retour['codeRecu'] = SalleAttenteControleur::conserverCodeRecu();
 
         // Le titre de la page commence par « Erreur : » pour que le lecteur d'écran l'annonce au rechargement (RGAA 8.6).
         $titre = ($retour['erreurs'] || $retour['attente']) ? 'Erreur : Connexion' : 'Connexion';
@@ -59,8 +61,8 @@ class ConnexionControleur
         session_regenerate_id(true);
         $_SESSION['joueur_id'] = $resultat->id;
 
-        // Étape 6.6 — aiguillage (cadrage § 8.5) : en duo vers l'accueil, sinon vers la salle d'attente.
-        // TODO(simplif): pas de branche vers B2 avec un code d'invitation conservé, à ajouter avec AppairageService.
+        // Étape 6.6 — aiguillage (cadrage § 8.5) : en duo vers l'accueil, sinon vers la salle d'attente, où un code conservé est prérempli.
+        // Le code n'est pas rejoué ici : un lien ne doit pas former un duo sans que le joueur l'ait voulu.
         Routeur::rediriger($resultat->duoId !== null ? 'accueil' : 'salle-attente');
     }
 

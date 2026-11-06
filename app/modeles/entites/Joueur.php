@@ -9,6 +9,9 @@ final readonly class Joueur
         public string $pseudo,
         // Empreinte password_hash, jamais affichée : seul CompteService la lit.
         public string $mdpHash,
+        // Code d'invitation et son échéance : nuls sans code, et une fois le duo formé (ADR-0002).
+        public ?string $codeInvitation,
+        public ?DateTimeImmutable $dateExpirationCode,
         public ?int $duoId,
         public int $pv,
         public DateTimeImmutable $dateCreation,

@@ -28,6 +28,20 @@ _Éviter_ : expéditeur, donneur
 Joueur qui reçoit la mission du jour et doit la réaliser.
 _Éviter_ : receveur, cible
 
+## Appairage
+
+**Appairage** :
+Formation d'un duo : un joueur sans duo saisit le code d'invitation d'un autre joueur sans duo.
+_Éviter_ : jumelage, association
+
+**Code d'invitation** :
+Code de 8 caractères propre à un joueur sans duo, qu'il donne à son partenaire. À usage unique, valable 60 minutes, remplacé quand le joueur en demande un nouveau. Il disparaît quand le duo se forme.
+_Éviter_ : jeton, lien d'invitation (le lien transporte le code, il n'est pas le code)
+
+**Salle d'attente** :
+Écran B1 d'un joueur sans duo : il y voit son code d'invitation et peut saisir celui de son partenaire.
+_Éviter_ : lobby, file d'attente
+
 ## Comptes
 
 **Caractère** :

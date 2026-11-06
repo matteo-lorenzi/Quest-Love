@@ -152,7 +152,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 ### Code d'invitation
 
 - **Validité 60 minutes, usage unique, régénération** : le code affiché en salle d'attente est valable 60 minutes. Il peut être régénéré à tout moment par un lien discret « nouveau code », ce qui invalide immédiatement l'ancien.
-- **Cas d'erreur** : un joueur peut se tromper en saisissant son propre code, saisir un code expiré ou déjà régénéré, ou enchaîner trop de tentatives (au-delà de 5, un délai s'applique avant de pouvoir réessayer).
+- **Cas d'erreur** : un joueur peut se tromper en saisissant son propre code, saisir un code expiré ou qui n'est plus valable (faux, déjà régénéré, ou celui d'un joueur déjà en duo : l'application ne les distingue pas), ou enchaîner trop de tentatives (au-delà de 5, un délai s'applique avant de pouvoir réessayer).
 - **Lien d'invitation reçu** : selon la situation du joueur qui ouvre le lien, l'application aiguille différemment — connecté et déjà en duo : rappel du duo actuel et proposition de le quitter pour en rejoindre un autre ; connecté sans duo ou non connecté : arrivée en salle d'attente ou en inscription/connexion avec le code prérempli, conservé même le temps de créer un compte.
 
 ### Sécurité et limites fonctionnelles visibles
@@ -196,11 +196,11 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 - **A2 · Inscription** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-183)
   Formulaire identifiant + pseudo + mot de passe.
   - Avertissement mot de passe, mention CGU, code prérempli, erreurs
-  - Destinations : B2 (code valide), B1 (sans code ou code invalide), retour A1
+  - Destinations : B1 (code reçu prérempli, à valider), retour A1
 - **A3 · Connexion** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-219)
   Formulaire identifiant + mot de passe.
   - Erreurs, délai après 5 échecs, code conservé
-  - Destinations : C1 (en duo), B2 (code valide), B1
+  - Destinations : C1 (en duo), B1 (code reçu prérempli, à valider)
 - **A4 · Pages légales** (gabarit unique) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-243)
   Un seul gabarit, trois contenus sélectionnés par paramètre d'URL.
   - Mentions légales · Politique de confidentialité · Conditions d'utilisation
