@@ -6,7 +6,7 @@ class ConnexionControleur
     // Clé de session qui transporte les erreurs et la saisie du POST vers le GET qui suit la redirection.
     private const RETOUR = 'retour_connexion';
 
-    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ce dont il a besoin (ADR-0001).
+    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant) {}
 
     // Étape 6 — GET : afficher le formulaire.
