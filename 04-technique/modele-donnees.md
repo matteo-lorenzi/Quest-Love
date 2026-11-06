@@ -40,6 +40,7 @@ Relations :
 | `duo_id` | entier non signé | nullable, clé étrangère vers `duo`, suppression du duo = remise à nul |
 | `onboarding_vu` | booléen | non nul, défaut 0 ; mis à 1 quand le joueur termine ou passe l'onboarding ; remis à 0 pour les deux joueurs à la formation d'un duo |
 | `pv` | entier très court non signé | non nul, défaut 5 |
+| `dissolution_a_signaler` | booléen | non nul, défaut 0 ; mis à 1 sur le partenaire seul quand l'autre dissout le duo ; lu par D3, qui le remet à 0 |
 | `date_creation` | date-heure | non nul |
 
 - `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ; avec un duo, `onboarding_vu` des deux joueurs aiguille vers B2 ou C1 (doc technique § 3.6).
@@ -189,6 +190,18 @@ Règles : cadrage § 10. Aucune corbeille, aucune conservation différée.
 | Suppression de compte | Tout ce qui précède, plus la ligne `joueur` | Rien |
 
 - Les clés étrangères des tables de jeu sont déclarées en suppression en cascade depuis `duo` : la dissolution est une seule instruction, pas une séquence à maintenir.
+
+### Dissolution : ce que F2 livre et ce qui reste à faire avec les tables de jeu
+
+F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule transaction, sous verrou des deux lignes `joueur` : les deux joueurs repassent à `pv = 5`, `onboarding_vu = 0` et `duo_id` nul ; le partenaire reçoit `dissolution_a_signaler = 1` (lu par D3, qui remet la colonne à 0) ; puis `DELETE FROM duo`. Aucune ligne de jeu n'existe encore, la cascade n'a donc rien à supprimer. Décisions closes, à ne pas rouvrir. À faire quand les tables de jeu sont créées :
+
+- [ ] **Cascade** : `mission`, `tirage`, `participation` et `gage` portent un `duo_id` avec `ON DELETE CASCADE` vers `duo`. `tirage_proposition` suit `tirage` par la même cascade. Aucune clé étrangère vers `joueur` ne doit bloquer le `DELETE FROM duo` : les joueurs ne sont pas supprimés à la dissolution. Un oubli de cascade échoue franchement (erreur de clé étrangère à la suppression), il ne laisse pas de données orphelines en silence. `DuoDepot::supprimer` reste une seule instruction et ne change pas.
+- [ ] **`sql/schema.sql`** : les tables de jeu sont supprimées avant `joueur` et `duo` (ordre des `DROP`).
+- [ ] **Test** : ajouter à `tests/AppairageServiceTest.php` un cas qui crée des lignes de chaque table de jeu pour deux duos, dissout l'un et vérifie que seules les lignes du duo dissous disparaissent.
+- [ ] **PV** : remplacer le `5` écrit en dur dans la dissolution par la constante de départ de `PointsDeVieService` (le `TODO(simplif)` du code le rappelle).
+- [ ] **F3** : `SupprimerCompteControleur` appelle `dissoudre` avant de supprimer la ligne `joueur` (cadrage § 10), sans réécrire la suppression des données de jeu.
+- Code d'invitation : rien à faire. `code_invitation` est déjà nul depuis la formation du duo ; B1 en génère un nouveau à son prochain affichage (cadrage § 7).
+- `tentative` n'est pas une donnée de jeu : la dissolution n'y touche pas.
 
 ## 7. À trancher en S8
 

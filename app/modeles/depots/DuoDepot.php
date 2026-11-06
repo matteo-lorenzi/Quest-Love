@@ -18,6 +18,12 @@ class DuoDepot
         $this->pdo->prepare('UPDATE duo SET date_activation = ? WHERE id = ? AND date_activation IS NULL')->execute([$maintenant->format('Y-m-d H:i:s'), $id]);
     }
 
+    // Une seule instruction : les tables de jeu suivront par ON DELETE CASCADE, les joueurs par ON DELETE SET NULL (modele-donnees.md § 6).
+    public function supprimer(int $id): void
+    {
+        $this->pdo->prepare('DELETE FROM duo WHERE id = ?')->execute([$id]);
+    }
+
     public function trouverParId(int $id): ?Duo
     {
         $requete = $this->pdo->prepare('SELECT * FROM duo WHERE id = ?');

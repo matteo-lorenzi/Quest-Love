@@ -323,15 +323,16 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 - [x] Entités `Joueur`, `Duo`, `RefusCode` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
 - [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
-- [x] `AppairageService` — code d'invitation, formation · `LimiteTentativesService` _(la dissolution arrive avec F2)_
+- [x] `AppairageService` — code d'invitation, formation · `LimiteTentativesService` · dissolution du duo (`dissoudre`, F2) : elle pose `joueur.dissolution_a_signaler` sur le partenaire, que D3 lira
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
-- [ ] B2 `OnboardingControleur` — trois règles, une par écran, étape en `&etape=` ; variante d'attente (`&etape=attente`) ; précondition du routeur sur C1, C2, C3 · B3 `ReglesControleur` (retour vers l'écran d'origine)
+- [x] B2 `OnboardingControleur` — trois règles, une par écran, étape en `&etape=` ; variante d'attente (`&etape=attente`) ; précondition du routeur sur C1, C2, C3 · B3 `ReglesControleur` (retour vers l'écran d'origine)
 - [ ] F1 `ProfilControleur` — et cas « sans duo »
-- [ ] F2 `QuitterDuoControleur` · F3 `SupprimerCompteControleur`
+- [x] F2 `QuitterDuoControleur`
+- [ ] F3 `SupprimerCompteControleur`
 
 **Journée de jeu** _(B)_
 

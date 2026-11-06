@@ -16,6 +16,8 @@ final readonly class Joueur
         public int $pv,
         // Onboarding (B2) terminé ou passé avec le duo actuel ; remis à faux à chaque formation de duo.
         public bool $onboardingVu,
+        // Posé sur le partenaire quand l'autre dissout le duo ; D3 le lit puis le remet à faux.
+        public bool $dissolutionASignaler,
         public DateTimeImmutable $dateCreation,
     ) {}
 }

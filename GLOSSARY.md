@@ -38,6 +38,10 @@ _Éviter_ : jumelage, association
 Code de 8 caractères propre à un joueur sans duo, qu'il donne à son partenaire. À usage unique, valable 60 minutes, remplacé quand le joueur en demande un nouveau. Il disparaît quand le duo se forme.
 _Éviter_ : jeton, lien d'invitation (le lien transporte le code, il n'est pas le code)
 
+**Dissolution** :
+Fin d'un duo décidée par l'un de ses deux joueurs, à tout moment. Les données de jeu du duo sont supprimées sans retour ; les deux joueurs redeviennent sans duo, à 5 PV, et peuvent former un nouveau duo. Le partenaire en est informé à sa prochaine connexion.
+_Éviter_ : rupture, séparation, suppression du duo (« Quitter mon duo » est le libellé de l'écran)
+
 **Salle d'attente** :
 Écran B1 d'un joueur sans duo : il y voit son code d'invitation et peut saisir celui de son partenaire.
 _Éviter_ : lobby, file d'attente

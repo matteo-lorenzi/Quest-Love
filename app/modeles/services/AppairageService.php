@@ -157,6 +157,34 @@ class AppairageService
         }
     }
 
+    // F2 — dissolution du duo. Vrai si un duo a été dissous, faux si le joueur n'en a plus à la relecture (objet périmé, seconde demande, deux appareils).
+    // Même transaction que terminerOnboarding : décision prise sur les lignes fraîches. Le joueur est verrouillé seul, puis les deux (dans l'ordre des numéros).
+    // Un interblocage reste possible si les deux dissolvent à la même milliseconde : InnoDB en annule un, le joueur recommence.
+    public function dissoudre(Joueur $joueur): bool
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $frais = $this->joueurs->verrouiller([$joueur->id])[$joueur->id] ?? null;
+            $dissous = $frais?->duoId !== null;
+            if ($dissous) {
+                $partenaire = $this->joueurs->trouverPartenaire($frais);
+                $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
+                // TODO(simplif): 5 écrit en dur, à remplacer par la constante de départ de PointsDeVieService quand elle existe.
+                $this->joueurs->remettreAZero($joueur->id, 5);
+                if ($partenaire !== null) {
+                    $this->joueurs->remettreAZero($partenaire->id, 5);
+                    $this->joueurs->signalerDissolution($partenaire->id);
+                }
+                $this->duos->supprimer($frais->duoId);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+        return $dissous;
+    }
+
     // Un seul point de construction pour le routeur et les contrôleurs : dépôts compris, ce qui n'ajoute aucune règle (ADR-0001).
     public static function construire(PDO $pdo): self
     {
