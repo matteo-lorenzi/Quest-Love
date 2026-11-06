@@ -23,6 +23,24 @@ class JoueurDepot
         return $ligne ? $this->hydrater($ligne) : null;
     }
 
+    // La date vient de $maintenant, jamais de l'horloge SQL : le décalage d'horloge de démonstration s'applique aussi à l'inscription (§ 2.4, § 3.8).
+    // Renvoie l'identifiant attribué au nouveau joueur, ou null si l'identifiant est déjà pris.
+    // Le contrôle préalable du service ne couvre pas deux inscriptions simultanées : la clé unique de la table tranche,
+    // et c'est ici, où vit le SQL, qu'on reconnaît son erreur (code MySQL 1062, entrée dupliquée). Toute autre erreur remonte.
+    public function ajouter(string $identifiant, string $pseudo, string $mdpHash, DateTimeImmutable $maintenant): ?int
+    {
+        try {
+            $this->pdo->prepare('INSERT INTO joueur (identifiant, pseudo, mdp_hash, date_creation) VALUES (?, ?, ?, ?)')
+                ->execute([$identifiant, $pseudo, $mdpHash, $maintenant->format('Y-m-d H:i:s')]);
+        } catch (PDOException $erreur) {
+            if (($erreur->errorInfo[1] ?? null) === 1062) {
+                return null;
+            }
+            throw $erreur;
+        }
+        return (int) $this->pdo->lastInsertId();
+    }
+
     private function hydrater(array $ligne): Joueur
     {
         return new Joueur(
