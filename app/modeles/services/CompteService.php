@@ -85,7 +85,7 @@ class CompteService
             $erreurs['mdp'][] = 'special';
         }
         // Pas de trim silencieux : le joueur ne verrait pas ce qu'on a retiré, et son mot de passe ne serait plus celui qu'il croit (cadrage § 6.6).
-        if (preg_match('/^\p{Z}|\p{Z}$/u', $mdp)) {
+        if (preg_match('/^\p{Z}|\p{Z}$/uD', $mdp)) {
             $erreurs['mdp'][] = 'espace_bord';
         }
         if (preg_match('/\p{Cc}/u', $mdp)) {
@@ -179,7 +179,7 @@ class CompteService
     // Retire les espaces (tout séparateur Unicode, y compris l'espace insécable) au début et à la fin ; trim() ne connaît que l'espace ASCII.
     private function rogner(string $texte): string
     {
-        return preg_replace('/^\p{Z}+|\p{Z}+$/u', '', $texte);
+        return preg_replace('/^\p{Z}+|\p{Z}+$/uD', '', $texte);
     }
 
     // Le fichier est déjà plié : chaque ligne devient une clé, pour une recherche directe plutôt qu'un balayage de la liste.
