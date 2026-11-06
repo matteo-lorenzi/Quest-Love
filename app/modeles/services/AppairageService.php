@@ -43,10 +43,24 @@ class AppairageService
         throw new RuntimeException('Aucun code libre après ' . self::ESSAIS_CODE . ' tirages.');
     }
 
-    // B1 — saisie du code d'un partenaire : forme le duo des deux joueurs.
-    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|RefusCode
+    // B1 — saisie du code d'un partenaire. Résultat : le Duo formé, l'heure de réessai si le joueur doit attendre, ou la raison du refus.
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|DateTimeImmutable|RefusCode
     {
-        $proprietaire = $this->joueurs->trouverParCode($saisie);
+        // Texte sans forme de code : refusé sans toucher la base ni compter d'échec, comme connecter() (étape 6.0).
+        $code = $this->normaliserCode($saisie);
+        if ($code === null) {
+            return RefusCode::Format;
+        }
+        // Attente en cours : vérifiée avant le code, et un essai refusé ici n'est pas enregistré, sinon chaque essai la prolongerait.
+        // Deux compteurs, comme la connexion : changer de session ne remet pas celui du joueur à zéro, et inversement.
+        $attente = max(
+            $this->limite->attente((string) $invite->id, TypeTentative::Code, $maintenant),
+            $this->limite->attente($cleSession, TypeTentative::Code, $maintenant),
+        );
+        if ($attente !== null) {
+            return $attente;
+        }
+        $proprietaire = $this->joueurs->trouverParCode($code);
         // TODO(simplif): faux, régénéré et propriétaire déjà en duo ne sont pas distingués (le code est écrasé ou remis à nul), à garder l'historique des codes si le support en a besoin.
         if ($proprietaire === null) {
             return $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
@@ -69,6 +83,18 @@ class AppairageService
             throw $erreur;
         }
         return $this->duos->trouverParId($duoId);
+    }
+
+    // Le code tel qu'on le range : NFC, sans espaces ni tirets (copier-coller de « XXXX-XXXX »), en majuscules.
+    // null si ce ne peut pas être un code : UTF-8 invalide, ou autre chose que 8 caractères de l'alphabet.
+    private function normaliserCode(string $saisie): ?string
+    {
+        $texte = Normalizer::normalize($saisie, Normalizer::FORM_C);
+        if ($texte === false) {
+            return null;
+        }
+        $code = mb_strtoupper(preg_replace('/[\p{Z}\p{Pd}]+/u', '', $texte));
+        return preg_match('/^[A-HJ-NP-Z2-9]{8}$/D', $code) ? $code : null;
     }
 
     // Un refus qui compte est daté sur les deux compteurs : celui du joueur et celui de la session (cadrage § 6.6).

@@ -1,6 +1,7 @@
 <?php
 // Tests de AppairageService — B1 Salle d'attente — parcours 1 (arrivée et appairage) — lot 1 — A.
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class AppairageServiceTest extends TestCase
@@ -122,6 +123,63 @@ class AppairageServiceTest extends TestCase
         }
         $this->assertSame(3, $this->compterEchecs((string) $mia->id));
         $this->assertNull($depot->trouverParId($mia->id)->duoId);
+    }
+
+    public static function textesSansFormeDeCode(): array
+    {
+        return [
+            'vide' => [''],
+            'trop court' => ['ABCDEFG'],
+            'trop long' => ['ABCDEFGHJ'],
+            'lettre hors alphabet' => ['ABCDEFGI'],
+            'chiffre hors alphabet' => ['ABCDEFG0'],
+            'texte non UTF-8' => ["ABCDEFÿþ"],
+        ];
+    }
+
+    // Comme pour la connexion (#8) : un texte qui ne peut pas être un code est refusé sans toucher la base, et ne compte pas.
+    #[DataProvider('textesSansFormeDeCode')]
+    public function testUnTexteSansFormeDeCodeEstRefuseSansCompterDEchec(string $saisie): void
+    {
+        $mia = $this->creerJoueur('Mia');
+
+        $this->assertSame(RefusCode::Format, $this->service->rejoindre($mia, $saisie, 'session-mia', $this->midi));
+        $this->assertSame(0, $this->compterEchecs((string) $mia->id));
+    }
+
+    public static function saisiesDuMemeCode(): array
+    {
+        return [
+            'minuscules' => ['k7m3qx9a'],
+            'tiret d\'affichage' => ['K7M3-QX9A'],
+            'espaces autour et au milieu' => [' k7m3 qx9a '],
+            'tiret demi-cadratin du copier-coller' => ["K7M3\u{2013}QX9A"],
+        ];
+    }
+
+    // Le code s'affiche « XXXX-XXXX » mais se range sans tiret : le copier-coller et la saisie à la main doivent marcher (cadrage § 6.6).
+    #[DataProvider('saisiesDuMemeCode')]
+    public function testLaSaisieDuCodeIgnoreCasseEspacesEtTirets(string $saisie): void
+    {
+        $lou = $this->creerJoueur('Lou');
+        $this->pdo->prepare("UPDATE joueur SET code_invitation = 'K7M3QX9A', date_expiration_code = '2026-10-15 13:00:00' WHERE id = ?")->execute([$lou->id]);
+
+        $this->assertInstanceOf(Duo::class, $this->service->rejoindre($this->creerJoueur('Mia'), $saisie, 'session-mia', $this->midi));
+    }
+
+    // Cadrage § 6.6 : 5 échecs en 15 minutes, puis 15 minutes d'attente pendant lesquelles même le bon code est refusé.
+    public function testCinqEchecsDeCodeDeclenchentUneAttenteMemePourLeBonCode(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $mia = $this->creerJoueur('Mia');
+        for ($i = 0; $i < 5; $i++) {
+            $this->service->rejoindre($mia, '23456789', 'session-mia', $this->midi);
+        }
+
+        $attente = $this->service->rejoindre($mia, $lou->codeInvitation, 'session-mia', $this->midi->modify('+1 minute'));
+
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 12:15:00'), $attente);
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($mia->id)->duoId);
     }
 
     private function compterEchecs(string $cle): int
