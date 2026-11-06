@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.12 — 16 octobre 2026.** Précise la place de l'espace dans le mot de passe : acceptée à l'intérieur, comptée comme caractère spécial, refusée en début et en fin (§ 6.6) ; consigne les décisions du 16/10 (§ 16).
+> **Version 2.13 — 6 novembre 2026.** Précise les règles des comptes avant le codage d'A2 (§ 6.6) : Argon2id imposé sans repli, donc sans limite de 72 octets ; définitions de « caractère » (point de code après NFC), de caractère spécial, de caractère de contrôle et d'espace ; NFC étendue à l'identifiant et au pseudo ; liste des mots de passe courants et comparaison de l'identifiant et du pseudo sans tenir compte des majuscules ni des accents ; consigne les décisions du 06/11 (§ 16).
+>
+> La V2.12 (16 octobre 2026) précisait la place de l'espace dans le mot de passe : acceptée à l'intérieur, comptée comme caractère spécial, refusée en début et en fin (§ 6.6) ; consignait les décisions du 16/10 (§ 16).
 >
 > La V2.11 (15 octobre 2026) séparait l'identifiant de connexion, unique, du pseudo affiché, libre (§ 6.6, § 7, § 10) ; unicité de l'identifiant insensible aussi aux accents (§ 6.6) ; consigne les décisions du 15/10 (§ 16).
 > La V2.10 (14 octobre 2026) fixait les règles de sécurité des comptes avant le premier écran codé (§ 6.6 : délai après 5 échecs, mot de passe, pseudo) ; aligne le modèle de données sur le glossaire (§ 7 : `joueur`, `duo`) ; rétroplanning indicatif et checkpoints réguliers avec l'encadrant (§ 12) ; schéma présenté à un checkpoint plutôt qu'avant tout code (§ 3) ; clôt l'arbitrage A3 et requalifie le courriel en piste du lot 4 (§ 6.5, § 11) ; consigne les décisions du 14/10 (§ 16). Suivi des remarques de l'encadrant : [`remarques-jury.md`](remarques-jury.md).
@@ -271,15 +273,23 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 - S'applique à la connexion (A3) et à toute vérification d'un code d'invitation (saisie en B1, code reçu par lien et rejoué après inscription ou connexion).
 - L'attente est annoncée en texte, avec l'heure à laquelle réessayer ; jamais de blocage définitif du compte.
 
+**Définitions communes** (identifiant, pseudo, mot de passe), tranchées le 06/11
+
+- Les trois textes sont normalisés en NFC avant tout contrôle, et le mot de passe l'est aussi avant `password_hash` et `password_verify`. Un texte qui n'est pas de l'UTF-8 valide est refusé.
+- Un **caractère** est un point de code Unicode, compté après la NFC : c'est l'unité de longueur des colonnes `VARCHAR`. Un « é » vaut un caractère, composé ou décomposé.
+- Les caractères de contrôle (catégorie Unicode `Cc` : tabulation, saut de ligne…) sont refusés dans les trois champs.
+- Une **espace** est tout séparateur Unicode (catégorie `Z` : espace ordinaire, insécable…).
+- Pour l'identifiant et le pseudo, les espaces des bords sont retirées avant les contrôles ; le mot de passe n'est jamais rogné, il est refusé (voir ci-dessous).
+
 **Mot de passe**
 
 - 12 à 64 caractères ; espaces et accents acceptés.
 - L'espace compte comme caractère spécial (liste de l'OWASP), ce qui permet les phrases de passe et porte l'ensemble des caractères spéciaux au-delà des 37 demandés par la CNIL (ponctuation du clavier, espace, `€ £ § ° µ ²`…). Elle est refusée en début et en fin de mot de passe, où elle serait invisible dans un champ masqué.
-- Au moins une majuscule, une minuscule, un chiffre et un caractère spécial.
-- Refusé s'il figure dans une liste des mots de passe les plus courants, ou s'il contient l'identifiant ou le pseudo.
+- Au moins une majuscule, une minuscule, un chiffre et un caractère spécial. Est **spécial** tout caractère qui n'est ni une lettre, ni un chiffre, ni une marque combinante, ni un caractère de contrôle ou invisible : ponctuation, symboles, émojis et espace.
+- Refusé s'il figure dans la liste des mots de passe les plus courants, ou s'il contient l'identifiant ou le pseudo. Liste : « 100k most used passwords » du NCSC (via SecLists), entrées de 12 caractères ou plus ; la comparaison ignore les majuscules et les accents, et le joueur est informé que ces mots de passe sont refusés (CNIL 2022-100). Pour l'identifiant et le pseudo, la comparaison ignore elle aussi les majuscules et les accents, et une valeur de moins de 3 caractères (un pseudo court) n'est pas comparée, faute de quoi elle bloquerait presque tout mot de passe.
 - Jamais de renouvellement imposé ; copier-coller autorisé (gestionnaires de mots de passe).
 - Chaque critère manquant est nommé en texte, à côté du champ (§ 9).
-- Stockage par `password_hash` : Argon2id si l'hébergement le permet, sinon l'algorithme par défaut de PHP, dont la limite de 72 octets est alors contrôlée à la saisie.
+- Stockage par `password_hash` en Argon2id, imposé et sans repli (disponible sur Azrael et sur WAMP, vérifié le 16/10, #10), avec les paramètres par défaut de PHP. Argon2id ne tronque pas le mot de passe : aucune limite de 72 octets à contrôler. Les empreintes d'un autre algorithme restent vérifiables par `password_verify`.
 
 **Identifiant** (sert à se connecter, jamais affiché au partenaire)
 
@@ -288,7 +298,7 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 
 **Pseudo** (prénom ou surnom affiché au partenaire)
 
-- 1 à 30 caractères imprimables, espaces, accents et émojis acceptés.
+- 1 à 30 caractères imprimables (hors caractères de contrôle), espaces, accents et émojis acceptés ; un pseudo vide après retrait des espaces des bords est refusé.
 - Aucune unicité : plusieurs joueurs, même au sein d'un duo, peuvent porter le même pseudo.
 - Échappé à l'affichage comme tout texte libre.
 
@@ -604,6 +614,8 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 **Tranchées le 15/10** : l'identifiant de connexion, unique sans tenir compte des majuscules ni des accents, est séparé du pseudo affiché, libre et non unique, pour que chacun puisse être reconnu de son partenaire par son prénom (§ 6.6, § 7) ; compteur d'échecs par identifiant et par session.
 
 **Tranchées le 16/10** : l'espace est acceptée dans le mot de passe et compte comme caractère spécial, mais refusée en début et en fin (§ 6.6). Références comparées : CNIL 2022-100 (points 8, 22, 41), NIST SP 800-63B rév. 4 (§ 3.1.1.2), OWASP, Microsoft Entra ID, Google ; aucune n'interdit l'espace.
+
+**Tranchées le 06/11** (préparation d'A2, #8) : empreinte Argon2id imposée, sans repli ni limite de 72 octets ; un caractère est un point de code compté après NFC, normalisation appliquée à l'identifiant, au pseudo et au mot de passe ; caractère spécial, caractère de contrôle et espace définis (§ 6.6) ; liste NCSC des mots de passe courants, comparaison sans majuscules ni accents ; identifiant et pseudo comparés au mot de passe sans majuscules ni accents, au-delà de 3 caractères. Référence : NIST SP 800-63B rév. 4 (§ 3.1.1.2, mots propres au contexte) et CNIL 2022-100. Écartée : un pseudo généré depuis l'identifiant, qui révélerait l'identifiant au partenaire (décision du 15/10).
 
 ## 17. Note de fusion
 
