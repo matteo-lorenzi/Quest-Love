@@ -20,7 +20,22 @@ class ReglesControleur
     // Origine de B3 validée contre l'énumération ; toute autre valeur (absente, inconnue, tableau) : accueil.
     public static function origine(mixed $origine): OrigineRegles
     {
-        return is_string($origine) ? (OrigineRegles::tryFrom($origine) ?? OrigineRegles::Accueil) : OrigineRegles::Accueil;
+        foreach (OrigineRegles::cases() as $cas) {
+            if ($origine === self::parametre($cas)) {
+                return $cas;
+            }
+        }
+        return OrigineRegles::Accueil;
+    }
+
+    // Seul endroit où un cas d'origine devient un nom d'écran : le paramètre « origine » de l'adresse, que les vues et le retour reprennent.
+    public static function parametre(OrigineRegles $origine): string
+    {
+        return match ($origine) {
+            OrigineRegles::Onboarding => 'onboarding',
+            OrigineRegles::Profil => 'profil',
+            OrigineRegles::Accueil => 'accueil',
+        };
     }
 
     // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par origine() (liste fermée).
@@ -31,6 +46,6 @@ class ReglesControleur
         if ($origine === OrigineRegles::Onboarding && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
             return "ecran=onboarding&etape=$etape";
         }
-        return 'ecran=' . $origine->value;
+        return 'ecran=' . self::parametre($origine);
     }
 }

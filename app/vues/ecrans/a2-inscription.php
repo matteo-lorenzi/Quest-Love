@@ -87,7 +87,8 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
                 <?php if ($codes): ?>
                     <ul class="formulaire__erreurs" id="erreur-<?= $champ ?>">
                         <?php foreach ($codes as $code): ?>
-                            <li class="formulaire__erreur"><?= e($messages[$champ][$code->name] ?? 'Ce champ est incorrect.') ?></li>
+                            <?php // Lecture défensive : la session peut encore porter une chaîne au lieu d'un cas ; repli explicite quand le champ n'a pas de texte pour ce cas. ?>
+                            <li class="formulaire__erreur"><?= e($messages[$champ][$code instanceof UnitEnum ? $code->name : (string) $code] ?? 'Ce champ est incorrect.') ?></li>
                         <?php endforeach ?>
                     </ul>
                 <?php endif ?>

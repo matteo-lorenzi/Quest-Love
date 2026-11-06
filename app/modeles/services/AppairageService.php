@@ -43,17 +43,17 @@ class AppairageService
         if ($joueur->duoId !== null) {
             $etape = $this->etapeAcces($joueur);
             if ($etape !== EtapeAcces::AccesAuJeu || !$lienRecu) {
-                return new AiguillageSalleAttente($etape, false, null, null);
+                return new AiguillageSalleAttente($etape, false, false, null, null);
             }
-            return new AiguillageSalleAttente(null, true, $this->pseudoPartenaire($joueur), null);
+            return new AiguillageSalleAttente(null, false, true, $this->pseudoPartenaire($joueur), null);
         }
         // Le premier affichage crée le code : une initialisation idempotente, pas une action du joueur (doc technique § 3.6).
         $joueur = $this->code($joueur, $maintenant);
-        // Duo formé entre la lecture et la génération : plus de code à montrer, B1 se recharge et prendra la branche ci-dessus.
+        // Duo formé entre la lecture et la génération : plus de code à montrer, B1 se recharge (indicateur « recharger ») et prendra la branche ci-dessus.
         if ($joueur->codeInvitation === null) {
-            return new AiguillageSalleAttente(EtapeAcces::SansDuo, false, null, null);
+            return new AiguillageSalleAttente(null, true, false, null, null);
         }
-        return new AiguillageSalleAttente(null, false, null, $joueur);
+        return new AiguillageSalleAttente(null, false, false, null, $joueur);
     }
 
     // B1 — le code à préremplir : la saisie refusée au POST précédent, sinon le code de l'URL, sinon celui conservé en session (lien ouvert avant la connexion).

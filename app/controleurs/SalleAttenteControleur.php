@@ -25,6 +25,10 @@ class SalleAttenteControleur
         if ($aiguillage->redirection !== null) {
             Routeur::rediriger(Routeur::ecranDeLEtape($aiguillage->redirection));
         }
+        // Duo formé pendant la génération du code : B1 se recharge et prendra la branche « en duo ».
+        if ($aiguillage->recharger) {
+            Routeur::rediriger('salle-attente');
+        }
         if ($aiguillage->dejaEnDuo) {
             Vue::rendre('b1-salle-attente', 'Salle d\'attente', [
                 'dejaEnDuo' => true,

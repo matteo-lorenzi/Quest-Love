@@ -28,7 +28,7 @@ if (!$dejaEnDuo) {
         <p><?= $partenaire !== null ? 'Tu joues déjà avec ' . e($partenaire) . '.' : 'Tu joues déjà en duo.' ?></p>
         <p>Pour rejoindre un autre duo, quitte d'abord ton duo actuel.</p>
         <a class="bouton" href="index.php?ecran=accueil">Retour à l'accueil</a>
-        <p><a href="index.php?ecran=quitter-duo&amp;origine=<?= OrigineQuitterDuo::SalleAttente->value ?>">Quitter mon duo</a></p>
+        <p><a href="index.php?ecran=quitter-duo&amp;origine=<?= QuitterDuoControleur::parametre(OrigineQuitterDuo::SalleAttente) ?>">Quitter mon duo</a></p>
     <?php else: ?>
         <?php if ($messageErreur !== null): ?>
             <!-- En tête de page, pour être lue en premier après l'annonce du titre « Erreur : ». -->

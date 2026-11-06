@@ -567,6 +567,7 @@ class AppairageServiceTest extends TestCase
         $aiguillage = $this->service->salleAttente($this->creerJoueur('Lou'), false, $this->midi);
 
         $this->assertNull($aiguillage->redirection);
+        $this->assertFalse($aiguillage->recharger);
         $this->assertFalse($aiguillage->dejaEnDuo);
         $this->assertNotNull($aiguillage->joueur->codeInvitation);
     }
@@ -599,7 +600,7 @@ class AppairageServiceTest extends TestCase
         $this->assertSame('Mia', $aiguillage->partenaire);
     }
 
-    // Duo formé entre la lecture du joueur et la génération du code : plus de code à montrer, on recharge B1 (étape « sans duo »).
+    // Duo formé entre la lecture du joueur et la génération du code : plus de code à montrer, B1 doit se recharger (indicateur explicite, pas une étape d'accès).
     public function testB1RechargeQuandLeDuoSeFormeEntreLaLectureEtLaGeneration(): void
     {
         $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
@@ -608,7 +609,9 @@ class AppairageServiceTest extends TestCase
         // $lou est périmé (sans duo) et son code a expiré : la génération se heurte au duo formé entre-temps.
         $aiguillage = $this->service->salleAttente($lou, false, $this->midi->modify('+2 hours'));
 
-        $this->assertSame(EtapeAcces::SansDuo, $aiguillage->redirection);
+        $this->assertTrue($aiguillage->recharger);
+        $this->assertNull($aiguillage->redirection);
+        $this->assertNull($aiguillage->joueur);
     }
 
     // Priorité de préremplissage du code : la saisie refusée d'abord, puis le code de l'URL, puis celui conservé en session.

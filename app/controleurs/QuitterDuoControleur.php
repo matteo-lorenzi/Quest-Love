@@ -13,7 +13,8 @@ class QuitterDuoControleur
         $service = AppairageService::construire($this->pdo);
         // Origine absente ou inconnue : l'écran de l'étape d'accès du joueur (relue en base).
         // TODO(simplif): pour un joueur en accès au jeu l'origine vaut « accueil », absent de la table du routeur : Annuler et ← mènent à G1, à corriger quand C1 existe.
-        $retour = self::origine($_GET['origine'] ?? null)?->value ?? Routeur::ecranDeLEtape($service->etapeAcces($joueur));
+        $origine = self::origine($_GET['origine'] ?? null);
+        $retour = $origine !== null ? self::parametre($origine) : Routeur::ecranDeLEtape($service->etapeAcces($joueur));
         Vue::rendre('f2-quitter-duo', 'Quitter mon duo', [
             'retour' => $retour,
             'partenaire' => $service->pseudoPartenaire($joueur),
@@ -24,7 +25,21 @@ class QuitterDuoControleur
     // Origine validée contre l'énumération ; toute autre valeur (absente, inconnue, tableau) : null.
     public static function origine(mixed $origine): ?OrigineQuitterDuo
     {
-        return is_string($origine) ? OrigineQuitterDuo::tryFrom($origine) : null;
+        foreach (OrigineQuitterDuo::cases() as $cas) {
+            if ($origine === self::parametre($cas)) {
+                return $cas;
+            }
+        }
+        return null;
+    }
+
+    // Seul endroit où un cas d'origine devient un nom d'écran : le paramètre « origine » de l'adresse, que les vues et l'annulation reprennent.
+    public static function parametre(OrigineQuitterDuo $origine): string
+    {
+        return match ($origine) {
+            OrigineQuitterDuo::SalleAttente => 'salle-attente',
+            OrigineQuitterDuo::Onboarding => 'onboarding',
+        };
     }
 
     // POST : le jeton CSRF a déjà été vérifié par le routeur. Le résultat (dissous ou déjà dissous) ne change pas l'écran suivant.

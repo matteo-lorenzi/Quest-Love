@@ -17,4 +17,11 @@ class QuitterDuoTest extends TestCase
         $this->assertNull(QuitterDuoControleur::origine(null));
         $this->assertNull(QuitterDuoControleur::origine(['onboarding']));
     }
+
+    // Chaque cas d'origine a un seul paramètre d'adresse, posé par le contrôleur : l'énumération du modèle ne porte aucun nom d'écran.
+    public function testChaqueOrigineAUnParametreDAdresse(): void
+    {
+        $this->assertSame('salle-attente', QuitterDuoControleur::parametre(OrigineQuitterDuo::SalleAttente));
+        $this->assertSame('onboarding', QuitterDuoControleur::parametre(OrigineQuitterDuo::Onboarding));
+    }
 }
