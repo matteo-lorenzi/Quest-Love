@@ -10,7 +10,8 @@ INSERT INTO joueur (identifiant, pseudo, mdp_hash, date_creation) VALUES
   ('joul', 'Joul', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', '2026-10-01 09:05:00');
 
 -- Un duo déjà formé : Léa et Tom, pour la variante « déjà en duo » de B1 et une connexion qui mène à l'accueil. Même mot de passe de démonstration.
-INSERT INTO duo (id, date_creation) VALUES (1, '2026-10-02 18:00:00');
-INSERT INTO joueur (identifiant, pseudo, mdp_hash, duo_id, date_creation) VALUES
-  ('lea', 'Léa', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, '2026-10-02 17:50:00'),
-  ('tom', 'Tom', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, '2026-10-02 17:55:00');
+INSERT INTO duo (id, date_creation, date_activation) VALUES (1, '2026-10-02 18:00:00', '2026-10-02 18:05:00');
+-- Onboarding déjà fini par les deux : leur connexion mène à l'accueil.
+INSERT INTO joueur (identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  ('lea', 'Léa', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:50:00'),
+  ('tom', 'Tom', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:55:00');

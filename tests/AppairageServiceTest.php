@@ -306,6 +306,180 @@ class AppairageServiceTest extends TestCase
         $this->assertSame($premier->codeInvitation, $second->codeInvitation);
     }
 
+    // Duo formé par saisie de code : renvoie [propriétaire, invité] relus, onboarding à refaire pour les deux.
+    private function formerDuo(string $a = 'Lou', string $b = 'Mia', ?DateTimeImmutable $quand = null): array
+    {
+        $quand ??= $this->midi;
+        $proprietaire = $this->service->code($this->creerJoueur($a), $quand);
+        $invite = $this->creerJoueur($b);
+        $this->service->rejoindre($invite, $proprietaire->codeInvitation, 'session-' . $b, $quand);
+        return [$this->relire($proprietaire), $this->relire($invite)];
+    }
+
+    private function relire(Joueur $joueur): Joueur
+    {
+        return (new JoueurDepot($this->pdo))->trouverParId($joueur->id);
+    }
+
+    private function dateActivation(Joueur $joueur): ?DateTimeImmutable
+    {
+        return (new DuoDepot($this->pdo))->trouverParId($joueur->duoId)->dateActivation;
+    }
+
+    // Cadrage § 8.5 : la formation remet l'onboarding à 0 pour les deux joueurs et laisse l'activation nulle.
+    public function testLaFormationLaisseLOnboardingAFaire(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+
+        $this->assertFalse($lou->onboardingVu);
+        $this->assertFalse($mia->onboardingVu);
+        $this->assertNull($this->dateActivation($lou));
+    }
+
+    // « Passer » et le bouton du dernier écran appellent la même opération ; le premier à finir attend l'autre.
+    public function testLePremierQuiTermineAttendLePartenaire(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+1 minute'));
+
+        $this->assertTrue($this->relire($lou)->onboardingVu);
+        $this->assertFalse($this->relire($mia)->onboardingVu);
+        $this->assertNull($this->dateActivation($lou));
+    }
+
+    // Le deuxième à finir active le duo à l'heure de l'horloge injectée.
+    public function testLeDeuxiemeQuiTermineActiveLeDuo(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+1 minute'));
+
+        $this->service->terminerOnboarding($mia, $this->midi->modify('+2 minutes'));
+
+        $this->assertEquals($this->midi->modify('+2 minutes'), $this->dateActivation($lou));
+    }
+
+    // Cadrage § 4.2 : un duo dont les deux joueurs finissent après 12 h est activé après 12 h, même formé le matin.
+    public function testUnDuoActiveApresMidiPorteUneActivationPosterieureAMidi(): void
+    {
+        [$lou, $mia] = $this->formerDuo('Lou', 'Mia', new DateTimeImmutable('2026-10-15 09:00:00'));
+        $this->service->terminerOnboarding($lou, new DateTimeImmutable('2026-10-15 11:50:00'));
+
+        $this->service->terminerOnboarding($mia, new DateTimeImmutable('2026-10-15 12:10:00'));
+
+        $this->assertGreaterThan(new DateTimeImmutable('2026-10-15 12:00:00'), $this->dateActivation($lou));
+    }
+
+    // Deux appareils : terminer deux fois ne change rien, ni l'état ni la date d'activation.
+    public function testTerminerDeuxFoisNeChangeRien(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+1 minute'));
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+2 minutes'));
+        $this->assertNull($this->dateActivation($lou));
+
+        $this->service->terminerOnboarding($mia, $this->midi->modify('+3 minutes'));
+        $this->service->terminerOnboarding($mia, $this->midi->modify('+4 minutes'));
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+5 minutes'));
+
+        $this->assertEquals($this->midi->modify('+3 minutes'), $this->dateActivation($lou));
+    }
+
+    // Doc technique § 3.6 : l'étape d'accès dans chaque combinaison de colonnes.
+    public function testLEtapeDAccesSuitLesColonnes(): void
+    {
+        $this->assertSame(EtapeAcces::SansDuo, $this->service->etapeAcces($this->creerJoueur('Zoe')));
+
+        [$lou, $mia] = $this->formerDuo();
+        $this->assertSame(EtapeAcces::OnboardingAFaire, $this->service->etapeAcces($lou));
+        $this->assertSame(EtapeAcces::OnboardingAFaire, $this->service->etapeAcces($mia));
+
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->assertSame(EtapeAcces::Attente, $this->service->etapeAcces($this->relire($lou)));
+        $this->assertSame(EtapeAcces::OnboardingAFaire, $this->service->etapeAcces($this->relire($mia)));
+
+        $this->service->terminerOnboarding($mia, $this->midi);
+        $this->assertSame(EtapeAcces::AccesAuJeu, $this->service->etapeAcces($this->relire($lou)));
+        $this->assertSame(EtapeAcces::AccesAuJeu, $this->service->etapeAcces($this->relire($mia)));
+    }
+
+    // Un nouvel appairage après dissolution remet tout à 0 : l'onboarding est refait, même pour un joueur qui l'avait fini.
+    public function testUnNouvelAppairageApresDissolutionRemetToutAZero(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->service->terminerOnboarding($mia, $this->midi);
+        // Dissolution : la suppression du duo remet les joueurs sans duo (ON DELETE SET NULL), onboarding_vu reste à 1.
+        $this->pdo->exec('DELETE FROM duo');
+
+        $zoe = $this->service->code($this->creerJoueur('Zoe'), $this->midi);
+        $this->service->rejoindre($this->relire($lou), $zoe->codeInvitation, 'session-lou', $this->midi);
+
+        $lou = $this->relire($lou);
+        $this->assertFalse($lou->onboardingVu);
+        $this->assertFalse($this->relire($zoe)->onboardingVu);
+        $this->assertSame(EtapeAcces::OnboardingAFaire, $this->service->etapeAcces($lou));
+        $this->assertNull($this->dateActivation($lou));
+    }
+
+    // Sans duo, il n'y a rien à terminer : aucune écriture, aucun duo créé ni activé.
+    public function testTerminerSansDuoNeChangeRien(): void
+    {
+        $zoe = $this->creerJoueur('Zoe');
+
+        $this->service->terminerOnboarding($zoe, $this->midi);
+
+        $this->assertFalse($this->relire($zoe)->onboardingVu);
+        $this->assertSame(0, $this->compterDuos());
+    }
+
+    // Un duo avec un seul joueur est une base incohérente : l'étape échoue franchement au lieu d'attendre indéfiniment.
+    public function testUnDuoSansPartenaireEchoueAuLieuDAttendre(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->pdo->prepare('DELETE FROM joueur WHERE id = ?')->execute([$mia->id]);
+
+        $this->expectException(LogicException::class);
+        $this->service->etapeAcces($this->relire($lou));
+    }
+
+    // Terminer face à un duo incohérent marque le joueur, mais n'active rien et ne plante pas.
+    public function testTerminerSansPartenaireNActivePasLeDuo(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->pdo->prepare('DELETE FROM joueur WHERE id = ?')->execute([$mia->id]);
+
+        $this->service->terminerOnboarding($lou, $this->midi);
+
+        $this->assertTrue($this->relire($lou)->onboardingVu);
+        $this->assertNull($this->dateActivation($lou));
+    }
+
+    // Le partenaire est relu sous verrou et doit être du même duo : un partenaire déjà passé dans un autre duo (onboarding fini) n'active pas celui-ci.
+    public function testUnPartenaireDUnAutreDuoNActivePasLeDuo(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($mia, $this->midi);
+        $autreDuo = (new DuoDepot($this->pdo))->creer($this->midi);
+        $this->pdo->prepare('UPDATE joueur SET duo_id = ? WHERE id = ?')->execute([$autreDuo, $mia->id]);
+
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+1 minute'));
+
+        $this->assertNull($this->dateActivation($this->relire($lou)));
+    }
+
+    // Un joueur relu avant la dissolution (objet périmé, duo encore renseigné) ne marque rien : la ligne verrouillée fait foi.
+    public function testUnJoueurPerimeSansDuoEnBaseNeChangeRien(): void
+    {
+        [$lou] = $this->formerDuo();
+        $this->pdo->exec('DELETE FROM duo');
+
+        $this->service->terminerOnboarding($lou, $this->midi);
+
+        $this->assertFalse($this->relire($lou)->onboardingVu);
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");

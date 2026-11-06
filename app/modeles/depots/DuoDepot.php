@@ -12,11 +12,17 @@ class DuoDepot
         return (int) $this->pdo->lastInsertId();
     }
 
+    // Pose l'activation une seule fois : une activation déjà posée n'est jamais déplacée.
+    public function activer(int $id, DateTimeImmutable $maintenant): void
+    {
+        $this->pdo->prepare('UPDATE duo SET date_activation = ? WHERE id = ? AND date_activation IS NULL')->execute([$maintenant->format('Y-m-d H:i:s'), $id]);
+    }
+
     public function trouverParId(int $id): ?Duo
     {
         $requete = $this->pdo->prepare('SELECT * FROM duo WHERE id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch();
-        return $ligne ? new Duo((int) $ligne['id'], DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_creation'])) : null;
+        return $ligne ? new Duo((int) $ligne['id'], DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_creation']), $ligne['date_activation'] === null ? null : DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_activation'])) : null;
     }
 }

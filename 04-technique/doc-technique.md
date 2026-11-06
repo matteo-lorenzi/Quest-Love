@@ -118,11 +118,11 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 | `deconnexion` | — | `ConnexionControleur` | connecté, `POST` seulement (§ 3.6) |
 | `legal` | A4 | `LegalControleur` | public |
 | `salle-attente` | B1 | `SalleAttenteControleur` | connecté |
-| `onboarding` | B2 | `OnboardingControleur` | en duo |
+| `onboarding` | B2 | `OnboardingControleur` | en duo ; renvoi vers C1 si l'étape d'accès est « accès au jeu » (§ 3.6) |
 | `regles` | B3 | `ReglesControleur` | connecté |
-| `accueil` | C1 | `AccueilControleur` | en duo |
-| `tirage` | C2 | `TirageControleur` | en duo |
-| `defi-recu` | C3 | `DefiRecuControleur` | en duo |
+| `accueil` | C1 | `AccueilControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
+| `tirage` | C2 | `TirageControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
+| `defi-recu` | C3 | `DefiRecuControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
 | `evenement` | D1, D2, D3, D5 | `EvenementControleur` | connecté |
 | `profil` | F1 | `ProfilControleur` | connecté |
 | `quitter-duo` | F2 | `QuitterDuoControleur` | en duo |
@@ -216,9 +216,12 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide. Il est créé au premier affichage de B1 (initialisation idempotente : le seul écrit d'un GET, qui n'est pas une action du joueur). Il vit dans `joueur` (`code_invitation`, `date_expiration_code`), la ligne `duo` n'étant créée qu'à la formation ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Huit caractères parmi `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, tirés par `random_bytes` ; une collision sur la clé unique relance le tirage. La saisie est normalisée (NFC, séparateurs retirés, majuscules) avant toute recherche.
 - **Code conservé** : un code reçu avant authentification est gardé en session, tel que reçu, et prérempli en B1 après inscription ou connexion. Le joueur le valide d'un clic, avec les mêmes règles et la même limite que toute saisie : aucun duo ne se forme sans ce geste.
-- **Aiguillage après authentification** : en duo vers C1, sinon vers B1 (code conservé prérempli). B2 suit la formation du duo.
-- **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; avec un duo formé, il renvoie vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo »).
-- **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` et de rattacher les deux joueurs ; les codes sont remis à nul. Un refus ne modifie rien ; l'échec est enregistré une fois la transaction terminée.
+- **Étape d'accès** : `AppairageService` donne l'étape d'un joueur parmi quatre : sans duo (`duo_id` nul) ; onboarding à faire (son `onboarding_vu` vaut 0) ; attente du partenaire (le sien vaut 1, celui du partenaire 0) ; accès au jeu (les deux valent 1). C'est la règle unique que le routeur, A3 et B1 appliquent. Elle ne touche pas `joueur.duo_id` : « en duo » pour le routeur veut toujours dire duo présent, l'étape vient en plus.
+- **Aiguillage après authentification** : en duo vers l'étape correspondante (B2 si onboarding à faire ou attente, sinon C1), sans duo vers B1 (code conservé prérempli). Après la saisie d'un code valide en B1 : vers B2.
+- **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; un joueur en duo avec l'étape « onboarding à faire » ou « attente » est renvoyé vers B2 ; avec l'étape « accès au jeu », vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo », réservée à ce cas et à cette étape). La variante d'attente de B2 (`&etape=attente`) est vérifiée de la même façon à chaque chargement.
+- **Précondition du routeur** : tant que l'étape n'est pas « accès au jeu », C1, C2 et C3 renvoient vers B2. Restent accessibles hors verrou : quitter-duo (F2), profil, règles (B3), événement, suppression de compte. B2 et sa variante masquent la barre basse (cadrage § 8.5).
+- **Terminer l'onboarding** : une opération de `AppairageService` met `onboarding_vu` à 1 pour le joueur ; si le partenaire l'a déjà, elle pose `duo.date_activation` avec `$maintenant`, dans la même transaction. Idempotente (deux appareils). « Passer » et le bouton du dernier écran appellent la même opération, en `POST` avec jeton CSRF ; les passages d'un écran à l'autre sont des liens `GET` (`&etape=`). Étape absente ou invalide : première règle ; au-delà de la dernière : C1. Les textes des trois règles ont une source unique partagée avec B3 (liste en B3, pas à pas en B2). B3 reçoit l'écran d'origine en paramètre, contrôlé contre une liste fermée, avec l'étape si l'origine est B2.
+- **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` (`date_activation` nulle) et de rattacher les deux joueurs ; les codes sont remis à nul et `onboarding_vu` à 0 pour les deux joueurs, sous le même verrou. Un refus ne modifie rien ; l'échec est enregistré une fois la transaction terminée.
 - **Cas d'erreur à couvrir** : attente en cours (pas compté), propre code, code expiré, code pas valable (faux, régénéré ou dont le propriétaire est déjà en duo : non distingués, `TODO(simplif)` en code), texte sans forme de code (pas compté), joueur déjà en duo (pas compté). Règle de comptage : cadrage § 6.6.
 - **Dissolution et suppression** : effets sur les données en annexe § 6 ; règles en cadrage § 10.
 
@@ -326,7 +329,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
-- [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
+- [ ] B2 `OnboardingControleur` — trois règles, une par écran, étape en `&etape=` ; variante d'attente (`&etape=attente`) ; précondition du routeur sur C1, C2, C3 · B3 `ReglesControleur` (retour vers l'écran d'origine)
 - [ ] F1 `ProfilControleur` — et cas « sans duo »
 - [ ] F2 `QuitterDuoControleur` · F3 `SupprimerCompteControleur`
 

@@ -4,13 +4,16 @@
 class Routeur
 {
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
-    // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte ou duo.
+    // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte, duo, ou jeu (en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
+    // Accueil, tirage et défi reçu y entreront avec l'accès 'jeu' (§ 3.6) ; le verrou est déjà en place à l'étape 5.
     private const ECRANS = [
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', 'public'],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
         'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', 'connecte'],
+        'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', 'duo'],
+        'regles' => ['ReglesControleur', 'afficher', null, 'connecte'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
     ];
 
@@ -41,14 +44,16 @@ class Routeur
         }
 
         // Étape 5 — préconditions d'accès (§ 3.6).
-        // Un écran réservé aux joueurs connectés renvoie les visiteurs vers la connexion (A3).
-        if ($acces !== 'public' && !$connecte) {
-            self::rediriger('connexion');
+        // La décision est dans redirectionAcces(), sans base ni session. Le duo est relu en base à chaque requête :
+        // une dissolution par le partenaire prend effet aussitôt.
+        $etape = null;
+        if ($connecte && ($acces === 'duo' || $acces === 'jeu')) {
+            $joueur = (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id']);
+            $etape = $joueur === null ? EtapeAcces::SansDuo : AppairageService::construire($pdo)->etapeAcces($joueur);
         }
-        // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
-        // Le duo est relu en base à chaque requête : une dissolution par le partenaire prend effet aussitôt.
-        if ($acces === 'duo' && (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id'])?->duoId === null) {
-            self::rediriger('salle-attente');
+        $redirection = self::redirectionAcces($acces, $connecte, $etape);
+        if ($redirection !== null) {
+            self::rediriger($redirection);
         }
 
         // Étape 6 — CSRF, puis appel du contrôleur.
@@ -70,6 +75,38 @@ class Routeur
     {
         header('Location: index.php?ecran=' . urlencode($ecran));
         exit;
+    }
+
+    // Écran qui correspond à l'étape d'accès : la règle unique appliquée par le routeur, A3 et B1 (§ 3.6).
+    public static function ecranDeLEtape(EtapeAcces $etape): string
+    {
+        return match ($etape) {
+            EtapeAcces::SansDuo => 'salle-attente',
+            EtapeAcces::OnboardingAFaire, EtapeAcces::Attente => 'onboarding',
+            EtapeAcces::AccesAuJeu => 'accueil',
+        };
+    }
+
+    // Décision de l'étape 5, sans base ni session : l'écran où renvoyer, ou null si l'accès est permis.
+    // $etape : étape d'accès du joueur, nulle tant qu'elle n'a pas été lue (accès public, ou visiteur non connecté).
+    public static function redirectionAcces(string $acces, bool $connecte, ?EtapeAcces $etape): ?string
+    {
+        if ($acces === 'public') {
+            return null;
+        }
+        // Un écran réservé aux joueurs connectés renvoie les visiteurs vers la connexion (A3).
+        if (!$connecte) {
+            return 'connexion';
+        }
+        // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
+        if (($acces === 'duo' || $acces === 'jeu') && ($etape === null || $etape === EtapeAcces::SansDuo)) {
+            return 'salle-attente';
+        }
+        // Un écran de jeu exige en plus que les deux joueurs aient fini l'onboarding, quel que soit le chemin d'arrivée (§ 3.6).
+        if ($acces === 'jeu' && $etape !== EtapeAcces::AccesAuJeu) {
+            return 'onboarding';
+        }
+        return null;
     }
 
     // never, comme rediriger() : après G1, plus rien ne doit s'exécuter.

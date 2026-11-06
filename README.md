@@ -7,7 +7,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 
 ## Feuille de route
 
-État du **code** au 06/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (27 cadres sur 27) : ce qui reste à faire est le code.
+État du **code** au 06/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (28 cadres sur 28) : ce qui reste à faire est le code.
 
 Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanche en pointillés = à faire. Le statut est aussi écrit dans le texte de la case.
 
@@ -94,7 +94,7 @@ Repli sans diagramme (même contenu) :
 | Jalon | Échéance | Statut |
 |---|---|---|
 | Validation de la conception fonctionnelle | 07/10 | Fait |
-| Maquettes du lot 1 (Figma, 27 cadres) | S5 | Fait |
+| Maquettes du lot 1 (Figma, 28 cadres) | S5 | Fait |
 | Feuille de style (`base.css`, `composants.css`, `ecrans.css`) | S6 | À confirmer : absente du dépôt |
 | Schéma de la base validé à l'oral | S8, 09–15/11 | À faire |
 | Couple témoin recruté | S9, 16–22/11 | À confirmer |
@@ -131,7 +131,7 @@ Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
 | `02-recherche-utilisateur/proto-personas.*` | Sylvianne (initiatrice) et Joul (invité sceptique). | À confirmer par la recherche utilisateur |
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
 | `02-recherche-utilisateur/guide-animation-focus-group.md` | Déroulé et questions du focus group (2 h, 6 à 8 participants). | v0.3 (07/10/2026) — exercice, séance non tenue |
-| `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (27/27 cadres) |
+| `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (28/28 cadres) |
 | `04-technique/doc-technique.md` | Description technique : architecture MVC, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.2 (14/10/2026) — horloge et simulation du temps, méthode des bases, tests, déconnexion en `POST` |
 | `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.3 (15/10/2026) — tables `joueur` et `duo`, identifiant de connexion unique séparé du pseudo affiché · **à valider en S8** |
 
@@ -139,7 +139,7 @@ Les fichiers `.json` sont les fichiers de travail générés par l'outil de conc
 
 ## Ressources externes
 
-- Fichier Figma de zonage (maquettes du lot 1, 27 cadres) : https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
+- Fichier Figma de zonage (maquettes du lot 1, 28 cadres) : https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
 - Parcours 1 — arrivée et appairage (FigJam) : https://www.figma.com/board/NDb4YHNxJ62zUXGGJ9a3Vn/Quest---Love---Parcours-1-_-arriv%C3%A9e-et-appairage--v3-?node-id=0-1
 - Parcours 2 — journée de jeu (FigJam) : https://www.figma.com/board/vBm24iEeigI92RZ99AyWxM/Quest---Love---Parcours-2-_-journ%C3%A9e-de-jeu--v3-
 - Parcours 3 — fin de défi et événements (FigJam) : https://www.figma.com/board/UHsyf9H1fFEcpqHKkIm49F/Quest---Love---Parcours-3-_-fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-

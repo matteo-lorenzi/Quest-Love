@@ -73,11 +73,16 @@ class JoueurDepot
         return $joueurs;
     }
 
-    // Le code ne sert qu'une fois : il disparaît avec le rattachement.
+    // Le code ne sert qu'une fois : il disparaît avec le rattachement, et l'onboarding est à refaire avec ce duo.
     public function rattacherAuDuo(int $id, int $duoId): void
     {
-        $this->pdo->prepare('UPDATE joueur SET duo_id = ?, code_invitation = NULL, date_expiration_code = NULL WHERE id = ?')
+        $this->pdo->prepare('UPDATE joueur SET duo_id = ?, onboarding_vu = 0, code_invitation = NULL, date_expiration_code = NULL WHERE id = ?')
             ->execute([$duoId, $id]);
+    }
+
+    public function marquerOnboardingVu(int $id): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET onboarding_vu = 1 WHERE id = ?')->execute([$id]);
     }
 
     // Écrase le code du joueur et repousse l'échéance : c'est ce qui invalide l'ancien (ADR-0002).
@@ -114,6 +119,7 @@ class JoueurDepot
             $ligne['date_expiration_code'] === null ? null : DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_expiration_code']),
             $ligne['duo_id'] === null ? null : (int) $ligne['duo_id'],
             (int) $ligne['pv'],
+            (bool) $ligne['onboarding_vu'],
             // createFromFormat lit une date stockée ; il ne consulte pas l'horloge (§ 2.4).
             DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_creation']),
         );

@@ -81,7 +81,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 
 - **Le duo** : formation d'un duo fermé par code d'invitation, un seul duo actif par joueur à la fois.
   - Formation par code, un seul duo par joueur
-  - Duo formé après 12 h : premier jour de jeu le lendemain
+  - Duo formé après 12 h (les deux joueurs ayant fini l'onboarding après 12 h) : premier jour de jeu le lendemain
 - **La participation quotidienne** : à la première connexion du jour, chaque joueur répond à « On joue aujourd'hui ? » ; la journée n'est jouée que si les deux répondent oui.
   - Question posée entre 00 h et 12 h, réponse définitive
   - Journée blanche : « non », absence de réponse, partenaire ayant déjà dit non
@@ -186,7 +186,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 > Pour chaque écran : maquette, éléments affichés, actions possibles, destinations, cas d'erreur. Nomenclature identique à l'inventaire et au fichier Figma.
 > Une variante notée en sous-point n'a pas de cadre dédié dans le Figma : elle est documentée en note sous le cadre concerné (§ 8.5 du cadrage).
-> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 27 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
+> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 28 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
 
 #### Bande 01 — Arrivée et appairage
 
@@ -200,7 +200,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 - **A3 · Connexion** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-219)
   Formulaire identifiant + mot de passe.
   - Erreurs, délai après 5 échecs, code conservé
-  - Destinations : C1 (en duo), B1 (code reçu prérempli, à valider)
+  - Destinations : B2 (en duo, onboarding non terminé par les deux), C1 (en duo, onboarding terminé), B1 (code reçu prérempli, à valider)
 - **A4 · Pages légales** (gabarit unique) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-243)
   Un seul gabarit, trois contenus sélectionnés par paramètre d'URL.
   - Mentions légales · Politique de confidentialité · Conditions d'utilisation
@@ -209,10 +209,14 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   - Code à partager, lien « nouveau code », saisie, erreurs, flèche ← vers F1
   - Cas : déjà en duo (rappel du duo, retour C1, quitter mon duo → F2) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=43-162)
 - **B2 · Duo formé et onboarding** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-162)
-  Présente les règles du jeu une par une, à la formation du duo.
-  - Une règle par écran, bouton « Passer »
+  Présente les règles du jeu une par une, après l'appairage, à chacun des deux joueurs. Obligatoire : l'accueil n'est accessible que lorsque les deux joueurs ont terminé ou passé l'onboarding ; il est recommencé à chaque nouvel appairage.
+  - Trois règles, une par écran, avec la progression (1 / 3) : défi attribué au partenaire (tirage en éventail, choix définitif) ; bascule à 12 h et journée blanche ; points de vie et expiration à minuit
+  - « Passer » sur chaque écran, même effet que le bouton du dernier écran ; pas de barre de navigation
+  - Variante : en attente de {pseudo}, vérifiée à chaque chargement, avec « Règles complètes » (B3) et « Quitter mon duo » (F2), sans « Passer » — [cadre dédié](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=126-142), étape `&etape=attente`
+  - Destinations : C1 (dès que les deux ont fini), B3, F2
 - **B3 · Règles du jeu** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-200)
-  Rappel des règles du jeu, accessible à tout moment depuis le profil (F1), hors du parcours d'onboarding.
+  Rappel des règles du jeu en liste, accessible depuis B2 (« Règles complètes »), depuis l'accueil dans le cas « premier jour demain » (C1) et depuis le profil (F1).
+  - Le retour ramène à l'écran d'origine, à la même étape quand l'origine est B2
 
 #### Bande 02 — Journée de jeu
 

@@ -25,11 +25,13 @@ class SalleAttenteControleur
         $conserve = $_SESSION[self::CODE_CONSERVE] ?? null;
         unset($_SESSION[self::CODE_CONSERVE]);
 
-        // B1 vérifie la formation du duo à chaque chargement (cadrage § 8.5). Un duo formé pendant l'attente renvoie à l'accueil ;
-        // le lien d'invitation d'un joueur déjà en duo montre au contraire la variante, pour qu'il comprenne pourquoi il ne peut pas rejoindre.
+        // B1 vérifie la formation du duo à chaque chargement (cadrage § 8.5). Un duo formé pendant l'attente renvoie à B2, ou à l'accueil
+        // quand les deux ont fini ; le lien d'invitation d'un joueur déjà en duo montre au contraire la variante, pour qu'il comprenne pourquoi
+        // il ne peut pas rejoindre. Elle n'arrive qu'après l'onboarding : tant qu'il n'est pas fini par les deux, B2 passe avant.
         if ($joueur->duoId !== null) {
-            if ($recu === null) {
-                Routeur::rediriger('accueil');
+            $etape = $this->service()->etapeAcces($joueur);
+            if ($etape !== EtapeAcces::AccesAuJeu || $recu === null) {
+                Routeur::rediriger(Routeur::ecranDeLEtape($etape));
             }
             Vue::rendre('b1-salle-attente', 'Salle d\'attente', [
                 'dejaEnDuo' => true,
@@ -73,7 +75,6 @@ class SalleAttenteControleur
         $saisie = is_string($_POST['code'] ?? null) ? $_POST['code'] : '';
         $resultat = $service->rejoindre($joueur, $saisie, session_id(), $this->maintenant);
         if ($resultat instanceof Duo) {
-            // TODO(simplif): la route onboarding n'existe pas (G1), à brancher avec B2.
             Routeur::rediriger('onboarding');
         }
         // Redirection après écriture (§ 2.4) : même un refus écrit un essai, donc on repasse par un GET.
@@ -99,7 +100,7 @@ class SalleAttenteControleur
 
     private function service(): AppairageService
     {
-        return new AppairageService($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
+        return AppairageService::construire($this->pdo);
     }
 
     // Le joueur de la session, relu en base. Un compte supprimé entre-temps ramène à la connexion.

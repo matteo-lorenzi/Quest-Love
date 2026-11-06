@@ -1,11 +1,12 @@
 # Quest & Love — Modèle de données
 
 > **Statut : à valider en S8**, avec un enseignant, avant toute implémentation. Annexe de [`doc-technique.md`](doc-technique.md).
-> Référence : cadrage unifié V2.14, § 7. **En cas d'écart, le cadrage fait foi.**
+> Référence : cadrage unifié V2.15, § 7. **En cas d'écart, le cadrage fait foi.**
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.4 — 6 novembre 2026.** Le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
+> **Version 1.5 — 6 novembre 2026.** Ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
+> Version 1.4 du 6 novembre 2026 : le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
 > Version 1.3 du 15 octobre 2026 : identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
 > Version 1.2 du 14 octobre 2026 : unicité du pseudo sans tenir compte des majuscules ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
 > Version 1.1 du 9 octobre 2026 : tables renommées selon le glossaire (`utilisateur` devient `joueur`, `couple` devient `duo`). Version 1.0 du 18 septembre 2026.
@@ -37,10 +38,11 @@ Relations :
 | `code_invitation` | chaîne 8, ASCII sensible à la casse | unique, nullable : nul tant qu'aucun code n'est généré et une fois le duo formé |
 | `date_expiration_code` | date-heure | nullable, génération + 60 minutes |
 | `duo_id` | entier non signé | nullable, clé étrangère vers `duo`, suppression du duo = remise à nul |
+| `onboarding_vu` | booléen | non nul, défaut 0 ; mis à 1 quand le joueur termine ou passe l'onboarding ; remis à 0 pour les deux joueurs à la formation d'un duo |
 | `pv` | entier très court non signé | non nul, défaut 5 |
 | `date_creation` | date-heure | non nul |
 
-- `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ou C1.
+- `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ; avec un duo, `onboarding_vu` des deux joueurs aiguille vers B2 ou C1 (doc technique § 3.6).
 - La régénération écrase le code et repousse l'échéance : c'est ce qui invalide l'ancien. Un code expiré ou nul est régénéré au chargement de B1.
 - Aucune autre donnée personnelle : minimisation, cadrage § 10.
 
@@ -50,6 +52,7 @@ Relations :
 |---|---|---|
 | `id` | entier non signé | clé primaire |
 | `date_creation` | date-heure | non nul |
+| `date_activation` | date-heure | nullable : nulle à la formation, posée avec `$maintenant` quand les deux joueurs ont `onboarding_vu` à 1 ; instant de référence de « duo formé après 12 h » |
 
 - Créé en une transaction, quand le deuxième joueur saisit un code valide : il porte aussitôt ses deux joueurs.
 - Le code et son échéance ne sont pas ici : un joueur en attente n'a pas de `duo`, ce qui garde `joueur.duo_id` nul comme seule définition de « sans duo ».
