@@ -34,5 +34,12 @@ for f in "${fichiers[@]}"; do
     esac || signaler "ligne d'en-tête absente : $f"
 done
 
+# 5. Motif d'expression rationnelle terminé par $ : sans le modificateur D, $ accepte aussi un saut de ligne final
+#    (« Nina\n » passait un contrôle d'identifiant). Écrire \z à la place, ou ajouter D. Ne voit que les motifs écrits en littéral.
+motif_dollar=$'preg_[a-z_]+\\([[:space:]]*[\'"]/.*[^\\\\]\\$/[a-zA-Z]*[\'"]'
+avec_d=$'\\$/[a-zA-Z]*D[a-zA-Z]*[\'"]'
+dollars=$(grep -nE "$motif_dollar" -- $(printf '%s\n' "${fichiers[@]}" | grep '\.php$') /dev/null | grep -vE "$avec_d")
+[ -n "$dollars" ] && signaler "motif terminé par \$ sans modificateur D (utiliser \\z) :"$'\n'"$dollars"
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"

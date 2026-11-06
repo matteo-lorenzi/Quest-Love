@@ -18,6 +18,36 @@ jobs:
       - uses: actions/checkout@v4
       - run: bash scripts/verifier.sh
 
+  tests:
+    # PHPUnit sur une base MySQL éphémère (doc technique § 6.4) : la couche modèle est testée à chaque PR, pas seulement sur les postes.
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: quest_love
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      # PHP 8.2 comme Azrael, avec intl (NFC) et PHPUnit 11.5.57, la version du doc technique § 6.4.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: intl, mbstring, pdo_mysql
+          tools: phpunit:11.5.57
+      # La configuration locale n'est jamais versionnée : celle de l'exemple convient (root sans mot de passe, hôte localhost).
+      # Hôte 127.0.0.1 exigé par le garde-fou de sql/reinitialiser.php, qui refuse toute autre base que la base locale.
+      - run: sed "s/'localhost'/'127.0.0.1'/" app/config/config.exemple.php > app/config/config.php
+      - run: phpunit
+
   attribution:
     runs-on: ubuntu-latest
     steps:
