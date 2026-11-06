@@ -61,7 +61,7 @@ class CompteService
             $erreurs['identifiant'][] = 'longueur';
         }
         // Le modificateur u est indispensable : sans lui, \p{L} ne reconnaît pas les lettres accentuées.
-        // \z et non $ : $ accepte un saut de ligne final, qui ferait un identifiant introuvable à la connexion (le contrôleur d'A3 le rogne).
+        // \z et non $ : $ accepte un saut de ligne final, qui ferait un identifiant introuvable à la connexion (connecter() le rogne aussi).
         // Vide : déjà signalé par la longueur, inutile d'ajouter les caractères.
         if ($identifiant !== '' && !preg_match('/^[\p{L}\p{N}._-]+\z/u', $identifiant)) {
             $erreurs['identifiant'][] = 'caracteres';
@@ -128,8 +128,9 @@ class CompteService
     }
 
     // Étape 6 — côté modèle : le contrôleur de A3 appelle ce service avec les champs du formulaire.
-    // Résultat : le Joueur s'il est connecté, l'heure de réessai s'il doit attendre, null si l'identifiant ou le mot de passe est faux.
-    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|DateTimeImmutable|null
+    // Résultat : le Joueur s'il est connecté, l'heure de réessai s'il doit attendre, null si l'identifiant ou le mot de passe est faux,
+    // ou ['champ' => 'vide'] si un champ est vide (erreur de saisie, pas un essai).
+    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|DateTimeImmutable|array|null
     {
         // Étape 6.0 — texte illisible ou identifiant trop long : aucun compte ne peut porter ce nom, on refuse sans toucher la base.
         // Le maxlength du formulaire ne protège pas d'une requête forgée, et la colonne tentative.cle est limitée à 64 caractères.
@@ -138,6 +139,14 @@ class CompteService
         $mdp = $this->normaliser($mdp);
         if ($identifiant === null || $mdp === null || mb_strlen($identifiant) > self::IDENTIFIANT_MAX) {
             return null;
+        }
+
+        // Étape 6.0 bis — même rognage qu'à l'inscription (espaces Unicode de bord), puis champs vides : une erreur de saisie.
+        // Ni la base ni le compteur d'échecs ne sont touchés. Le mot de passe, lui, n'est jamais rogné.
+        $identifiant = $this->rogner($identifiant);
+        $vides = array_filter(['identifiant' => $identifiant, 'mdp' => $mdp], fn (string $texte) => $texte === '');
+        if ($vides) {
+            return array_map(fn () => 'vide', $vides);
         }
 
         // Étape 6.1 — essai réservé, ou attente en cours ?
