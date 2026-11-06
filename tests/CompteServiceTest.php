@@ -448,17 +448,17 @@ class CompteServiceTest extends TestCase
     // Sécurité (A2) : au-delà de 30 inscriptions depuis une même adresse en 15 minutes, l'inscription est refusée avec une heure de réessai, sans compte créé.
     public function testInscriptionsEnRafaleDepuisUneAdresseSontRefuseesAvecUneHeureDeReessai(): void
     {
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i < LimiteTentativesService::ECHECS_MAX_IP; $i++) {
             $this->assertInstanceOf(Joueur::class, $this->service->inscrire("Joueur$i", 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.7'));
         }
 
         $refus = $this->service->inscrire('Trop-tard', 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.7');
 
-        $this->assertEquals(new DateTimeImmutable('2026-10-15 12:15:00'), $refus);
+        $this->assertEquals($this->midi->modify('+' . LimiteTentativesService::FENETRE), $refus);
         $this->assertNull((new JoueurDepot($this->pdo))->trouverParIdentifiant('Trop-tard'));
         // Une autre adresse n'est pas touchée, et l'attente passée l'adresse est libre.
         $this->assertInstanceOf(Joueur::class, $this->service->inscrire('Trop-tard', 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.8'));
-        $this->assertInstanceOf(Joueur::class, $this->service->inscrire('Apres', 'Nini', self::MDP_VALIDE, $this->midi->modify('+15 minutes'), '203.0.113.7'));
+        $this->assertInstanceOf(Joueur::class, $this->service->inscrire('Apres', 'Nini', self::MDP_VALIDE, $this->midi->modify('+' . LimiteTentativesService::FENETRE), '203.0.113.7'));
     }
 
     // Sécurité (A3) : les inscriptions et les connexions ne se comptent pas ensemble.

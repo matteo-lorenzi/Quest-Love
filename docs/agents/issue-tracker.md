@@ -17,6 +17,7 @@ Le dépôt se déduit de `git remote -v` ; `gh` le fait seul dans un clone.
 ## Limites de `gh` 2.40 (poste local)
 
 - `gh pr edit` échoue (dépréciation de Projects classic). Corps d'une PR : `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@fichier.md`.
+- `gh issue view <n> --comments` échoue de la même façon : lire un ticket avec `--json …,comments` (voir **Lire un ticket**).
 - `--parent` et `--add-sub-issue` n'existent pas avant `gh` 2.94 : utiliser `Part of #<parent>` ou l'API (voir ci-dessus).
 
 ## Pull requests comme canal de demande

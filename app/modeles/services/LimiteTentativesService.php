@@ -5,9 +5,9 @@ class LimiteTentativesService
 {
     // 5 échecs en 15 minutes, puis 15 minutes d'attente (cadrage § 6.6).
     private const ECHECS_MAX = 5;
-    private const FENETRE = '15 minutes';
+    public const FENETRE = '15 minutes';
     // Plafond de la clé IP : plus large, car une adresse peut être partagée (box, école) ; il freine un script qui change de session à chaque requête.
-    private const ECHECS_MAX_IP = 30;
+    public const ECHECS_MAX_IP = 30;
     // Au-delà de 30 minutes, un essai ne compte plus pour aucune clé (voir attente()) : on le supprime.
     private const CONSERVATION = '-30 minutes';
 
