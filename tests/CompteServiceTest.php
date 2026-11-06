@@ -481,6 +481,16 @@ class CompteServiceTest extends TestCase
         $this->assertSame($reelle['options'], $leurre['options']);
     }
 
+    // Sécurité (A3) : un identifiant inconnu paie le calcul d'une empreinte ; sans leurre, la réponse serait quasi instantanée (Argon2id coûte des dizaines de ms).
+    public function testIdentifiantInconnuCoutePlusDe10MillisecondesDeCalcul(): void
+    {
+        $debut = hrtime(true);
+        $this->service->connecter('Inconnu', self::MDP, 'session-a', $this->midi);
+        $duree = (hrtime(true) - $debut) / 1e6;
+
+        $this->assertGreaterThan(10, $duree);
+    }
+
     // Sécurité (A3) : un identifiant inconnu est refusé comme un mot de passe faux, et compté comme tel.
     public function testIdentifiantInconnuEstRefuseEtCompteCommeUnEchec(): void
     {

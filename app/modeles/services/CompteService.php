@@ -151,10 +151,10 @@ class CompteService
 
         // Étape 6.2 — recherche du joueur, puis vérification de l'empreinte.
         $joueur = $this->joueurs->trouverParIdentifiant($identifiant);
-        // Mot de passe normalisé comme à l'inscription (étape 6.0), sinon un compte créé sur un appareil ne s'ouvrirait pas sur un autre.
         // Identifiant inconnu : on vérifie quand même contre l'empreinte leurre, pour que le temps de réponse ne révèle pas si le compte existe.
-        $verifie = password_verify($mdp, $joueur->mdpHash ?? self::EMPREINTE_LEURRE);
-        if ($joueur !== null && $verifie) {
+        // Mot de passe normalisé comme à l'inscription (étape 6.0), sinon un compte créé sur un appareil ne s'ouvrirait pas sur un autre.
+        $motDePasseJuste = password_verify($mdp, $joueur->mdpHash ?? self::EMPREINTE_LEURRE);
+        if ($joueur !== null && $motDePasseJuste) {
             // Une connexion réussie ne compte pas : l'essai réservé est rendu.
             $this->limite->liberer($reservation);
             return $joueur;
