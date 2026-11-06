@@ -47,7 +47,7 @@ class ConnexionControleur
         // Étape 6.3 — appel du service, qui porte toute la règle (cadrage § 6.6).
         // L'identifiant de session sert de second compteur, lu avant d'être régénéré.
         $resultat = (new CompteService(new JoueurDepot($this->pdo), new TentativeDepot($this->pdo)))
-            ->connecter($identifiant, $mdp, session_id(), $this->maintenant);
+            ->connecter($identifiant, $mdp, session_id(), $this->maintenant, $_SERVER['REMOTE_ADDR'] ?? null);
 
         // Étape 6.4 — refus : attente en cours, ou identifiants incorrects (un seul message pour les deux cas).
         if ($resultat instanceof DateTimeImmutable) {

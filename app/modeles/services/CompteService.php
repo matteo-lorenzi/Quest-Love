@@ -118,7 +118,7 @@ class CompteService
 
     // Étape 6 — côté modèle : le contrôleur de A3 appelle ce service avec les champs du formulaire.
     // Résultat : le Joueur s'il est connecté, l'heure de réessai s'il doit attendre, null si l'identifiant ou le mot de passe est faux.
-    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant): Joueur|DateTimeImmutable|null
+    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|DateTimeImmutable|null
     {
         // Étape 6.0 — texte illisible ou identifiant trop long : aucun compte ne peut porter ce nom, on refuse sans toucher la base.
         // Le maxlength du formulaire ne protège pas d'une requête forgée, et la colonne tentative.cle est limitée à 64 caractères.
@@ -132,8 +132,8 @@ class CompteService
         // Étape 6.1 — essai réservé, ou attente en cours ?
         // Réservé avant le mot de passe : des requêtes simultanées se comptent donc entre elles, et seules les cinq premières passent.
         // Pendant l'attente, même le bon mot de passe est refusé, et l'essai refusé n'est pas gardé.
-        // Deux compteurs : par identifiant et par session, pour que changer l'un ou l'autre ne remette pas à zéro.
-        $reservation = $this->limite->reserver([$identifiant, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Connexion, $maintenant);
+        // Trois compteurs : par identifiant, par session et par adresse IP, pour que changer l'un ou l'autre ne remette pas à zéro.
+        $reservation = $this->limite->reserver([$identifiant, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Connexion, $maintenant, $ip);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }

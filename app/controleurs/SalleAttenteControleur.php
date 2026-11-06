@@ -73,7 +73,7 @@ class SalleAttenteControleur
 
         // Aucune règle ici : le service contrôle tout et renvoie le duo formé, l'heure de réessai ou la raison du refus.
         $saisie = is_string($_POST['code'] ?? null) ? $_POST['code'] : '';
-        $resultat = $service->rejoindre($joueur, $saisie, session_id(), $this->maintenant);
+        $resultat = $service->rejoindre($joueur, $saisie, session_id(), $this->maintenant, $_SERVER['REMOTE_ADDR'] ?? null);
         if ($resultat instanceof Duo) {
             Routeur::rediriger('onboarding');
         }

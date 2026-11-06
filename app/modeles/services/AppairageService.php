@@ -51,7 +51,7 @@ class AppairageService
     }
 
     // B1 — saisie du code d'un partenaire. Résultat : le Duo formé, l'heure de réessai si le joueur doit attendre, ou la raison du refus.
-    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|DateTimeImmutable|RefusCode
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Duo|DateTimeImmutable|RefusCode
     {
         // Texte sans forme de code : refusé sans toucher la base ni compter d'échec, comme connecter() (étape 6.0).
         $code = $this->normaliserCode($saisie);
@@ -63,9 +63,9 @@ class AppairageService
             return RefusCode::DejaEnDuo;
         }
         // Essai réservé avant la vérification, comme la connexion : des requêtes simultanées se comptent entre elles.
-        // Deux compteurs : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
+        // Trois compteurs (joueur, session, IP) : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
         // Un refus qui compte garde sa réservation ; la formation du duo et le refus « déjà en duo » la rendent.
-        $reservation = $this->limite->reserver([(string) $invite->id, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Code, $maintenant);
+        $reservation = $this->limite->reserver([(string) $invite->id, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Code, $maintenant, $ip);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }
