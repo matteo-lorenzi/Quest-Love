@@ -1,6 +1,6 @@
 <?php
 // Vue d'inscription — A2 — lot 1 — A.
-// Reçoit d'InscriptionControleur : $identifiant et $pseudo (saisie à reprendre, jamais le mot de passe) et $erreurs (champ => codes).
+// Reçoit d'InscriptionControleur : $identifiant et $pseudo (saisie à reprendre, jamais le mot de passe), $erreurs (champ => codes) et $attente (heure de réessai si le plafond d'inscriptions est atteint, sinon null).
 // Les codes viennent de CompteService::inscrire() ; les textes sont à relire en S6 avec les autres textes d'interface.
 
 $longueurMin = CompteService::IDENTIFIANT_MIN;
@@ -53,6 +53,10 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
     <?php if ($codeRecu !== null): ?>
         <!-- Le code d'un lien d'invitation : affiché tel que reçu, il n'est validé que si tu le valides en salle d'attente. -->
         <p class="invitation">Tu as reçu un code d'invitation : <strong><?= e($codeRecu) ?></strong>. Il sera prérempli dans la salle d'attente dès que tu seras connecté.</p>
+    <?php endif ?>
+    <?php if ($attente !== null): ?>
+        <!-- Heure au format français, sans les secondes, comme en A3. -->
+        <p class="inscription__erreur" id="erreur-general">Trop d'inscriptions depuis ta connexion. Par sécurité, tu pourras réessayer à <?= e($attente->format('G \h i')) ?>.</p>
     <?php endif ?>
     <form class="formulaire" method="post" action="index.php?ecran=inscription">
         <p class="formulaire__consigne">Tous les champs sont obligatoires.</p>

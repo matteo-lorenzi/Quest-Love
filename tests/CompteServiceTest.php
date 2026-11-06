@@ -445,6 +445,50 @@ class CompteServiceTest extends TestCase
         $this->assertInstanceOf(Joueur::class, $resultat);
     }
 
+    // Sécurité (A2) : au-delà de 30 inscriptions depuis une même adresse en 15 minutes, l'inscription est refusée avec une heure de réessai, sans compte créé.
+    public function testInscriptionsEnRafaleDepuisUneAdresseSontRefuseesAvecUneHeureDeReessai(): void
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $this->assertInstanceOf(Joueur::class, $this->service->inscrire("Joueur$i", 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.7'));
+        }
+
+        $refus = $this->service->inscrire('Trop-tard', 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.7');
+
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 12:15:00'), $refus);
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParIdentifiant('Trop-tard'));
+        // Une autre adresse n'est pas touchée, et l'attente passée l'adresse est libre.
+        $this->assertInstanceOf(Joueur::class, $this->service->inscrire('Trop-tard', 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.8'));
+        $this->assertInstanceOf(Joueur::class, $this->service->inscrire('Apres', 'Nini', self::MDP_VALIDE, $this->midi->modify('+15 minutes'), '203.0.113.7'));
+    }
+
+    // Sécurité (A3) : les inscriptions et les connexions ne se comptent pas ensemble.
+    public function testLesInscriptionsNeConsommentPasLePlafondDeConnexion(): void
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $this->service->inscrire("Joueur$i", 'Nini', self::MDP_VALIDE, $this->midi, '203.0.113.7');
+        }
+
+        $this->assertInstanceOf(Joueur::class, $this->service->connecter('Lou', self::MDP, 'session-a', $this->midi, '203.0.113.7'));
+    }
+
+    // Sécurité (A3) : l'empreinte leurre a les mêmes paramètres qu'une empreinte d'inscription, donc le même coût de calcul.
+    public function testLEmpreinteLeurreACoutDUneEmpreinteReelle(): void
+    {
+        $reelle = password_get_info(password_hash('x', PASSWORD_ARGON2ID));
+        $leurre = password_get_info(CompteService::EMPREINTE_LEURRE);
+
+        $this->assertSame($reelle['algoName'], $leurre['algoName']);
+        $this->assertSame($reelle['options'], $leurre['options']);
+    }
+
+    // Sécurité (A3) : un identifiant inconnu est refusé comme un mot de passe faux, et compté comme tel.
+    public function testIdentifiantInconnuEstRefuseEtCompteCommeUnEchec(): void
+    {
+        $this->assertNull($this->service->connecter('Inconnu', self::MDP, 'session-a', $this->midi));
+
+        $this->assertSame(2, (int) $this->pdo->query('SELECT COUNT(*) FROM tentative')->fetchColumn());
+    }
+
     // Un échec par minute à partir de midi : 12 h 00, 12 h 01…
     private function echouer(int $nombre, string $identifiant, string $cleSession): void
     {

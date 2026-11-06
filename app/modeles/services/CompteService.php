@@ -11,6 +11,9 @@ class CompteService
     // Longueurs d'un mot de passe (cadrage § 6.6), reprises par la règle affichée sous le champ.
     public const MDP_MIN = 12;
     public const MDP_MAX = 64;
+    // Empreinte d'un mot de passe que personne ne connaît, vérifiée quand l'identifiant est inconnu (A3) : même algorithme et mêmes coûts qu'à l'inscription.
+    // TODO(simplif): figée avec les coûts actuels d'Argon2id de PHP, à régénérer si password_hash change ses défauts (un test le signale).
+    public const EMPREINTE_LEURRE = '$argon2id$v=19$m=65536,t=4,p=1$ZjNyekpOdFFSbHoveU83dA$isKHs82PefoTlbEkJl5QO2Kk1RCeYykThnbU8ZFUv6w';
 
     private LimiteTentativesService $limite;
 
@@ -24,9 +27,17 @@ class CompteService
     }
 
     // A2 — le contrôleur d'inscription appelle ce service avec les trois champs du formulaire.
-    // Résultat : le Joueur créé, ou la liste des erreurs ['champ' => ['code', ...]] si une règle n'est pas respectée.
-    public function inscrire(string $identifiant, string $pseudo, string $mdp, DateTimeImmutable $maintenant): Joueur|array
+    // Résultat : le Joueur créé, la liste des erreurs ['champ' => ['code', ...]] si une règle n'est pas respectée,
+    // ou l'heure de réessai si l'adresse IP a dépassé le plafond d'inscriptions (aucun compte n'est alors créé).
+    public function inscrire(string $identifiant, string $pseudo, string $mdp, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|array|DateTimeImmutable
     {
+        // Seule la clé IP compte, et chaque envoi se garde (réussi ou non) : une rafale d'inscriptions, ou de doublons sondés, est freinée.
+        // Sans adresse (hors requête web), rien n'est limité.
+        $reservation = $this->limite->reserver([], TypeTentative::Inscription, $maintenant, $ip);
+        if ($reservation instanceof DateTimeImmutable) {
+            return $reservation;
+        }
+
         // NFC avant tout contrôle : une longueur ou une comparaison ne doit pas dépendre de l'encodage du clavier (doc technique § 3.6).
         // Un texte qui n'est pas de l'UTF-8 valide ne peut venir que d'une requête forgée : on le nomme par champ et on s'arrête,
         // les autres règles (longueur, lettres…) n'ont aucun sens sur des octets invalides.
@@ -141,7 +152,9 @@ class CompteService
         // Étape 6.2 — recherche du joueur, puis vérification de l'empreinte.
         $joueur = $this->joueurs->trouverParIdentifiant($identifiant);
         // Mot de passe normalisé comme à l'inscription (étape 6.0), sinon un compte créé sur un appareil ne s'ouvrirait pas sur un autre.
-        if ($joueur !== null && password_verify($mdp, $joueur->mdpHash)) {
+        // Identifiant inconnu : on vérifie quand même contre l'empreinte leurre, pour que le temps de réponse ne révèle pas si le compte existe.
+        $verifie = password_verify($mdp, $joueur->mdpHash ?? self::EMPREINTE_LEURRE);
+        if ($joueur !== null && $verifie) {
             // Une connexion réussie ne compte pas : l'essai réservé est rendu.
             $this->limite->liberer($reservation);
             return $joueur;
