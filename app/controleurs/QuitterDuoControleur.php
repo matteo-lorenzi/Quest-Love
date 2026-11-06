@@ -7,7 +7,7 @@ class QuitterDuoControleur
     // TODO(simplif): le profil (F1) n'existe pas, son origine (profil) s'ajoutera ici avec lui.
     private const ORIGINES = ['salle-attente', 'onboarding'];
 
-    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ce dont il a besoin (ADR-0001).
+    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant) {}
 
     // GET : l'avertissement d'irréversibilité, la confirmation et l'annulation vers l'écran d'origine.
