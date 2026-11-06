@@ -12,62 +12,67 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanche en pointillés = à faire. Le statut est aussi écrit dans le texte de la case.
 
 ```mermaid
-%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 22, "padding": 8}}}%%
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 20, "padding": 6, "htmlLabels": true}}}%%
 flowchart TB
   S["Socle · fait<br/>noyau MVC, routeur, horloge, CI"]:::fait
   L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 4 écrans sur 18"]:::encours
   L2["LOT 2 · Gamification<br/>conditionnel : seulement si le lot 1 est fini en S11"]:::afaire
-  L3["LOT 3 · Confort<br/>optionnel · à faire"]:::afaire
+  L3["LOT 3 · Confort · optionnel · à faire"]:::afaire
   L4["LOT 4 · Perspectives<br/>non développé, documenté en recul réflexif"]:::afaire
 
-  subgraph P1["Arrivée et appairage"]
-    direction TB
-    A1["A1 Accueil public · à faire"]:::afaire
-    A2["A2 Inscription · fait"]:::fait
-    A3["A3 Connexion · fait"]:::fait
-    A4["A4 Pages légales · à faire"]:::afaire
-    B1["B1 Salle d'attente · fait"]:::fait
-    B2["B2 Duo formé, onboarding · à faire"]:::afaire
-    B3["B3 Règles du jeu · à faire"]:::afaire
-    A1 ~~~ A2 ~~~ A3 ~~~ A4 ~~~ B1 ~~~ B2 ~~~ B3
+  subgraph P1["Arrivée"]
+    direction LR
+    A1["A1 Accueil<br/>à faire"]:::afaire
+    A2["A2 Inscription<br/>fait"]:::fait
+    A3["A3 Connexion<br/>fait"]:::fait
+    A4["A4 Légal<br/>à faire"]:::afaire
+    A1 ~~~ A2 ~~~ A3 ~~~ A4
   end
 
-  subgraph P2["Journée de jeu"]
-    direction TB
-    C1["C1 Accueil face-à-face · à faire"]:::afaire
-    C2["C2 Tirage en éventail · à faire"]:::afaire
-    D2["D2 Le hasard a choisi · à faire"]:::afaire
-    C3["C3 Défi reçu, validation · à faire"]:::afaire
+  subgraph P2["Appairage"]
+    direction LR
+    B1["B1 Salle d'attente<br/>fait"]:::fait
+    B2["B2 Duo formé<br/>à faire"]:::afaire
+    B3["B3 Règles<br/>à faire"]:::afaire
+    B1 ~~~ B2 ~~~ B3
+  end
+
+  subgraph P3["Journée de jeu"]
+    direction LR
+    C1["C1 Accueil duo<br/>à faire"]:::afaire
+    C2["C2 Tirage<br/>à faire"]:::afaire
+    D2["D2 Hasard<br/>à faire"]:::afaire
+    C3["C3 Défi reçu<br/>à faire"]:::afaire
     C1 ~~~ C2 ~~~ D2 ~~~ C3
   end
 
-  subgraph P3["Fin de défi et événements"]
-    direction TB
-    D1["D1 Défi expiré, -1 PV · à faire"]:::afaire
-    D5["D5 0 PV, retour à 5 · à faire"]:::afaire
+  subgraph P4["Fin de défi"]
+    direction LR
+    D1["D1 Expiré, -1 PV<br/>à faire"]:::afaire
+    D5["D5 Retour à 5 PV<br/>à faire"]:::afaire
     D1 ~~~ D5
   end
 
-  subgraph P4["Profil et système"]
-    direction TB
-    F1["F1 Profil · à faire"]:::afaire
-    F2["F2 Dissolution du duo · à faire"]:::afaire
-    D3["D3 Duo dissous, côté partenaire · à faire"]:::afaire
-    F3["F3 Suppression de compte · à faire"]:::afaire
-    G1["G1 Écrans d'erreur · fait"]:::fait
+  subgraph P5["Profil et système"]
+    direction LR
+    F1["F1 Profil<br/>à faire"]:::afaire
+    F2["F2 Dissolution<br/>à faire"]:::afaire
+    D3["D3 Duo dissous<br/>à faire"]:::afaire
+    F3["F3 Suppression<br/>à faire"]:::afaire
+    G1["G1 Erreurs<br/>fait"]:::fait
     F1 ~~~ F2 ~~~ D3 ~~~ F3 ~~~ G1
   end
 
-  subgraph P5["Lot 2"]
-    direction TB
-    X1["Contestation · C3+ D4 · à faire"]:::afaire
-    X2["Gages · D5+ D6 D7 E1 E2 E3 · à faire"]:::afaire
-    X3["Pénalité doublée · D1+ · à faire"]:::afaire
-    X4["Historique · E4 · à faire"]:::afaire
+  subgraph P6["Lot 2"]
+    direction LR
+    X1["Contestation<br/>C3+ D4<br/>à faire"]:::afaire
+    X2["Gages<br/>D5+ D6 D7 E1-E3<br/>à faire"]:::afaire
+    X3["Pénalité x2<br/>D1+<br/>à faire"]:::afaire
+    X4["Historique<br/>E4<br/>à faire"]:::afaire
     X1 ~~~ X2 ~~~ X3 ~~~ X4
   end
 
-  S --> L1 --> P1 --> P2 --> P3 --> P4 --> L2 --> P5 --> L3 --> L4
+  S --> L1 --> P1 --> P2 --> P3 --> P4 --> P5 --> L2 --> P6 --> L3 --> L4
 
   classDef fait fill:#d9d9d9,stroke:#555555,color:#222222
   classDef encours fill:#ffe45c,stroke:#111111,stroke-width:3px,color:#000000
