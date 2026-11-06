@@ -73,7 +73,6 @@ class SalleAttenteControleur
         $saisie = is_string($_POST['code'] ?? null) ? $_POST['code'] : '';
         $resultat = $service->rejoindre($joueur, $saisie, session_id(), $this->maintenant);
         if ($resultat instanceof Duo) {
-            // TODO(simplif): la route onboarding n'existe pas (G1), à brancher avec B2.
             Routeur::rediriger('onboarding');
         }
         // Redirection après écriture (§ 2.4) : même un refus écrit un essai, donc on repasse par un GET.

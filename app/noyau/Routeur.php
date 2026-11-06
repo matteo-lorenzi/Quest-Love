@@ -11,6 +11,7 @@ class Routeur
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
         'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', 'connecte'],
+        'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', 'duo'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
     ];
 
