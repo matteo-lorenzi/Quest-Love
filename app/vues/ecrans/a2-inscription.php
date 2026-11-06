@@ -67,7 +67,8 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
                         type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
                         maxlength="<?= CompteService::IDENTIFIANT_MAX ?>" value="<?= e($identifiant) ?>"
                     <?php elseif ($champ === 'pseudo'): ?>
-                        type="text" autocomplete="nickname" maxlength="<?= CompteService::PSEUDO_MAX ?>" value="<?= e($pseudo) ?>"
+                        <?php // Pas de maxlength : il compte des unités UTF-16, donc coupe un pseudo d'émojis à 15 alors que le service accepte 30 caractères. ?>
+                        type="text" autocomplete="nickname" value="<?= e($pseudo) ?>"
                     <?php else: ?>
                         <?php // Pas de maxlength : un collage trop long serait coupé en silence et le joueur enregistrerait un autre mot de passe que le sien. Le service signale la longueur. ?>
                         type="password" autocomplete="new-password"

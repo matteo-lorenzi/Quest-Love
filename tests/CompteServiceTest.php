@@ -90,6 +90,9 @@ class CompteServiceTest extends TestCase
             'espace intérieure' => ['lou lou', false],
             'arobase' => ['lou@lou', false],
             'émoji' => ["lou\u{1F600}", false],
+            // « $ » d'une expression rationnelle accepte un saut de ligne final : une requête forgée créerait un identifiant introuvable à la connexion.
+            'saut de ligne final' => ["Nina\n", false],
+            'tabulation intérieure' => ["Ni\tna", false],
         ];
     }
 
@@ -159,6 +162,8 @@ class CompteServiceTest extends TestCase
             'sans caractère spécial' => ['MonChatDortSeptFois7', 'special'],
             'espace intérieure comme caractère spécial' => ['Mon chat dort 7', null],
             'émoji comme caractère spécial' => ["MonChatDort7\u{1F431}ABC", null],
+            // L'espace de largeur nulle est invisible : elle ne peut pas tenir lieu de caractère spécial.
+            'caractère invisible seul' => ["MonChatDort7\u{200B}ABC", 'special'],
         ];
     }
 

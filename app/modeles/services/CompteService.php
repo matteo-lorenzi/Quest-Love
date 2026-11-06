@@ -1,5 +1,5 @@
 <?php
-// Service des comptes — A3 Connexion — lot 1 — A. Écran de référence : annoté étape par étape avec les numéros du doc technique § 2.2 (§ 2.4).
+// Service des comptes — A2 Inscription et A3 Connexion — lot 1 — A. Écran de référence : annoté étape par étape avec les numéros du doc technique § 2.2 (§ 2.4).
 
 class CompteService
 {
@@ -48,8 +48,9 @@ class CompteService
             $erreurs['identifiant'][] = 'longueur';
         }
         // Le modificateur u est indispensable : sans lui, \p{L} ne reconnaît pas les lettres accentuées.
+        // \z et non $ : $ accepte un saut de ligne final, qui ferait un identifiant introuvable à la connexion (le contrôleur d'A3 le rogne).
         // Vide : déjà signalé par la longueur, inutile d'ajouter les caractères.
-        if ($identifiant !== '' && !preg_match('/^[\p{L}\p{N}._-]+$/u', $identifiant)) {
+        if ($identifiant !== '' && !preg_match('/^[\p{L}\p{N}._-]+\z/u', $identifiant)) {
             $erreurs['identifiant'][] = 'caracteres';
         }
         // Doublon : l'interclassement de la colonne ignore majuscules et accents, comme pour connecter().

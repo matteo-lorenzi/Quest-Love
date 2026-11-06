@@ -1,5 +1,5 @@
 <?php
-// Dépôt des joueurs — A3 et tous les écrans connectés — lot 1 — A.
+// Dépôt des joueurs — A2, A3 et tous les écrans connectés — lot 1 — A.
 
 class JoueurDepot
 {
