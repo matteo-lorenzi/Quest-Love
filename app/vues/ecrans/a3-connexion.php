@@ -2,12 +2,13 @@
 // Vue de connexion — A3 — lot 1 — A. Écran de référence : annoté étape par étape avec les numéros du doc technique § 2.2 (§ 2.4).
 // Reçoit de ConnexionControleur : $identifiant (saisie à reprendre), $erreurs (champ => code), $attente (heure de réessai ou null).
 
-// Étape 6 — rendu. Textes validés au ticket #3 (RGAA 11.10, WCAG 3.3.1) ; le message d'identifiants faux ne dit pas quel champ est faux (exception de sécurité du WCAG 3.3.3).
+// Étape 6 — rendu (GET). Le contrôleur a déjà lu la requête et appelé le service ; la vue ne contient aucune règle, seulement de la mise en page.
+// Étape 6.1 — textes des erreurs. Textes validés au ticket #3 (RGAA 11.10, WCAG 3.3.1) ; le message d'identifiants faux ne dit pas quel champ est faux (exception de sécurité du WCAG 3.3.3).
 $messages = [
     'identifiant' => 'Saisis ton identifiant.',
     'mdp' => 'Saisis ton mot de passe.',
 ];
-// Message général, en tête du formulaire : attente en cours, ou identifiants incorrects.
+// Étape 6.2 — message général, en tête du formulaire : attente en cours, ou identifiants incorrects.
 // Heure au format français, sans les secondes : « 14 h 32 », lu correctement par les lecteurs d'écran.
 $messageGeneral = match (true) {
     $attente !== null => 'Trop d\'essais de connexion. Par sécurité, tu pourras réessayer à ' . $attente->format('G \h i') . '.',
@@ -15,9 +16,10 @@ $messageGeneral = match (true) {
     default => null,
 };
 
-// Chaque champ en erreur pointe vers son propre message ; un message général concerne les deux champs.
+// Étape 6.3 — liaison des erreurs aux champs. Chaque champ en erreur pointe vers son propre message ; un message général concerne les deux champs.
 $decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : ($messageGeneral !== null ? 'erreur-general' : null);
 ?>
+<?php // Étape 6.4 — balisage ; tout texte libre passe par e(), seule fonction d'échappement (§ 2.4). ?>
 <header class="entete-ecran">
     <a class="entete-ecran__retour" href="index.php?ecran=bienvenue" aria-label="Retour à l'accueil">←</a>
     <h1 class="entete-ecran__titre">Connexion</h1>
@@ -32,6 +34,7 @@ $decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : ($me
         <p class="connexion__erreur" id="erreur-general"><?= e($messageGeneral) ?></p>
     <?php endif ?>
 
+    <?php // Étape 6.5 — le POST revient sur ce même écran, avec le jeton CSRF que le routeur vérifiera à son étape 6. ?>
     <form class="formulaire" method="post" action="index.php?ecran=connexion">
         <p class="formulaire__consigne">Tous les champs sont obligatoires.</p>
         <input type="hidden" name="jeton" value="<?= e($jeton) ?>">

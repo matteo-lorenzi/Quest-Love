@@ -275,6 +275,7 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 - 5 échecs en 15 minutes déclenchent une attente de 15 minutes avant tout nouvel essai.
 - Comptage par identifiant **et** par session : changer d'identifiant ou de session ne remet pas le compteur à zéro.
 - S'applique à la connexion (A3) et à toute vérification d'un code d'invitation (saisie en B1, y compris celle d'un code reçu par lien, prérempli après inscription ou connexion).
+- Les inscriptions (A2) sont aussi freinées par adresse IP seulement : 30 envois en 15 minutes, puis attente de 15 minutes, sous un type de tentative propre. Chaque envoi compte, réussi ou non. À la connexion, un identifiant inconnu est vérifié contre une empreinte leurre, pour que le temps de réponse ne révèle pas l'existence d'un compte.
 - Un essai est compté avant d'être vérifié, et libéré s'il réussit : seuls comptent les essais enregistrés plus tôt, donc des requêtes simultanées ne dépassent pas la limite.
 - Pour un code, comptent comme échec : le propre code du joueur, un code expiré, un code « pas valable » (faux, régénéré, ou dont le propriétaire est déjà en duo : ces trois cas ne sont pas distingués). Ne comptent pas : un essai refusé pendant l'attente, un texte qui n'a pas la forme d'un code (8 caractères de l'alphabet, UTF-8 valide), la requête d'un joueur déjà en duo. Les compteurs sont ceux du joueur et de la session.
 - L'attente est annoncée en texte, avec l'heure à laquelle réessayer ; jamais de blocage définitif du compte.

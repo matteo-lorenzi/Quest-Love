@@ -78,7 +78,8 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
   - `medias/` — pictogrammes et avatars générés
 - **`app/noyau/`** — mécanique commune, sans règle du jeu
   - `amorce.php` — autoloader, fuseau, session, jeton CSRF, connexion PDO
-  - `Routeur.php` — table de routage, préconditions d'accès, aiguillage vers le contrôleur
+  - `Routeur.php` — table de routage, préconditions d'accès, aiguillage vers le contrôleur, lecture du joueur connecté (`joueurConnecte`)
+  - `CodeRecu.php` — code d'invitation d'un lien, gardé en session par A2 et A3 jusqu'à B1
   - `Bdd.php` — connexion PDO, mode exception, jeu de caractères `utf8mb4`
   - `Securite.php` — jeton CSRF
   - `Vue.php` — rendu d'une vue dans le gabarit, fonction d'échappement unique
@@ -86,7 +87,7 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
 - **`app/modeles/`** — le M du MVC, en trois rôles
   - `entites/` — les objets du domaine et leurs états : `Joueur`, `Duo`, `Participation`, `Defi`, `Tirage`, `Mission` ; énumérations `StatutMission`, `OrigineMission`, `Reponse`
   - `depots/` — le seul endroit où s'écrit du SQL : `JoueurDepot`, `DuoDepot`, `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`, `TentativeDepot`
-  - `services/` — les règles du jeu et les transactions : `CompteService`, `AppairageService`, `JourneeService`, `TirageService`, `MissionService`, `PointsDeVieService`, `RattrapageService`
+  - `services/` — les règles du jeu et les transactions : `CompteService`, `AppairageService`, `JourneeService`, `TirageService`, `MissionService`, `PointsDeVieService`, `RattrapageService` ; textes des règles `Regles` (source unique de B2 et B3)
 - **`app/vues/`** — le V du MVC
   - `gabarits/` — `entete.php`, `pied.php`, `navigation.php`
   - `composants/` — `socle-c1.php`, `carte-defi.php`, `panneau-confirmation.php`, `bloc-evenement.php`
@@ -227,7 +228,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 
 ### 3.7 Sécurité
 
-- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService` : chaque essai est écrit avant d'être vérifié, et libéré s'il réussit ; seuls comptent les essais écrits plus tôt, donc des requêtes simultanées ne dépassent pas 5, qui demande du SQL et vit donc dans le modèle (§ 2.4).
+- **Classes** : `noyau/Securite.php` pour le jeton CSRF (renouvelé à la connexion et à l'inscription) et l'expiration de la session après 2 h d'inactivité ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService` : chaque essai est écrit avant d'être vérifié, et libéré s'il réussit ; seuls comptent les essais écrits plus tôt, donc des requêtes simultanées ne dépassent pas 5, qui demande du SQL et vit donc dans le modèle (§ 2.4).
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.

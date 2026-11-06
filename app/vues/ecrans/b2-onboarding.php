@@ -7,8 +7,8 @@
 <main class="onboarding">
     <h1 class="onboarding__titre">En attente de <?= $partenaire !== null ? e($partenaire) : 'ton partenaire' ?></h1>
     <p class="onboarding__texte">Tu as fini les règles. Dès que ton partenaire aura fini les siennes, le jeu s'ouvrira : recharge cette page pour le savoir.</p>
-    <a class="bouton" href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=attente">Règles complètes</a>
-    <p><a href="index.php?ecran=quitter-duo&amp;origine=onboarding">Quitter mon duo</a></p>
+    <a class="bouton" href="index.php?ecran=regles&amp;origine=<?= ReglesControleur::parametre(OrigineRegles::Onboarding) ?>&amp;etape=attente">Règles complètes</a>
+    <p><a href="index.php?ecran=quitter-duo&amp;origine=<?= QuitterDuoControleur::parametre(OrigineQuitterDuo::Onboarding) ?>">Quitter mon duo</a></p>
 </main>
 <?php return; endif ?>
 <main class="onboarding">
@@ -23,7 +23,7 @@
             <button class="bouton" type="submit">C'est parti</button>
         </form>
     <?php endif ?>
-    <a href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=<?= (int) $etape ?>">Règles complètes</a>
+    <a href="index.php?ecran=regles&amp;origine=<?= ReglesControleur::parametre(OrigineRegles::Onboarding) ?>&amp;etape=<?= (int) $etape ?>">Règles complètes</a>
     <?php // « Passer » a le même effet que le bouton du dernier écran. ?>
     <form method="post" action="index.php?ecran=onboarding">
         <input type="hidden" name="jeton" value="<?= e($jeton) ?>">

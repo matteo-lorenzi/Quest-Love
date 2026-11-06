@@ -15,14 +15,37 @@ class ReglesControleur
         ]);
     }
 
-    // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par le modèle (liste fermée).
+    // Écrans d'où B3 s'ouvre : l'énumération OrigineRegles est la liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
+    // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
+    // Origine de B3 validée contre l'énumération ; toute autre valeur (absente, inconnue, tableau) : accueil.
+    public static function origine(mixed $origine): OrigineRegles
+    {
+        foreach (OrigineRegles::cases() as $cas) {
+            if ($origine === self::parametre($cas)) {
+                return $cas;
+            }
+        }
+        return OrigineRegles::Accueil;
+    }
+
+    // Seul endroit où un cas d'origine devient un nom d'écran : le paramètre « origine » de l'adresse, que les vues et le retour reprennent.
+    public static function parametre(OrigineRegles $origine): string
+    {
+        return match ($origine) {
+            OrigineRegles::Onboarding => 'onboarding',
+            OrigineRegles::Profil => 'profil',
+            OrigineRegles::Accueil => 'accueil',
+        };
+    }
+
+    // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par origine() (liste fermée).
     // Avec B2 pour origine, l'étape (chiffres ou « attente ») est reprise ; étape invalide : B2 sans étape, donc première règle.
     public static function requeteDeRetour(mixed $origine, mixed $etape): string
     {
-        $origine = Regles::origine($origine);
-        if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
+        $origine = self::origine($origine);
+        if ($origine === OrigineRegles::Onboarding && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
             return "ecran=onboarding&etape=$etape";
         }
-        return "ecran=$origine";
+        return 'ecran=' . self::parametre($origine);
     }
 }

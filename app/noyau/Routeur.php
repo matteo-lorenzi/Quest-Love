@@ -4,19 +4,19 @@
 class Routeur
 {
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
-    // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte, duo, ou jeu (en duo, onboarding terminé par les deux).
+    // null : l'écran n'accepte pas cette méthode HTTP. Accès : un NiveauAcces (Public, Connecte, Duo, ou Jeu : en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
-    // Accueil, tirage et défi reçu y entreront avec l'accès 'jeu' (§ 3.6) ; le verrou est déjà en place à l'étape 5.
+    // Accueil, tirage et défi reçu y entreront avec l'accès Jeu (§ 3.6) ; le verrou est déjà en place à l'étape 5.
     private const ECRANS = [
-        'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', 'public'],
-        'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
-        'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
-        'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', 'connecte'],
-        'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', 'duo'],
-        // Accès 'duo', donc sans le verrou du jeu : un joueur dont le partenaire n'a pas fini l'onboarding doit pouvoir sortir (cadrage § 8.5).
-        'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', 'duo'],
-        'regles' => ['ReglesControleur', 'afficher', null, 'connecte'],
-        'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
+        'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
+        'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
+        'deconnexion' => ['ConnexionControleur', null, 'deconnecter', NiveauAcces::Connecte],
+        'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', NiveauAcces::Connecte],
+        'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', NiveauAcces::Duo],
+        // Accès Duo, donc sans le verrou du jeu : un joueur dont le partenaire n'a pas fini l'onboarding doit pouvoir sortir (cadrage § 8.5).
+        'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', NiveauAcces::Duo],
+        'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
+        'erreur' => ['ErreurControleur', 'afficher', null, NiveauAcces::Public],
     ];
 
     // Écran affiché quand l'URL n'en précise aucun.
@@ -32,6 +32,8 @@ class Routeur
             self::erreur(404);
         }
         [$classe, $methodeGet, $methodePost, $acces] = self::ECRANS[$ecran];
+        // Étape 2 (suite) — session inactive depuis plus de 2 h : elle est vidée avant le calcul de $connecte, donc l'étape 5 renvoie vers A3.
+        Securite::expirerSiInactive($maintenant->getTimestamp());
         $connecte = isset($_SESSION['joueur_id']);
 
         // Étape 3 — rattrapage.
@@ -49,9 +51,8 @@ class Routeur
         // La décision est dans redirectionAcces(), sans base ni session. Le duo est relu en base à chaque requête :
         // une dissolution par le partenaire prend effet aussitôt.
         $etape = null;
-        if ($connecte && ($acces === 'duo' || $acces === 'jeu')) {
-            $joueur = (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id']);
-            $etape = $joueur === null ? EtapeAcces::SansDuo : AppairageService::construire($pdo)->etapeAcces($joueur);
+        if ($connecte && ($acces === NiveauAcces::Duo || $acces === NiveauAcces::Jeu)) {
+            $etape = AppairageService::construire($pdo)->etapeAcces(self::joueurConnecte($pdo));
         }
         $redirection = self::redirectionAcces($acces, $connecte, $etape);
         if ($redirection !== null) {
@@ -69,7 +70,7 @@ class Routeur
         if ($methode === null) {
             self::erreur(405);
         }
-        // Le contrôleur reçoit la connexion et l'heure, et construit lui-même ses dépôts et services (ADR-0001).
+        // Le routeur ne passe que la connexion et l'heure : le contrôleur construit lui-même ses dépôts et services (ADR-0001).
         (new $classe($pdo, $maintenant))->$methode();
     }
 
@@ -77,6 +78,18 @@ class Routeur
     {
         header('Location: index.php?ecran=' . urlencode($ecran));
         exit;
+    }
+
+    // Le joueur de la session, relu en base : l'unique lecture du joueur connecté, pour le routeur et tous les contrôleurs.
+    // Un compte supprimé entre-temps vide la session et ramène à la connexion.
+    public static function joueurConnecte(PDO $pdo): Joueur
+    {
+        $joueur = AppairageService::construire($pdo)->joueur($_SESSION['joueur_id']);
+        if ($joueur === null) {
+            $_SESSION = [];
+            self::rediriger('connexion');
+        }
+        return $joueur;
     }
 
     // Écran qui correspond à l'étape d'accès : la règle unique appliquée par le routeur, A3 et B1 (§ 3.6).
@@ -91,9 +104,9 @@ class Routeur
 
     // Décision de l'étape 5, sans base ni session : l'écran où renvoyer, ou null si l'accès est permis.
     // $etape : étape d'accès du joueur, nulle tant qu'elle n'a pas été lue (accès public, ou visiteur non connecté).
-    public static function redirectionAcces(string $acces, bool $connecte, ?EtapeAcces $etape): ?string
+    public static function redirectionAcces(NiveauAcces $acces, bool $connecte, ?EtapeAcces $etape): ?string
     {
-        if ($acces === 'public') {
+        if ($acces === NiveauAcces::Public) {
             return null;
         }
         // Un écran réservé aux joueurs connectés renvoie les visiteurs vers la connexion (A3).
@@ -101,11 +114,11 @@ class Routeur
             return 'connexion';
         }
         // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
-        if (($acces === 'duo' || $acces === 'jeu') && ($etape === null || $etape === EtapeAcces::SansDuo)) {
+        if (($acces === NiveauAcces::Duo || $acces === NiveauAcces::Jeu) && ($etape === null || $etape === EtapeAcces::SansDuo)) {
             return 'salle-attente';
         }
         // Un écran de jeu exige en plus que les deux joueurs aient fini l'onboarding, quel que soit le chemin d'arrivée (§ 3.6).
-        if ($acces === 'jeu' && $etape !== EtapeAcces::AccesAuJeu) {
+        if ($acces === NiveauAcces::Jeu && $etape !== EtapeAcces::AccesAuJeu) {
             return 'onboarding';
         }
         return null;

@@ -43,7 +43,7 @@ CREATE TABLE joueur (
 CREATE TABLE tentative (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   cle VARCHAR(64) NOT NULL,
-  type ENUM('connexion', 'code') NOT NULL,
+  type ENUM('connexion', 'code', 'inscription') NOT NULL,
   date DATETIME NOT NULL,
   KEY ix_tentative_cle_type_date (cle, type, date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

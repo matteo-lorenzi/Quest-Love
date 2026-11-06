@@ -1,5 +1,5 @@
 <?php
-// Tests de Regles::origine et de ReglesControleur::requeteDeRetour — B3 Règles du jeu — parcours 1 (appairage) — lot 1 — A.
+// Tests de ReglesControleur::origine et ::requeteDeRetour — B3 Règles du jeu — parcours 1 (appairage) — lot 1 — A.
 
 use PHPUnit\Framework\TestCase;
 
@@ -8,15 +8,29 @@ require_once __DIR__ . '/../app/controleurs/ReglesControleur.php';
 
 class ReglesTest extends TestCase
 {
-    // Le modèle ne valide que la liste fermée des origines.
-    public function testLOrigineEstValideeContreLaListeFermee(): void
+    // Le contrôleur valide l'origine contre l'énumération : chaque cas est reconnu, tout le reste devient l'accueil.
+    public function testLOrigineEstValideeContreLEnumeration(): void
     {
-        foreach (['onboarding', 'profil', 'accueil'] as $origine) {
-            $this->assertSame($origine, Regles::origine($origine));
-        }
-        $this->assertSame('accueil', Regles::origine('evil'));
-        $this->assertSame('accueil', Regles::origine(null));
-        $this->assertSame('accueil', Regles::origine(['onboarding']));
+        $this->assertSame(OrigineRegles::Onboarding, ReglesControleur::origine('onboarding'));
+        $this->assertSame(OrigineRegles::Profil, ReglesControleur::origine('profil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine('accueil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine('evil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine(null));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine(['onboarding']));
+    }
+
+    // Chaque cas d'origine a un seul paramètre d'adresse, posé par le contrôleur : l'énumération du modèle ne porte aucun nom d'écran.
+    public function testChaqueOrigineAUnParametreDAdresse(): void
+    {
+        $this->assertSame('onboarding', ReglesControleur::parametre(OrigineRegles::Onboarding));
+        $this->assertSame('profil', ReglesControleur::parametre(OrigineRegles::Profil));
+        $this->assertSame('accueil', ReglesControleur::parametre(OrigineRegles::Accueil));
+    }
+
+    // Les textes restent la source unique de B2 et de B3.
+    public function testLesTroisReglesSontLues(): void
+    {
+        $this->assertCount(3, Regles::toutes());
     }
 
     // Retour de B3 vers B2 : même étape (parcours Appairage, B2 étape 2 → B3 → B2 étape 2).

@@ -12,7 +12,7 @@ class AppairageService
 
     private LimiteTentativesService $limite;
 
-    // Le contrôleur construit les dépôts et les passe ici (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
+    // Les dépôts sont construits par l'appelant, contrôleur ou routeur (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
     // Le service reçoit aussi la connexion : la formation du duo est une transaction, et les transactions vivent dans les services.
     public function __construct(
         private PDO $pdo,
@@ -21,6 +21,66 @@ class AppairageService
         TentativeDepot $tentatives,
     ) {
         $this->limite = new LimiteTentativesService($tentatives);
+    }
+
+    // Le joueur de la session lu en base, ou null si son compte n'existe plus : l'unique lecture du joueur connecté (Routeur::joueurConnecte).
+    public function joueur(int $id): ?Joueur
+    {
+        return $this->joueurs->trouverParId($id);
+    }
+
+    // Pseudo du partenaire du joueur, ou null s'il n'a pas de duo : B1 (variante), B2 (attente) et F2 l'affichent.
+    public function pseudoPartenaire(Joueur $joueur): ?string
+    {
+        return $this->joueurs->trouverPartenaire($joueur)?->pseudo;
+    }
+
+    // B1 — aiguillage de l'affichage. B1 vérifie la formation du duo à chaque chargement (cadrage § 8.5). Un duo formé pendant l'attente renvoie à B2,
+    // ou à l'accueil quand les deux ont fini ; le lien d'invitation ($lienRecu) d'un joueur déjà en duo montre au contraire la variante, pour qu'il comprenne
+    // pourquoi il ne peut pas rejoindre. Elle n'arrive qu'après l'onboarding : tant qu'il n'est pas fini par les deux, B2 passe avant.
+    public function salleAttente(Joueur $joueur, bool $lienRecu, DateTimeImmutable $maintenant): AiguillageSalleAttente
+    {
+        if ($joueur->duoId !== null) {
+            $etape = $this->etapeAcces($joueur);
+            if ($etape !== EtapeAcces::AccesAuJeu || !$lienRecu) {
+                return new AiguillageSalleAttente($etape, false, false, null, null);
+            }
+            return new AiguillageSalleAttente(null, false, true, $this->pseudoPartenaire($joueur), null);
+        }
+        // Le premier affichage crée le code : une initialisation idempotente, pas une action du joueur (doc technique § 3.6).
+        $joueur = $this->code($joueur, $maintenant);
+        // Duo formé entre la lecture et la génération : plus de code à montrer, B1 se recharge (indicateur « recharger ») et prendra la branche ci-dessus.
+        if ($joueur->codeInvitation === null) {
+            return new AiguillageSalleAttente(null, true, false, null, null);
+        }
+        return new AiguillageSalleAttente(null, false, false, null, $joueur);
+    }
+
+    // B1 — le code à préremplir : la saisie refusée au POST précédent, sinon le code de l'URL, sinon celui conservé en session (lien ouvert avant la connexion).
+    public function saisieAPrefiller(string $saisieRetour, ?string $recu, ?string $conserve): string
+    {
+        return $saisieRetour !== '' ? $saisieRetour : ($recu ?? $conserve ?? '');
+    }
+
+    // B2 — la page à montrer. $etapeDemandee : le &etape= brut, nul s'il est absent.
+    // Les deux ont fini : B2 n'est plus un écran de passage. Il a fini avant son partenaire : variante d'attente, qui ne dépend que de l'étape d'accès
+    // (relue en base), jamais du paramètre : exiger &etape=attente ferait boucler dès qu'un lien l'oublie.
+    public function pageOnboarding(Joueur $joueur, ?string $etapeDemandee): PageOnboarding
+    {
+        $etapeAcces = $this->etapeAcces($joueur);
+        if ($etapeAcces === EtapeAcces::AccesAuJeu) {
+            return new PageOnboarding(EtapeAcces::AccesAuJeu, false, null, null, null, null);
+        }
+        if ($etapeAcces === EtapeAcces::Attente) {
+            return new PageOnboarding(null, true, $this->pseudoPartenaire($joueur), null, null, null);
+        }
+        $regles = Regles::toutes();
+        // Étape absente ou invalide : première règle ; au-delà de la dernière : accueil.
+        $etape = $etapeDemandee !== null && preg_match('/^[0-9]+$/D', $etapeDemandee) ? max(1, (int) $etapeDemandee) : 1;
+        if ($etape > count($regles)) {
+            return new PageOnboarding(EtapeAcces::AccesAuJeu, false, null, null, null, null);
+        }
+        return new PageOnboarding(null, false, null, $regles[$etape - 1], $etape, count($regles));
     }
 
     // B1 — le code du joueur s'il est encore valable (c'est celui qu'il a pu donner), sinon un nouveau.
@@ -51,7 +111,7 @@ class AppairageService
     }
 
     // B1 — saisie du code d'un partenaire. Résultat : le Duo formé, l'heure de réessai si le joueur doit attendre, ou la raison du refus.
-    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|DateTimeImmutable|RefusCode
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Duo|DateTimeImmutable|RefusCode
     {
         // Texte sans forme de code : refusé sans toucher la base ni compter d'échec, comme connecter() (étape 6.0).
         $code = $this->normaliserCode($saisie);
@@ -63,9 +123,9 @@ class AppairageService
             return RefusCode::DejaEnDuo;
         }
         // Essai réservé avant la vérification, comme la connexion : des requêtes simultanées se comptent entre elles.
-        // Deux compteurs : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
+        // Trois compteurs (joueur, session, IP) : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
         // Un refus qui compte garde sa réservation ; la formation du duo et le refus « déjà en duo » la rendent.
-        $reservation = $this->limite->reserver([(string) $invite->id, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Code, $maintenant);
+        $reservation = $this->limite->reserver([(string) $invite->id, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Code, $maintenant, $ip);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }
@@ -185,7 +245,7 @@ class AppairageService
         return $dissous;
     }
 
-    // Un seul point de construction pour le routeur et les contrôleurs : dépôts compris, ce qui n'ajoute aucune règle (ADR-0001).
+    // Raccourci pour qui construit le service avec ses dépôts : le routeur et les contrôleurs, sans conteneur d'injection (ADR-0001).
     public static function construire(PDO $pdo): self
     {
         return new self($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));

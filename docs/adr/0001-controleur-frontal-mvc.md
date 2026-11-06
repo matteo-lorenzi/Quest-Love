@@ -15,7 +15,7 @@ En réponse à la réserve de l'enseignant (courriel du 12/10/2026 : les MVC s'a
 
 - **aucun framework, aucun ORM, aucun moteur de gabarits** : PHP natif sert de langage de gabarit, et le SQL est écrit à la main, en requêtes préparées, dans les dépôts ;
 - **entités en lecture seule** : elles transportent des données entre dépôts, services et vues, et ne lisent ni n'écrivent jamais en base ;
-- **une classe par écran, sans classe mère**, pas de conteneur d'injection : les dépendances (connexion PDO, dépôts, services, `$maintenant`) sont créées et passées explicitement, par `index.php` et le routeur ;
+- **une classe par écran, sans classe mère**, pas de conteneur d'injection : `index.php` crée la connexion PDO et le routeur la passe, avec `$maintenant`, au constructeur du contrôleur ; le contrôleur construit lui-même, avec `new`, les dépôts et les services dont il a besoin, et un service construit la règle de limitation (`LimiteTentativesService`) depuis le dépôt reçu. Le routeur construit lui-même, de la même façon, ce que la précondition d'accès lui demande (dépôt des joueurs, `AppairageService::construire`). Les dépendances restent visibles dans le code, sans fabrique ni configuration : un conteneur coûterait plus à expliquer ligne par ligne que les quelques `new` qu'il remplacerait, et chaque contrôleur n'a que deux ou trois dépendances ;
 - **garde-fou** : chaque fichier doit pouvoir être expliqué ligne par ligne par l'un ou l'autre membre du binôme ; ce qui ne passe pas ce test est simplifié (description technique § 2.4).
 
 ## Consequences

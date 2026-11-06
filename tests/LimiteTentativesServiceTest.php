@@ -89,4 +89,45 @@ class LimiteTentativesServiceTest extends TestCase
 
         $this->assertEquals(new DateTimeImmutable('2026-10-15 12:20:00'), $attente);
     }
+
+    // Sécurité (A3, B1) : un client qui change de session à chaque requête reste freiné par son adresse IP, au plafond de 30.
+    public function testLAdresseIpPlafonneQuandLaSessionChangeAChaqueRequete(): void
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $this->assertIsArray($this->limite->reserver(["joueur$i", "session$i"], TypeTentative::Connexion, $this->midi, '203.0.113.7'));
+        }
+
+        $attente = $this->limite->reserver(['joueur-neuf', 'session-neuve'], TypeTentative::Connexion, $this->midi, '203.0.113.7');
+
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 12:15:00'), $attente);
+        // Une autre adresse n'est pas touchée.
+        $this->assertIsArray($this->limite->reserver(['joueur-neuf', 'session-neuve'], TypeTentative::Connexion, $this->midi, '203.0.113.8'));
+    }
+
+    // Sous le plafond IP, les échecs restent décomptés comme avant, et un succès rend son essai sur la clé IP aussi.
+    public function testUnSuccesRendSonEssaiSurLaCleIp(): void
+    {
+        $reservations = [];
+        for ($i = 0; $i < 30; $i++) {
+            $reservations[] = $this->limite->reserver(["joueur$i"], TypeTentative::Connexion, $this->midi, '203.0.113.7');
+        }
+        $this->limite->liberer($reservations[0]);
+
+        $this->assertIsArray($this->limite->reserver(['joueur-neuf'], TypeTentative::Connexion, $this->midi, '203.0.113.7'));
+        $this->assertSame(60, $this->compter());
+    }
+
+    // Les tentatives de plus de 30 minutes sont supprimées, sans relâcher la limite d'un identifiant encore en attente.
+    public function testLesTentativesDePlusDeTrenteMinutesSontPurgees(): void
+    {
+        $this->limite->reserver(['vieux'], TypeTentative::Connexion, $this->midi->modify('-31 minutes'));
+        for ($i = 0; $i < 5; $i++) {
+            $this->limite->reserver(['42'], TypeTentative::Connexion, $this->midi->modify('-10 minutes'));
+        }
+
+        $attente = $this->limite->reserver(['42'], TypeTentative::Connexion, $this->midi);
+
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 12:05:00'), $attente);
+        $this->assertSame(5, $this->compter());
+    }
 }

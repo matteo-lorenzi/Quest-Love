@@ -19,6 +19,12 @@ class TentativeDepot
         $this->pdo->prepare('DELETE FROM tentative WHERE id = ?')->execute([$id]);
     }
 
+    // Sans cela la table des tentatives grossirait sans fin : les essais trop vieux ne comptent plus pour aucune limite.
+    public function purger(DateTimeImmutable $avant): void
+    {
+        $this->pdo->prepare('DELETE FROM tentative WHERE date < ?')->execute([$avant->format('Y-m-d H:i:s')]);
+    }
+
     /** @return DateTimeImmutable[] du plus récent au plus ancien */
     public function datesDepuis(string $cle, TypeTentative $type, DateTimeImmutable $depuis, int $avantId): array
     {

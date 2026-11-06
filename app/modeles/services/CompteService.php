@@ -11,10 +11,13 @@ class CompteService
     // Longueurs d'un mot de passe (cadrage § 6.6), reprises par la règle affichée sous le champ.
     public const MDP_MIN = 12;
     public const MDP_MAX = 64;
+    // Empreinte d'un mot de passe que personne ne connaît, vérifiée quand l'identifiant est inconnu (A3) : même algorithme et mêmes coûts qu'à l'inscription.
+    // TODO(simplif): figée avec les coûts actuels d'Argon2id de PHP, à régénérer si password_hash change ses défauts (un test le signale).
+    public const EMPREINTE_LEURRE = '$argon2id$v=19$m=65536,t=4,p=1$ZjNyekpOdFFSbHoveU83dA$isKHs82PefoTlbEkJl5QO2Kk1RCeYykThnbU8ZFUv6w';
 
     private LimiteTentativesService $limite;
 
-    // Le contrôleur construit les dépôts et les passe ici : aucune dépendance cachée (ADR-0001).
+    // Le contrôleur construit les dépôts et les passe ici (ADR-0001).
     // La règle de limitation est partagée avec AppairageService ; elle n'a pas d'autre état que le dépôt reçu.
     public function __construct(
         private JoueurDepot $joueurs,
@@ -24,9 +27,17 @@ class CompteService
     }
 
     // A2 — le contrôleur d'inscription appelle ce service avec les trois champs du formulaire.
-    // Résultat : le Joueur créé, ou la liste des erreurs ['champ' => ['code', ...]] si une règle n'est pas respectée.
-    public function inscrire(string $identifiant, string $pseudo, string $mdp, DateTimeImmutable $maintenant): Joueur|array
+    // Résultat : le Joueur créé, la liste des erreurs ['champ' => [ErreurInscription, ...]] si une règle n'est pas respectée,
+    // ou l'heure de réessai si l'adresse IP a dépassé le plafond d'inscriptions (aucun compte n'est alors créé).
+    public function inscrire(string $identifiant, string $pseudo, string $mdp, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|array|DateTimeImmutable
     {
+        // Seule la clé IP compte, et chaque envoi se garde (réussi ou non) : une rafale d'inscriptions, ou de doublons sondés, est freinée.
+        // Sans adresse (hors requête web), rien n'est limité.
+        $reservation = $this->limite->reserver([], TypeTentative::Inscription, $maintenant, $ip);
+        if ($reservation instanceof DateTimeImmutable) {
+            return $reservation;
+        }
+
         // NFC avant tout contrôle : une longueur ou une comparaison ne doit pas dépendre de l'encodage du clavier (doc technique § 3.6).
         // Un texte qui n'est pas de l'UTF-8 valide ne peut venir que d'une requête forgée : on le nomme par champ et on s'arrête,
         // les autres règles (longueur, lettres…) n'ont aucun sens sur des octets invalides.
@@ -37,7 +48,7 @@ class CompteService
         ];
         $illisibles = array_keys(array_filter($textes, fn (?string $texte) => $texte === null));
         if ($illisibles) {
-            return array_fill_keys($illisibles, ['encodage']);
+            return array_fill_keys($illisibles, [ErreurInscription::Encodage]);
         }
         ['identifiant' => $identifiant, 'pseudo' => $pseudo, 'mdp' => $mdp] = $textes;
         // Espaces de bord retirées pour l'identifiant et le pseudo seulement : le mot de passe, lui, est refusé plus bas, jamais rogné.
@@ -47,62 +58,62 @@ class CompteService
         $erreurs = [];
         $longueur = mb_strlen($identifiant);
         if ($longueur < self::IDENTIFIANT_MIN || $longueur > self::IDENTIFIANT_MAX) {
-            $erreurs['identifiant'][] = 'longueur';
+            $erreurs['identifiant'][] = ErreurInscription::Longueur;
         }
         // Le modificateur u est indispensable : sans lui, \p{L} ne reconnaît pas les lettres accentuées.
-        // \z et non $ : $ accepte un saut de ligne final, qui ferait un identifiant introuvable à la connexion (le contrôleur d'A3 le rogne).
+        // \z et non $ : $ accepte un saut de ligne final, qui ferait un identifiant introuvable à la connexion (connecter() le rogne aussi).
         // Vide : déjà signalé par la longueur, inutile d'ajouter les caractères.
         if ($identifiant !== '' && !preg_match('/^[\p{L}\p{N}._-]+\z/u', $identifiant)) {
-            $erreurs['identifiant'][] = 'caracteres';
+            $erreurs['identifiant'][] = ErreurInscription::Caracteres;
         }
         // Doublon : l'interclassement de la colonne ignore majuscules et accents, comme pour connecter().
         // Un identifiant déjà refusé pour sa forme n'est pas cherché en base.
         if (!isset($erreurs['identifiant']) && $this->joueurs->trouverParIdentifiant($identifiant) !== null) {
-            $erreurs['identifiant'][] = 'pris';
+            $erreurs['identifiant'][] = ErreurInscription::Pris;
         }
         if ($pseudo === '') {
-            $erreurs['pseudo'][] = 'vide';
+            $erreurs['pseudo'][] = ErreurInscription::Vide;
         } elseif (mb_strlen($pseudo) > self::PSEUDO_MAX) {
-            $erreurs['pseudo'][] = 'longueur';
+            $erreurs['pseudo'][] = ErreurInscription::Longueur;
         }
         // Seulement les caractères de contrôle (Cc) : d'autres caractères invisibles font partie d'émojis valides (ZWJ).
         if (preg_match('/\p{Cc}/u', $pseudo)) {
-            $erreurs['pseudo'][] = 'controle';
+            $erreurs['pseudo'][] = ErreurInscription::Controle;
         }
         $longueurMdp = mb_strlen($mdp);
         if ($longueurMdp < self::MDP_MIN || $longueurMdp > self::MDP_MAX) {
-            $erreurs['mdp'][] = 'longueur';
+            $erreurs['mdp'][] = ErreurInscription::Longueur;
         }
         if (!preg_match('/\p{Lu}/u', $mdp)) {
-            $erreurs['mdp'][] = 'majuscule';
+            $erreurs['mdp'][] = ErreurInscription::Majuscule;
         }
         if (!preg_match('/\p{Ll}/u', $mdp)) {
-            $erreurs['mdp'][] = 'minuscule';
+            $erreurs['mdp'][] = ErreurInscription::Minuscule;
         }
         if (!preg_match('/\p{N}/u', $mdp)) {
-            $erreurs['mdp'][] = 'chiffre';
+            $erreurs['mdp'][] = ErreurInscription::Chiffre;
         }
         // Spécial : ni lettre, ni chiffre, ni marque combinante, ni contrôle ou invisible (cadrage § 6.6). L'espace et les émojis en font partie.
         if (!preg_match('/[^\p{L}\p{N}\p{M}\p{Cc}\p{Cf}]/u', $mdp)) {
-            $erreurs['mdp'][] = 'special';
+            $erreurs['mdp'][] = ErreurInscription::Special;
         }
         // Pas de trim silencieux : le joueur ne verrait pas ce qu'on a retiré, et son mot de passe ne serait plus celui qu'il croit (cadrage § 6.6).
         if (preg_match('/^\p{Z}|\p{Z}$/uD', $mdp)) {
-            $erreurs['mdp'][] = 'espace_bord';
+            $erreurs['mdp'][] = ErreurInscription::EspaceBord;
         }
         if (preg_match('/\p{Cc}/u', $mdp)) {
-            $erreurs['mdp'][] = 'controle';
+            $erreurs['mdp'][] = ErreurInscription::Controle;
         }
         // Liste des mots de passe les plus courants (cadrage § 6.6), comparée sans majuscules ni accents.
         if (isset($this->motsDePasseCourants()[$this->plier($mdp)])) {
-            $erreurs['mdp'][] = 'courant';
+            $erreurs['mdp'][] = ErreurInscription::Courant;
         }
         // Mêmes règles que l'unicité de l'identifiant : ni majuscules ni accents. Une valeur de moins de 3 caractères n'est pas comparée.
         if ($this->contient($mdp, $identifiant)) {
-            $erreurs['mdp'][] = 'contient_identifiant';
+            $erreurs['mdp'][] = ErreurInscription::ContientIdentifiant;
         }
         if ($this->contient($mdp, $pseudo)) {
-            $erreurs['mdp'][] = 'contient_pseudo';
+            $erreurs['mdp'][] = ErreurInscription::ContientPseudo;
         }
         if ($erreurs) {
             return $erreurs;
@@ -111,37 +122,51 @@ class CompteService
         $id = $this->joueurs->ajouter($identifiant, $pseudo, password_hash($mdp, PASSWORD_ARGON2ID), $maintenant);
         // Perdant d'une course sur l'identifiant : même refus que le doublon vu plus haut.
         if ($id === null) {
-            return ['identifiant' => ['pris']];
+            return ['identifiant' => [ErreurInscription::Pris]];
         }
         return $this->joueurs->trouverParId($id);
     }
 
     // Étape 6 — côté modèle : le contrôleur de A3 appelle ce service avec les champs du formulaire.
-    // Résultat : le Joueur s'il est connecté, l'heure de réessai s'il doit attendre, null si l'identifiant ou le mot de passe est faux.
-    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant): Joueur|DateTimeImmutable|null
+    // Résultat : le Joueur s'il est connecté, l'heure de réessai s'il doit attendre, null si l'identifiant ou le mot de passe est faux,
+    // ou ['champ' => ErreurConnexion::Vide] si un champ est vide (erreur de saisie, pas un essai).
+    public function connecter(string $identifiant, string $mdp, string $cleSession, DateTimeImmutable $maintenant, ?string $ip = null): Joueur|DateTimeImmutable|array|null
     {
         // Étape 6.0 — texte illisible ou identifiant trop long : aucun compte ne peut porter ce nom, on refuse sans toucher la base.
         // Le maxlength du formulaire ne protège pas d'une requête forgée, et la colonne tentative.cle est limitée à 64 caractères.
-        // La NFC vient d'abord : l'identifiant est compté comme à l'inscription, où il a été normalisé (doc technique § 3.6).
+        // Ordre : NFC, rognage (espaces Unicode de bord, comme à l'inscription), puis longueur ; l'identifiant est compté tel qu'il a été enregistré (doc technique § 3.6).
         $identifiant = $this->normaliser($identifiant);
         $mdp = $this->normaliser($mdp);
-        if ($identifiant === null || $mdp === null || mb_strlen($identifiant) > self::IDENTIFIANT_MAX) {
+        if ($identifiant === null || $mdp === null) {
             return null;
+        }
+        $identifiant = $this->rogner($identifiant);
+        if (mb_strlen($identifiant) > self::IDENTIFIANT_MAX) {
+            return null;
+        }
+
+        // Étape 6.0 bis — champs vides : une erreur de saisie.
+        // Ni la base ni le compteur d'échecs ne sont touchés. Le mot de passe, lui, n'est jamais rogné.
+        $vides = array_filter(['identifiant' => $identifiant, 'mdp' => $mdp], fn (string $texte) => $texte === '');
+        if ($vides) {
+            return array_map(fn () => ErreurConnexion::Vide, $vides);
         }
 
         // Étape 6.1 — essai réservé, ou attente en cours ?
         // Réservé avant le mot de passe : des requêtes simultanées se comptent donc entre elles, et seules les cinq premières passent.
         // Pendant l'attente, même le bon mot de passe est refusé, et l'essai refusé n'est pas gardé.
-        // Deux compteurs : par identifiant et par session, pour que changer l'un ou l'autre ne remette pas à zéro.
-        $reservation = $this->limite->reserver([$identifiant, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Connexion, $maintenant);
+        // Trois compteurs : par identifiant, par session et par adresse IP, pour que changer l'un ou l'autre ne remette pas à zéro.
+        $reservation = $this->limite->reserver([$identifiant, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Connexion, $maintenant, $ip);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }
 
         // Étape 6.2 — recherche du joueur, puis vérification de l'empreinte.
         $joueur = $this->joueurs->trouverParIdentifiant($identifiant);
+        // Identifiant inconnu : on vérifie quand même contre l'empreinte leurre, pour que le temps de réponse ne révèle pas si le compte existe.
         // Mot de passe normalisé comme à l'inscription (étape 6.0), sinon un compte créé sur un appareil ne s'ouvrirait pas sur un autre.
-        if ($joueur !== null && password_verify($mdp, $joueur->mdpHash)) {
+        $motDePasseJuste = password_verify($mdp, $joueur->mdpHash ?? self::EMPREINTE_LEURRE);
+        if ($joueur !== null && $motDePasseJuste) {
             // Une connexion réussie ne compte pas : l'essai réservé est rendu.
             $this->limite->liberer($reservation);
             return $joueur;

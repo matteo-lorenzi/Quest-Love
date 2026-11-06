@@ -1,34 +1,34 @@
 <?php
 // Vue d'inscription — A2 — lot 1 — A.
-// Reçoit d'InscriptionControleur : $identifiant et $pseudo (saisie à reprendre, jamais le mot de passe) et $erreurs (champ => codes).
-// Les codes viennent de CompteService::inscrire() ; les textes sont à relire en S6 avec les autres textes d'interface.
+// Reçoit d'InscriptionControleur : $identifiant et $pseudo (saisie à reprendre, jamais le mot de passe), $erreurs (champ => cas d'ErreurInscription) et $attente (heure de réessai si le plafond d'inscriptions est atteint, sinon null).
+// Les cas viennent de CompteService::inscrire() ; les textes sont à relire en S6 avec les autres textes d'interface.
 
 $longueurMin = CompteService::IDENTIFIANT_MIN;
 $messages = [
     'identifiant' => [
-        'longueur' => "L'identifiant doit faire de $longueurMin à " . CompteService::IDENTIFIANT_MAX . ' caractères.',
-        'caracteres' => "L'identifiant ne peut contenir que des lettres, des chiffres, des tirets, des tirets bas et des points, sans espace.",
-        'pris' => 'Cet identifiant est déjà pris, les majuscules et les accents ne changent rien. Choisis-en un autre.',
-        'encodage' => "L'identifiant contient des caractères non reconnus.",
+        ErreurInscription::Longueur->name => "L'identifiant doit faire de $longueurMin à " . CompteService::IDENTIFIANT_MAX . ' caractères.',
+        ErreurInscription::Caracteres->name => "L'identifiant ne peut contenir que des lettres, des chiffres, des tirets, des tirets bas et des points, sans espace.",
+        ErreurInscription::Pris->name => 'Cet identifiant est déjà pris, les majuscules et les accents ne changent rien. Choisis-en un autre.',
+        ErreurInscription::Encodage->name => "L'identifiant contient des caractères non reconnus.",
     ],
     'pseudo' => [
-        'vide' => 'Saisis un pseudo.',
-        'longueur' => 'Le pseudo doit faire ' . CompteService::PSEUDO_MAX . ' caractères au plus.',
-        'controle' => 'Le pseudo contient un caractère non autorisé.',
-        'encodage' => 'Le pseudo contient des caractères non reconnus.',
+        ErreurInscription::Vide->name => 'Saisis un pseudo.',
+        ErreurInscription::Longueur->name => 'Le pseudo doit faire ' . CompteService::PSEUDO_MAX . ' caractères au plus.',
+        ErreurInscription::Controle->name => 'Le pseudo contient un caractère non autorisé.',
+        ErreurInscription::Encodage->name => 'Le pseudo contient des caractères non reconnus.',
     ],
     'mdp' => [
-        'longueur' => 'Le mot de passe doit faire de ' . CompteService::MDP_MIN . ' à ' . CompteService::MDP_MAX . ' caractères.',
-        'majuscule' => 'Ajoute au moins une majuscule.',
-        'minuscule' => 'Ajoute au moins une minuscule.',
-        'chiffre' => 'Ajoute au moins un chiffre.',
-        'special' => "Ajoute au moins un caractère spécial : ponctuation, symbole, ou une espace au milieu du mot de passe.",
-        'espace_bord' => 'Retire l\'espace au début ou à la fin du mot de passe.',
-        'controle' => 'Le mot de passe contient un caractère non autorisé, comme une tabulation ou un saut de ligne.',
-        'courant' => 'Ce mot de passe est trop courant. Choisis-en un moins prévisible.',
-        'contient_identifiant' => 'Le mot de passe ne doit pas contenir ton identifiant.',
-        'contient_pseudo' => 'Le mot de passe ne doit pas contenir ton pseudo.',
-        'encodage' => 'Le mot de passe contient des caractères non reconnus.',
+        ErreurInscription::Longueur->name => 'Le mot de passe doit faire de ' . CompteService::MDP_MIN . ' à ' . CompteService::MDP_MAX . ' caractères.',
+        ErreurInscription::Majuscule->name => 'Ajoute au moins une majuscule.',
+        ErreurInscription::Minuscule->name => 'Ajoute au moins une minuscule.',
+        ErreurInscription::Chiffre->name => 'Ajoute au moins un chiffre.',
+        ErreurInscription::Special->name => "Ajoute au moins un caractère spécial : ponctuation, symbole, ou une espace au milieu du mot de passe.",
+        ErreurInscription::EspaceBord->name => 'Retire l\'espace au début ou à la fin du mot de passe.',
+        ErreurInscription::Controle->name => 'Le mot de passe contient un caractère non autorisé, comme une tabulation ou un saut de ligne.',
+        ErreurInscription::Courant->name => 'Ce mot de passe est trop courant. Choisis-en un moins prévisible.',
+        ErreurInscription::ContientIdentifiant->name => 'Le mot de passe ne doit pas contenir ton identifiant.',
+        ErreurInscription::ContientPseudo->name => 'Le mot de passe ne doit pas contenir ton pseudo.',
+        ErreurInscription::Encodage->name => 'Le mot de passe contient des caractères non reconnus.',
     ],
 ];
 
@@ -53,6 +53,10 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
     <?php if ($codeRecu !== null): ?>
         <!-- Le code d'un lien d'invitation : affiché tel que reçu, il n'est validé que si tu le valides en salle d'attente. -->
         <p class="invitation">Tu as reçu un code d'invitation : <strong><?= e($codeRecu) ?></strong>. Il sera prérempli dans la salle d'attente dès que tu seras connecté.</p>
+    <?php endif ?>
+    <?php if ($attente !== null): ?>
+        <!-- Heure au format français, sans les secondes, comme en A3. -->
+        <p class="inscription__erreur" id="erreur-general">Trop d'inscriptions depuis ta connexion. Par sécurité, tu pourras réessayer à <?= e($attente->format('G \h i')) ?>.</p>
     <?php endif ?>
     <form class="formulaire" method="post" action="index.php?ecran=inscription">
         <p class="formulaire__consigne">Tous les champs sont obligatoires.</p>
@@ -83,7 +87,8 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
                 <?php if ($codes): ?>
                     <ul class="formulaire__erreurs" id="erreur-<?= $champ ?>">
                         <?php foreach ($codes as $code): ?>
-                            <li class="formulaire__erreur"><?= e($messages[$champ][$code] ?? 'Ce champ est incorrect.') ?></li>
+                            <?php // Lecture défensive : la session peut encore porter une chaîne au lieu d'un cas ; repli explicite quand le champ n'a pas de texte pour ce cas. ?>
+                            <li class="formulaire__erreur"><?= e($messages[$champ][$code instanceof UnitEnum ? $code->name : (string) $code] ?? 'Ce champ est incorrect.') ?></li>
                         <?php endforeach ?>
                     </ul>
                 <?php endif ?>
