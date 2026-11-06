@@ -7,6 +7,12 @@ $racine = dirname(__DIR__);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
+// En-têtes de sécurité posés avant toute sortie, donc aussi sur le message de configuration absente ci-dessous.
+require __DIR__ . '/Securite.php';
+foreach (Securite::entetes() as $nom => $valeur) {
+    header("$nom: $valeur");
+}
+
 // config.php n'est pas versionné : à la première installation, un message clair vaut mieux qu'une erreur fatale.
 if (!is_file($racine . '/config/config.php')) {
     http_response_code(500);

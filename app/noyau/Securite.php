@@ -3,6 +3,18 @@
 
 class Securite
 {
+    // En-têtes de toute réponse, y compris les erreurs de l'amorce (F2 est irréversible : aucun site tiers ne doit pouvoir l'encadrer).
+    // La CSP n'interdit que ce que l'application n'utilise pas (script, objet, ressource externe) : styles en ligne et formulaires restent permis.
+    public static function entetes(): array
+    {
+        return [
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'same-origin',
+            'Content-Security-Policy' => "default-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
+        ];
+    }
+
     public static function jeton(): string
     {
         if (empty($_SESSION['jeton'])) {
