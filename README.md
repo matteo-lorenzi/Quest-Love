@@ -5,6 +5,102 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 **Binôme :** Sheyrel, Matteo — Master 2
 **Document de référence :** [`01-cadrage/cadrage-unifie.md`](01-cadrage/cadrage-unifie.md) (V2.10, 14/10/2026). En cas d'écart entre deux documents, le cadrage fait foi.
 
+## Feuille de route
+
+État du **code** au 06/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (27 cadres sur 27) : ce qui reste à faire est le code.
+
+Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanche en pointillés = à faire. Le statut est aussi écrit dans le texte de la case.
+
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 22, "padding": 8}}}%%
+flowchart TB
+  S["Socle · fait<br/>noyau MVC, routeur, horloge, CI"]:::fait
+  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 4 écrans sur 18"]:::encours
+  L2["LOT 2 · Gamification<br/>conditionnel : seulement si le lot 1 est fini en S11"]:::afaire
+  L3["LOT 3 · Confort<br/>optionnel · à faire"]:::afaire
+  L4["LOT 4 · Perspectives<br/>non développé, documenté en recul réflexif"]:::afaire
+
+  subgraph P1["Arrivée et appairage"]
+    direction TB
+    A1["A1 Accueil public · à faire"]:::afaire
+    A2["A2 Inscription · fait"]:::fait
+    A3["A3 Connexion · fait"]:::fait
+    A4["A4 Pages légales · à faire"]:::afaire
+    B1["B1 Salle d'attente · fait"]:::fait
+    B2["B2 Duo formé, onboarding · à faire"]:::afaire
+    B3["B3 Règles du jeu · à faire"]:::afaire
+    A1 ~~~ A2 ~~~ A3 ~~~ A4 ~~~ B1 ~~~ B2 ~~~ B3
+  end
+
+  subgraph P2["Journée de jeu"]
+    direction TB
+    C1["C1 Accueil face-à-face · à faire"]:::afaire
+    C2["C2 Tirage en éventail · à faire"]:::afaire
+    D2["D2 Le hasard a choisi · à faire"]:::afaire
+    C3["C3 Défi reçu, validation · à faire"]:::afaire
+    C1 ~~~ C2 ~~~ D2 ~~~ C3
+  end
+
+  subgraph P3["Fin de défi et événements"]
+    direction TB
+    D1["D1 Défi expiré, -1 PV · à faire"]:::afaire
+    D5["D5 0 PV, retour à 5 · à faire"]:::afaire
+    D1 ~~~ D5
+  end
+
+  subgraph P4["Profil et système"]
+    direction TB
+    F1["F1 Profil · à faire"]:::afaire
+    F2["F2 Dissolution du duo · à faire"]:::afaire
+    D3["D3 Duo dissous, côté partenaire · à faire"]:::afaire
+    F3["F3 Suppression de compte · à faire"]:::afaire
+    G1["G1 Écrans d'erreur · fait"]:::fait
+    F1 ~~~ F2 ~~~ D3 ~~~ F3 ~~~ G1
+  end
+
+  subgraph P5["Lot 2"]
+    direction TB
+    X1["Contestation · C3+ D4 · à faire"]:::afaire
+    X2["Gages · D5+ D6 D7 E1 E2 E3 · à faire"]:::afaire
+    X3["Pénalité doublée · D1+ · à faire"]:::afaire
+    X4["Historique · E4 · à faire"]:::afaire
+    X1 ~~~ X2 ~~~ X3 ~~~ X4
+  end
+
+  S --> L1 --> P1 --> P2 --> P3 --> P4 --> L2 --> P5 --> L3 --> L4
+
+  classDef fait fill:#d9d9d9,stroke:#555555,color:#222222
+  classDef encours fill:#ffe45c,stroke:#111111,stroke-width:3px,color:#000000
+  classDef afaire fill:#ffffff,stroke:#111111,stroke-dasharray:4 3,color:#000000
+```
+
+Repli sans diagramme (même contenu) :
+
+| Lot | Statut | Écrans faits | Écrans à faire |
+|---|---|---|---|
+| Socle | Fait | Noyau MVC, routeur, horloge, garde-fous CI | — |
+| 1 — Duo et défi du jour | En cours, 4 sur 18 | A2, A3, B1, G1 | A1, A4, B2, B3, C1, C2, C3, D1, D2, D3, D5, F1, F2, F3 |
+| 2 — Gamification | Conditionnel | — | C3+, D1+, D4, D5+, D6, D7, E1, E2, E3, E4 |
+| 3 — Confort | À faire | — | Catégories, statistiques (F4), changement de mot de passe et de pseudo (F5), avatars |
+| 4 — Perspectives | Non développé | — | Défis personnalisés, preuve photo, courriel, web push, récupération de compte |
+
+### Jalons hors code
+
+| Jalon | Échéance | Statut |
+|---|---|---|
+| Validation de la conception fonctionnelle | 07/10 | Fait |
+| Maquettes du lot 1 (Figma, 27 cadres) | S5 | Fait |
+| Feuille de style (`base.css`, `composants.css`, `ecrans.css`) | S6 | À confirmer : absente du dépôt |
+| Schéma de la base validé à l'oral | S8, 09–15/11 | À faire |
+| Couple témoin recruté | S9, 16–22/11 | À confirmer |
+| Lot 1 fonctionnel de bout en bout | S11, 30/11–06/12 | À faire |
+| Gel du code, audit d'accessibilité, vidéo et sauvegarde Azrael | 13/12 | À faire |
+| Rendu du dossier | 16/12 | À faire |
+| Soutenance | 18/12 | À faire |
+
+Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
+<!-- TODO(simplif): statuts écrits à la main, à automatiser s'ils dérivent du code -->
+
 ## Où trouver quoi
 
 | Dossier | Contenu |
