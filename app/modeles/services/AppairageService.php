@@ -12,7 +12,7 @@ class AppairageService
 
     private LimiteTentativesService $limite;
 
-    // Le contrôleur construit les dépôts et les passe ici (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
+    // Les dépôts sont construits par l'appelant, contrôleur ou routeur (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
     // Le service reçoit aussi la connexion : la formation du duo est une transaction, et les transactions vivent dans les services.
     public function __construct(
         private PDO $pdo,
@@ -185,7 +185,7 @@ class AppairageService
         return $dissous;
     }
 
-    // Un seul point de construction pour le routeur et les contrôleurs : dépôts compris, ce qui n'ajoute aucune règle (ADR-0001).
+    // Raccourci pour qui construit le service avec ses dépôts : le routeur et les contrôleurs, sans conteneur d'injection (ADR-0001).
     public static function construire(PDO $pdo): self
     {
         return new self($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));

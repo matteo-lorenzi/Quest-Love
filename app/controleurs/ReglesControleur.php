@@ -15,11 +15,21 @@ class ReglesControleur
         ]);
     }
 
-    // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par le modèle (liste fermée).
+    // Écrans d'où B3 s'ouvre : liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
+    // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
+    private const ORIGINES = ['onboarding', 'profil', 'accueil'];
+
+    // Origine de B3 validée contre la liste fermée ; toute autre valeur (absente, inconnue, tableau) : accueil.
+    public static function origine(mixed $origine): string
+    {
+        return is_string($origine) && in_array($origine, self::ORIGINES, true) ? $origine : 'accueil';
+    }
+
+    // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par origine() (liste fermée).
     // Avec B2 pour origine, l'étape (chiffres ou « attente ») est reprise ; étape invalide : B2 sans étape, donc première règle.
     public static function requeteDeRetour(mixed $origine, mixed $etape): string
     {
-        $origine = Regles::origine($origine);
+        $origine = self::origine($origine);
         if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
             return "ecran=onboarding&etape=$etape";
         }

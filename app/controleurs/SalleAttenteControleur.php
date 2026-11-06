@@ -10,7 +10,7 @@ class SalleAttenteControleur
     // Un code fait 8 caractères : au-delà, ce n'est pas un code, et la session n'a pas à garder n'importe quoi.
     private const LONGUEUR_MAX_CONSERVEE = 64;
 
-    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ce dont il a besoin (ADR-0001).
+    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant) {}
 
     // GET : afficher le code du joueur et la saisie, ou la variante « déjà en duo ».

@@ -5,7 +5,7 @@ class OnboardingControleur
 {
     private AppairageService $service;
 
-    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ce dont il a besoin (ADR-0001).
+    // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     // Un seul service par requête : il ne garde aucun état.
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant)
     {

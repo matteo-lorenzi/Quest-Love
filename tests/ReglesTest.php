@@ -1,5 +1,5 @@
 <?php
-// Tests de Regles::origine et de ReglesControleur::requeteDeRetour — B3 Règles du jeu — parcours 1 (appairage) — lot 1 — A.
+// Tests de ReglesControleur::origine et ::requeteDeRetour — B3 Règles du jeu — parcours 1 (appairage) — lot 1 — A.
 
 use PHPUnit\Framework\TestCase;
 
@@ -8,15 +8,21 @@ require_once __DIR__ . '/../app/controleurs/ReglesControleur.php';
 
 class ReglesTest extends TestCase
 {
-    // Le modèle ne valide que la liste fermée des origines.
+    // Le contrôleur valide l'origine contre la liste fermée.
     public function testLOrigineEstValideeContreLaListeFermee(): void
     {
         foreach (['onboarding', 'profil', 'accueil'] as $origine) {
-            $this->assertSame($origine, Regles::origine($origine));
+            $this->assertSame($origine, ReglesControleur::origine($origine));
         }
-        $this->assertSame('accueil', Regles::origine('evil'));
-        $this->assertSame('accueil', Regles::origine(null));
-        $this->assertSame('accueil', Regles::origine(['onboarding']));
+        $this->assertSame('accueil', ReglesControleur::origine('evil'));
+        $this->assertSame('accueil', ReglesControleur::origine(null));
+        $this->assertSame('accueil', ReglesControleur::origine(['onboarding']));
+    }
+
+    // Les textes restent la source unique de B2 et de B3.
+    public function testLesTroisReglesSontLues(): void
+    {
+        $this->assertCount(3, Regles::toutes());
     }
 
     // Retour de B3 vers B2 : même étape (parcours Appairage, B2 étape 2 → B3 → B2 étape 2).
