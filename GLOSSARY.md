@@ -28,6 +28,16 @@ _Éviter_ : expéditeur, donneur
 Joueur qui reçoit la mission du jour et doit la réaliser.
 _Éviter_ : receveur, cible
 
+## Comptes
+
+**Caractère** :
+Unité de longueur des règles des comptes : un point de code Unicode, compté après normalisation NFC. Un « é » vaut un caractère, qu'il soit saisi d'un bloc ou en deux temps (lettre puis accent).
+_Éviter_ : lettre, symbole
+
+**Mot de passe courant** :
+Mot de passe qui figure dans la liste des plus fréquents, issue de fuites publiques. Refusé à l'inscription même s'il respecte toutes les autres règles. La comparaison ignore majuscules et accents.
+_Éviter_ : mot de passe faible, liste noire
+
 ## Rythme quotidien
 
 **Journée de jeu** :

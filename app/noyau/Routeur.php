@@ -7,6 +7,7 @@ class Routeur
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte ou duo.
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
     private const ECRANS = [
+        'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', 'public'],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],

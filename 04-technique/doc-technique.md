@@ -211,7 +211,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 ### 3.6 Compte, session et appairage
 
 - **Services** : `CompteService`, `AppairageService`.
-- **Mot de passe** : `password_hash` au stockage (Argon2id, disponible sur Azrael et sur WAMP : vérifié le 16/10, #10), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC (`Normalizer::normalize`, extension `intl`, active sur Azrael en PHP 8.2.30 et sur WAMP en PHP 8.2.29) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
+- **Mot de passe** : `password_hash` au stockage (`PASSWORD_ARGON2ID` imposé, sans repli sur l'algorithme par défaut ni limite de 72 octets : disponible sur Azrael et sur WAMP, vérifié le 16/10, #10), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC, comme l'identifiant et le pseudo, par une seule fonction privée de `CompteService` qui refuse un texte non UTF-8 (`Normalizer::normalize`, extension `intl`, active sur Azrael en PHP 8.2.30 et sur WAMP en PHP 8.2.29) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
 - **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide.
@@ -317,12 +317,12 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Compte et duo** _(A)_
 
-- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot` _(en cours : `Joueur`, `JoueurDepot` en lecture, `TentativeDepot`)_
-- [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion)_
+- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot` _(en cours : `Joueur`, `JoueurDepot` en lecture et en inscription, `TentativeDepot`)_
+- [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
 - [ ] `AppairageService` — code d'invitation, formation, dissolution
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
-- [ ] A2 `InscriptionControleur`
+- [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [ ] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
