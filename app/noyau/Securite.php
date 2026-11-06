@@ -8,14 +8,26 @@ class Securite
 
     // En-têtes de toute réponse, y compris les erreurs de l'amorce (F2 est irréversible : aucun site tiers ne doit pouvoir l'encadrer).
     // La CSP n'interdit que ce que l'application n'utilise pas (script, objet, ressource externe) : styles en ligne et formulaires restent permis.
-    public static function entetes(): array
+    // $hsts : true en HTTPS hors poste de développement (estLocal). Sans sous-domaines : azrael.sha.univ-poitiers.fr est partagé avec d'autres comptes.
+    public static function entetes(bool $hsts = false): array
     {
-        return [
+        $entetes = [
             'X-Frame-Options' => 'DENY',
             'X-Content-Type-Options' => 'nosniff',
             'Referrer-Policy' => 'same-origin',
             'Content-Security-Policy' => "default-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
         ];
+        if ($hsts) {
+            $entetes['Strict-Transport-Security'] = 'max-age=31536000';
+        }
+        return $entetes;
+    }
+
+    // Poste de développement (WAMP en HTTP) : le cookie Secure et HSTS n'y valent pas, car le navigateur ne renverrait jamais le cookie.
+    // Tout autre hôte est la production. TODO(simplif): la liste d'hôtes locaux est écrite en dur, à passer en configuration si un autre hôte de développement apparaît.
+    public static function estLocal(string $hote): bool
+    {
+        return preg_match('/^(localhost|127\.0\.0\.1|\[::1\]|[a-z0-9-]+\.(local|localhost|test))(:\d+)?\z/i', $hote) === 1;
     }
 
     public static function jeton(): string

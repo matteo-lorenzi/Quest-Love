@@ -18,6 +18,26 @@ class SecuriteTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'none'", $entetes['Content-Security-Policy']);
     }
 
+    // Ticket #32 : HSTS seulement quand on le demande, et sans includeSubDomains (hôte partagé).
+    public function testHstsSeulementEnProduction(): void
+    {
+        $this->assertArrayNotHasKey('Strict-Transport-Security', Securite::entetes());
+        $hsts = Securite::entetes(true)['Strict-Transport-Security'];
+        $this->assertStringStartsWith('max-age=', $hsts);
+        $this->assertStringNotContainsString('includeSubDomains', $hsts);
+    }
+
+    // Ticket #32 : WAMP reste local (cookie non Secure), Azrael et tout hôte inconnu sont la production.
+    public function testEstLocal(): void
+    {
+        foreach (['localhost', 'localhost:8080', '127.0.0.1', '[::1]', 'quest-love.local'] as $hote) {
+            $this->assertTrue(Securite::estLocal($hote), $hote);
+        }
+        foreach (['azrael.sha.univ-poitiers.fr', 'localhost.evil.fr', 'evil.fr/localhost', ''] as $hote) {
+            $this->assertFalse(Securite::estLocal($hote), $hote);
+        }
+    }
+
     protected function setUp(): void
     {
         $_SESSION = [];

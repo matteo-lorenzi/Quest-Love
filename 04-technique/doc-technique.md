@@ -233,7 +233,8 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
 - **Limitation des tentatives** : au-delà de cinq échecs sur la connexion ou la saisie d'un code, un délai s'applique. Comptage en base (table `tentative`), par identifiant et par session ; seuil, fenêtre et durée : cadrage § 6.6. Les échecs sont datés avec `$maintenant` (§ 3.8), ce qui rend le délai testable.
-- **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`.
+- **Session** : cookie `Secure`, `HttpOnly`, `SameSite=Lax`. `Secure` est posé sans condition sauf sur un poste de développement (`Securite::estLocal` : `localhost`, `127.0.0.1`, `[::1]`, `*.local`, `*.test`), où WAMP sert en HTTP et perdrait la session ; il ne dépend donc pas de `$_SERVER['HTTPS']`, vide derrière un relais. Vérifié sur Azrael (HTTPS terminé par Apache) : les trois attributs sont présents (#32).
+- **HSTS** : `Strict-Transport-Security: max-age=31536000`, sans `includeSubDomains` (le domaine d'Azrael est partagé), envoyé par `Securite::entetes` seulement en HTTPS hors poste de développement.
 - **Hors périmètre, à écrire dans le dossier** : pas de double authentification, pas de journalisation des accès, pas de politique de sécurité de contenu.
 - **Règle** : cadrage § 6.6.
 
@@ -388,8 +389,8 @@ Non développé. Pistes en § 7, à reprendre en recul réflexif.
 
 1. Copier le dossier `app/` dans `~mlorenzi/quest-love/` sur Azrael, par SFTP : le compte n'a pas d'accès SSH (courriel de l'enseignant du 12/10). Aucune installation de dépendances. `sql/` et `tests/` ne sont pas copiés.
 2. Faire de `app/public/` la racine servie ; à défaut, un `.htaccess` à la racine de `app/` redirige vers `public/` (ADR-0001). Les `.htaccess` sont pris en compte sur Azrael (même courriel).
-3. Créer la base, puis charger les fichiers `sql/` (§ 6.3).
-4. Copier `config/config.exemple.php` en `config/config.php` et y renseigner les identifiants de base ; laisser `HORLOGE_DECALAGE` vide (§ 3.8). Ce fichier n'est jamais versionné.
+3. Créer la base, puis charger `schema.sql` et `defis.sql` (§ 6.3), par l'onglet Importer de phpMyAdmin. Sur Azrael : base `weuxNN_XXX_quest_love` (`utf8mb4_unicode_ci`), distincte des autres bases du compte. **Ne jamais y charger `demonstration.sql`** : ses comptes de démonstration y deviendraient des comptes réels.
+4. Copier `config/config.exemple.php` en `config/config.php` et y renseigner les identifiants de base ; laisser `HORLOGE_DECALAGE` vide (§ 3.8). Ce fichier n'est jamais versionné et ne se dépose pas depuis le dépôt local, dont le `config.php` vise WAMP : le créer à part, puis le déposer dans `config/`. Sur Azrael, la base écoute sur `localhost:3307` : `BDD_HOTE = '127.0.0.1;port=3307'`. Le compte `weuxNN_XXX` est le seul fourni et phpMyAdmin n'y permet pas de créer d'utilisateur : l'application s'y connecte avec ces droits étendus. En local, créer un utilisateur à droits limités (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, pas de `DROP`) plutôt que `root` sans mot de passe.
 5. Déposer `debug.php` à la racine du dossier.
 6. Vérifier que l'heure du serveur et le fuseau `Europe/Paris` concordent : tout le modèle temporel en dépend.
 
@@ -426,7 +427,7 @@ Toutes les bases se construisent à partir des mêmes fichiers, chargés dans ce
 
 1. **`schema.sql`** — supprime les tables existantes (`DROP TABLE IF EXISTS`) puis les recrée. C'est le seul endroit où une table est définie.
 2. **`defis.sql`** — remplit la bibliothèque de défis.
-3. **`demonstration.sql`** — ajoute le jeu de démonstration (§ 6.5). Jamais chargé sur Azrael une fois que de vraies données y sont (couple témoin).
+3. **`demonstration.sql`** — ajoute le jeu de démonstration (§ 6.5). Jamais chargé sur Azrael : ses comptes de démonstration y seraient réels (§ 6.5).
 
 **Règle unique** : on ne modifie jamais une base à la main (pas d'`ALTER TABLE` tapé dans phpMyAdmin). Toute modification passe par les fichiers `sql/`, est versionnée, puis rejouée sur chaque base.
 
@@ -469,7 +470,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 
 ### 6.5 Jeu de données de démonstration
 
-`sql/demonstration.sql`, rechargeable en une commande (§ 6.3). Avec le décalage d'horloge (§ 3.8), c'est ce qui permet de démontrer l'expiration sans attendre minuit. Doit contenir :
+`sql/demonstration.sql`, rechargeable en une commande (§ 6.3), **en local seulement : il ne se charge jamais sur Azrael**, où ses comptes seraient réels. Avec le décalage d'horloge (§ 3.8), c'est ce qui permet de démontrer l'expiration sans attendre minuit. Doit contenir :
 
 - un duo formé, avec quelques jours d'historique ;
 - une mission expirée, `date_decouverte` nulle, pour la variante « jamais découvert » ;
