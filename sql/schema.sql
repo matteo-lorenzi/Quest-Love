@@ -31,6 +31,8 @@ CREATE TABLE joueur (
   pv TINYINT UNSIGNED NOT NULL DEFAULT 5,
   -- Onboarding (B2) terminé ou passé avec le duo actuel ; remis à 0 pour les deux joueurs à chaque formation de duo.
   onboarding_vu TINYINT(1) NOT NULL DEFAULT 0,
+  -- Posé à 1 sur le partenaire seul quand l'autre dissout le duo ; D3 le lit puis le remet à 0.
+  dissolution_a_signaler TINYINT(1) NOT NULL DEFAULT 0,
   date_creation DATETIME NOT NULL,
   UNIQUE KEY uk_joueur_identifiant (identifiant),
   UNIQUE KEY uk_joueur_code (code_invitation),

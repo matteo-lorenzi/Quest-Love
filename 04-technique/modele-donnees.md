@@ -40,6 +40,7 @@ Relations :
 | `duo_id` | entier non signé | nullable, clé étrangère vers `duo`, suppression du duo = remise à nul |
 | `onboarding_vu` | booléen | non nul, défaut 0 ; mis à 1 quand le joueur termine ou passe l'onboarding ; remis à 0 pour les deux joueurs à la formation d'un duo |
 | `pv` | entier très court non signé | non nul, défaut 5 |
+| `dissolution_a_signaler` | booléen | non nul, défaut 0 ; mis à 1 sur le partenaire seul quand l'autre dissout le duo ; lu par D3, qui le remet à 0 |
 | `date_creation` | date-heure | non nul |
 
 - `duo_id` nul signifie « sans duo » : c'est ce champ qui aiguille vers B1 ; avec un duo, `onboarding_vu` des deux joueurs aiguille vers B2 ou C1 (doc technique § 3.6).

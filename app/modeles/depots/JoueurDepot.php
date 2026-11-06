@@ -80,6 +80,14 @@ class JoueurDepot
             ->execute([$duoId, $id]);
     }
 
+    // Remise à zéro d'un joueur dont le duo disparaît : $pv vient du service (règle du jeu), $aSignaler du rôle (partenaire ou non).
+    // Le duo_id, lui, retombe à nul par la suppression du duo (ON DELETE SET NULL).
+    public function remettreAZero(int $id, int $pv, bool $aSignaler): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET pv = ?, onboarding_vu = 0, dissolution_a_signaler = ? WHERE id = ?')
+            ->execute([$pv, (int) $aSignaler, $id]);
+    }
+
     public function marquerOnboardingVu(int $id): void
     {
         $this->pdo->prepare('UPDATE joueur SET onboarding_vu = 1 WHERE id = ?')->execute([$id]);
@@ -120,6 +128,7 @@ class JoueurDepot
             $ligne['duo_id'] === null ? null : (int) $ligne['duo_id'],
             (int) $ligne['pv'],
             (bool) $ligne['onboarding_vu'],
+            (bool) $ligne['dissolution_a_signaler'],
             // createFromFormat lit une date stockée ; il ne consulte pas l'horloge (§ 2.4).
             DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $ligne['date_creation']),
         );

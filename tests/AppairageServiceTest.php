@@ -403,6 +403,56 @@ class AppairageServiceTest extends TestCase
         $this->assertSame(EtapeAcces::AccesAuJeu, $this->service->etapeAcces($this->relire($mia)));
     }
 
+    // F2 : la dissolution remet les deux joueurs sans duo, à 5 PV et à l'onboarding ; seul le partenaire est à prévenir, et le duo disparaît.
+    public function testDissoudreRemetLesDeuxJoueursAZeroEtPrevientLePartenaire(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi->modify('+1 minute'));
+        $this->service->terminerOnboarding($mia, $this->midi->modify('+2 minutes'));
+        $this->pdo->exec('UPDATE joueur SET pv = 2');
+
+        $this->assertTrue($this->service->dissoudre($this->relire($lou)));
+
+        foreach ([$lou, $mia] as $joueur) {
+            $relu = $this->relire($joueur);
+            $this->assertNull($relu->duoId);
+            $this->assertSame(5, $relu->pv);
+            $this->assertFalse($relu->onboardingVu);
+        }
+        $this->assertFalse($this->relire($lou)->dissolutionASignaler);
+        $this->assertTrue($this->relire($mia)->dissolutionASignaler);
+        $this->assertNull((new DuoDepot($this->pdo))->trouverParId($lou->duoId));
+    }
+
+    // Un joueur sans duo, ou relu sans duo alors que son objet est périmé (duo encore renseigné), ne déclenche rien et ne pose aucun marqueur.
+    public function testDissoudreSansDuoALaRelectureNeFaitRien(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->dissoudre($lou);
+        $this->pdo->exec('UPDATE joueur SET dissolution_a_signaler = 0');
+
+        $this->assertFalse($this->service->dissoudre($lou));
+        $this->assertFalse($this->service->dissoudre($mia));
+        $this->assertFalse($this->service->dissoudre($this->creerJoueur('Zoe')));
+        $this->assertFalse($this->relire($mia)->dissolutionASignaler);
+    }
+
+    // Après dissolution, un nouvel appairage reforme un duo et remet l'onboarding à zéro.
+    public function testUnNouvelAppairageApresDissolutionReformeUnDuo(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->service->dissoudre($lou);
+        $code = $this->service->code($this->relire($lou), $this->midi->modify('+1 hour'));
+
+        $duo = $this->service->rejoindre($this->relire($mia), $code->codeInvitation, 'session-mia', $this->midi->modify('+1 hour'));
+
+        $this->assertInstanceOf(Duo::class, $duo);
+        $this->assertSame($duo->id, $this->relire($lou)->duoId);
+        $this->assertFalse($this->relire($lou)->onboardingVu);
+        $this->assertFalse($this->relire($mia)->onboardingVu);
+    }
+
     // Un nouvel appairage après dissolution remet tout à 0 : l'onboarding est refait, même pour un joueur qui l'avait fini.
     public function testUnNouvelAppairageApresDissolutionRemetToutAZero(): void
     {
