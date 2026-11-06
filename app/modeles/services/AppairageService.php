@@ -83,7 +83,7 @@ class AppairageService
             $verrouilles = $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
             $inviteFrais = $verrouilles[$invite->id] ?? null;
             $proprietaireFrais = $verrouilles[$proprietaire->id] ?? null;
-            if ($inviteFrais?->duoId === null && $proprietaireFrais !== null && $proprietaireFrais->duoId === null
+            if ($inviteFrais !== null && $inviteFrais->duoId === null && $proprietaireFrais !== null && $proprietaireFrais->duoId === null
                 && $proprietaireFrais->codeInvitation === $code && $proprietaireFrais->dateExpirationCode > $maintenant) {
                 $duoId = $this->duos->creer($maintenant);
                 $this->joueurs->rattacherAuDuo($invite->id, $duoId);

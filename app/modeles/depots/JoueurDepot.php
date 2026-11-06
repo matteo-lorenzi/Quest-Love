@@ -41,6 +41,15 @@ class JoueurDepot
         return (int) $this->pdo->lastInsertId();
     }
 
+    // L'autre joueur du duo, pour la variante « déjà en duo » de B1. Nul si le joueur est sans duo.
+    public function trouverPartenaire(Joueur $joueur): ?Joueur
+    {
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE duo_id = ? AND id <> ?');
+        $requete->execute([$joueur->duoId, $joueur->id]);
+        $ligne = $requete->fetch();
+        return $ligne ? $this->hydrater($ligne) : null;
+    }
+
     // Le code est sensible à la casse (colonne ascii_bin) : le service le normalise avant de chercher.
     public function trouverParCode(string $code): ?Joueur
     {

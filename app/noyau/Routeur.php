@@ -10,6 +10,7 @@ class Routeur
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', 'public'],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
+        'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', 'connecte'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
     ];
 

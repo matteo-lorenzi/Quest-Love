@@ -218,7 +218,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Code conservé** : un code reçu avant authentification est gardé en session, tel que reçu, et rejoué une seule fois après inscription ou connexion, avec les mêmes règles et la même limite que la saisie en B1.
 - **Aiguillage après authentification** : en duo vers C1 ; sans duo avec code valide vers B2 ; sinon vers B1, avec message d'erreur si le code était invalide.
 - **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; avec un duo formé, il renvoie vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo »).
-- **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` et de rattacher les deux joueurs ; les codes sont remis à nul. Un refus annule la transaction, puis l'échec est enregistré.
+- **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` et de rattacher les deux joueurs ; les codes sont remis à nul. Un refus ne modifie rien ; l'échec est enregistré une fois la transaction terminée.
 - **Cas d'erreur à couvrir** : attente en cours (pas compté), propre code, code expiré, code pas valable (faux, régénéré ou dont le propriétaire est déjà en duo : non distingués, `TODO(simplif)` en code), texte sans forme de code (pas compté), joueur déjà en duo (pas compté). Règle de comptage : cadrage § 6.6.
 - **Dissolution et suppression** : effets sur les données en annexe § 6 ; règles en cadrage § 10.
 
@@ -304,7 +304,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Socle** _(commun)_
 
-- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur` et `tentative` ; les autres tables arrivent avec leurs écrans)_
+- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur`, `duo` et `tentative` ; les autres tables arrivent avec leurs écrans)_
 - [ ] `sql/defis.sql` — bibliothèque des 50 défis et leurs catégories
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
@@ -318,14 +318,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Compte et duo** _(A)_
 
-- [ ] Entités `Joueur`, `Duo` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot` _(en cours : `Joueur`, `JoueurDepot` en lecture et en inscription, `TentativeDepot`)_
+- [x] Entités `Joueur`, `Duo`, `RefusCode` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
 - [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
-- [ ] `AppairageService` — code d'invitation, formation, dissolution
+- [x] `AppairageService` — code d'invitation, formation · `LimiteTentatives` _(la dissolution arrive avec F2)_
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
-- [ ] B1 `SalleAttenteControleur` — et cas « déjà en duo »
+- [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [ ] B2 `OnboardingControleur` — une règle par écran, étape en `&etape=` · B3 `ReglesControleur`
 - [ ] F1 `ProfilControleur` — et cas « sans duo »
 - [ ] F2 `QuitterDuoControleur` · F3 `SupprimerCompteControleur`

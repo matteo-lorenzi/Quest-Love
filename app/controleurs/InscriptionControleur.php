@@ -14,6 +14,8 @@ class InscriptionControleur
     {
         $retour = $_SESSION[self::RETOUR] ?? ['identifiant' => '', 'pseudo' => '', 'erreurs' => []];
         unset($_SESSION[self::RETOUR]);
+        // Un lien d'invitation arrive avec ?code= : on le garde en session pour le rejouer après l'inscription (doc technique § 3.6).
+        $retour['codeRecu'] = SalleAttenteControleur::conserverCodeRecu();
 
         // « Erreur : » en tête du titre pour que le lecteur d'écran l'annonce au rechargement (RGAA 8.6), comme en A3.
         $titre = $retour['erreurs'] ? 'Erreur : Inscription' : 'Inscription';
@@ -41,10 +43,9 @@ class InscriptionControleur
         session_regenerate_id(true);
         $_SESSION['joueur_id'] = $resultat->id;
 
-        // Un joueur tout juste inscrit n'a pas de duo : B1, la salle d'attente (qui n'existe pas encore, voir #9 : G1 en attendant).
-        // TODO(simplif): pas de branche vers B2 avec un code d'invitation conservé, à ajouter avec AppairageService (#9).
+        // Un joueur tout juste inscrit n'a pas de duo : le code conservé est rejoué, puis B2 s'il forme le duo, B1 sinon.
         // TODO(simplif): aucune limite au nombre d'inscriptions par session ou par adresse, le cadrage ne limite que la connexion et les codes, à reprendre si l'abus se présente.
-        Routeur::rediriger('salle-attente');
+        SalleAttenteControleur::aiguiller($this->pdo, $resultat, $this->maintenant);
     }
 
     // Redirection après écriture (§ 2.4) : on repasse par un GET. On rend l'identifiant et le pseudo saisis, jamais le mot de passe.
