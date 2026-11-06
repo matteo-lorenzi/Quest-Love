@@ -26,28 +26,20 @@ class ConnexionControleur
     // Étape 6 — POST : le jeton CSRF a déjà été vérifié par le routeur.
     public function connecter(): void
     {
-        // Étape 6.1 — lecture de la requête.
+        // Étape 6.1 — lecture de la requête, sans aucune règle : le service normalise et contrôle.
         // Un champ absent ou envoyé sous forme de tableau vaut une chaîne vide.
-        $identifiant = is_string($_POST['identifiant'] ?? null) ? trim($_POST['identifiant']) : '';
+        $identifiant = is_string($_POST['identifiant'] ?? null) ? $_POST['identifiant'] : '';
         $mdp = is_string($_POST['mdp'] ?? null) ? $_POST['mdp'] : '';
 
-        // Étape 6.2 — champs vides : une erreur de saisie, pas un essai de mot de passe.
-        // Ni la base ni le compteur d'échecs ne sont touchés.
-        $erreurs = [];
-        if ($identifiant === '') {
-            $erreurs['identifiant'] = 'vide';
-        }
-        if ($mdp === '') {
-            $erreurs['mdp'] = 'vide';
-        }
-        if ($erreurs) {
-            $this->revenir($identifiant, $erreurs);
-        }
-
-        // Étape 6.3 — appel du service, qui porte toute la règle (cadrage § 6.6).
+        // Étape 6.2 — appel du service, qui porte toute la règle (cadrage § 6.6).
         // L'identifiant de session sert de second compteur, lu avant d'être régénéré.
         $resultat = (new CompteService(new JoueurDepot($this->pdo), new TentativeDepot($this->pdo)))
             ->connecter($identifiant, $mdp, session_id(), $this->maintenant, $_SERVER['REMOTE_ADDR'] ?? null);
+
+        // Étape 6.3 — champs vides : une erreur de saisie, pas un essai de mot de passe (le service n'a rien compté).
+        if (is_array($resultat)) {
+            $this->revenir($identifiant, $resultat);
+        }
 
         // Étape 6.4 — refus : attente en cours, ou identifiants incorrects (un seul message pour les deux cas).
         if ($resultat instanceof DateTimeImmutable) {

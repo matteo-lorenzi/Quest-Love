@@ -370,6 +370,21 @@ class CompteServiceTest extends TestCase
         $this->assertNull($this->service->connecter('Lou', 'mauvais', 'session-a', $this->midi));
     }
 
+    // A3 — l'inscription retire toute espace de bord (insécable comprise) : la connexion applique la même règle.
+    public function testConnexionRogneLesEspacesInsecablesDeBordDeLIdentifiant(): void
+    {
+        $this->assertInstanceOf(Joueur::class, $this->service->connecter("\u{00A0}Lou\u{00A0}", self::MDP, 'session-a', $this->midi));
+    }
+
+    // A3 — un champ vide (ou fait d'espaces) est une erreur de saisie : ni base ni compteur d'échecs touchés.
+    public function testConnexionAvecChampVideRenvoieLesErreursSansCompterDEssai(): void
+    {
+        $this->assertSame(['identifiant' => 'vide', 'mdp' => 'vide'], $this->service->connecter("\u{00A0} ", '', 'session-a', $this->midi));
+        $this->assertSame(['mdp' => 'vide'], $this->service->connecter('Lou', '', 'session-a', $this->midi));
+
+        $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM tentative')->fetchColumn());
+    }
+
     public function testIdentifiantReconnuSansTenirCompteDesMajuscules(): void
     {
         $this->assertInstanceOf(Joueur::class, $this->service->connecter('LOU', self::MDP, 'session-a', $this->midi));

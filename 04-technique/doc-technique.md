@@ -87,7 +87,7 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
 - **`app/modeles/`** — le M du MVC, en trois rôles
   - `entites/` — les objets du domaine et leurs états : `Joueur`, `Duo`, `Participation`, `Defi`, `Tirage`, `Mission` ; énumérations `StatutMission`, `OrigineMission`, `Reponse`
   - `depots/` — le seul endroit où s'écrit du SQL : `JoueurDepot`, `DuoDepot`, `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`, `TentativeDepot`
-  - `services/` — les règles du jeu et les transactions : `CompteService`, `AppairageService`, `JourneeService`, `TirageService`, `MissionService`, `PointsDeVieService`, `RattrapageService`
+  - `services/` — les règles du jeu et les transactions : `CompteService`, `AppairageService`, `JourneeService`, `TirageService`, `MissionService`, `PointsDeVieService`, `RattrapageService` ; textes des règles `Regles` (source unique de B2 et B3)
 - **`app/vues/`** — le V du MVC
   - `gabarits/` — `entete.php`, `pied.php`, `navigation.php`
   - `composants/` — `socle-c1.php`, `carte-defi.php`, `panneau-confirmation.php`, `bloc-evenement.php`
