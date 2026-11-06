@@ -133,7 +133,7 @@ class CompteService
         // Réservé avant le mot de passe : des requêtes simultanées se comptent donc entre elles, et seules les cinq premières passent.
         // Pendant l'attente, même le bon mot de passe est refusé, et l'essai refusé n'est pas gardé.
         // Deux compteurs : par identifiant et par session, pour que changer l'un ou l'autre ne remette pas à zéro.
-        $reservation = $this->limite->reserver([$identifiant, $cleSession], TypeTentative::Connexion, $maintenant);
+        $reservation = $this->limite->reserver([$identifiant, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Connexion, $maintenant);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }

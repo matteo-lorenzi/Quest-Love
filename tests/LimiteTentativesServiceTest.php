@@ -22,6 +22,16 @@ class LimiteTentativesServiceTest extends TestCase
         return (int) $this->pdo->query('SELECT COUNT(*) FROM tentative')->fetchColumn();
     }
 
+    // Sécurité (A3, B1) : l'identifiant de session ne s'écrit jamais en clair dans la table des tentatives.
+    public function testLaCleDeSessionEstUneEmpreinteStable(): void
+    {
+        $cle = LimiteTentativesService::cleSession('session-mia');
+
+        $this->assertSame($cle, LimiteTentativesService::cleSession('session-mia'));
+        $this->assertNotSame($cle, LimiteTentativesService::cleSession('autre-session'));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $cle);
+    }
+
     // Cadrage § 6.6 : les codes et la connexion ont chacun leur compteur, sinon un joueur bloquerait sa propre connexion en se trompant de code.
     public function testLesEssaisDeCodeNeBloquentPasLaConnexion(): void
     {

@@ -65,7 +65,7 @@ class AppairageService
         // Essai réservé avant la vérification, comme la connexion : des requêtes simultanées se comptent entre elles.
         // Deux compteurs : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
         // Un refus qui compte garde sa réservation ; la formation du duo et le refus « déjà en duo » la rendent.
-        $reservation = $this->limite->reserver([(string) $invite->id, $cleSession], TypeTentative::Code, $maintenant);
+        $reservation = $this->limite->reserver([(string) $invite->id, LimiteTentativesService::cleSession($cleSession)], TypeTentative::Code, $maintenant);
         if ($reservation instanceof DateTimeImmutable) {
             return $reservation;
         }
