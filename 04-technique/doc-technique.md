@@ -78,7 +78,8 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
   - `medias/` — pictogrammes et avatars générés
 - **`app/noyau/`** — mécanique commune, sans règle du jeu
   - `amorce.php` — autoloader, fuseau, session, jeton CSRF, connexion PDO
-  - `Routeur.php` — table de routage, préconditions d'accès, aiguillage vers le contrôleur
+  - `Routeur.php` — table de routage, préconditions d'accès, aiguillage vers le contrôleur, lecture du joueur connecté (`joueurConnecte`)
+  - `CodeRecu.php` — code d'invitation d'un lien, gardé en session par A2 et A3 jusqu'à B1
   - `Bdd.php` — connexion PDO, mode exception, jeu de caractères `utf8mb4`
   - `Securite.php` — jeton CSRF
   - `Vue.php` — rendu d'une vue dans le gabarit, fonction d'échappement unique

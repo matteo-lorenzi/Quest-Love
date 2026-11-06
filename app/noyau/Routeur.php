@@ -52,8 +52,7 @@ class Routeur
         // une dissolution par le partenaire prend effet aussitôt.
         $etape = null;
         if ($connecte && ($acces === 'duo' || $acces === 'jeu')) {
-            $joueur = (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id']);
-            $etape = $joueur === null ? EtapeAcces::SansDuo : AppairageService::construire($pdo)->etapeAcces($joueur);
+            $etape = AppairageService::construire($pdo)->etapeAcces(self::joueurConnecte($pdo));
         }
         $redirection = self::redirectionAcces($acces, $connecte, $etape);
         if ($redirection !== null) {
@@ -79,6 +78,18 @@ class Routeur
     {
         header('Location: index.php?ecran=' . urlencode($ecran));
         exit;
+    }
+
+    // Le joueur de la session, relu en base : l'unique lecture du joueur connecté, pour le routeur et tous les contrôleurs.
+    // Un compte supprimé entre-temps vide la session et ramène à la connexion.
+    public static function joueurConnecte(PDO $pdo): Joueur
+    {
+        $joueur = AppairageService::construire($pdo)->joueur($_SESSION['joueur_id']);
+        if ($joueur === null) {
+            $_SESSION = [];
+            self::rediriger('connexion');
+        }
+        return $joueur;
     }
 
     // Écran qui correspond à l'étape d'accès : la règle unique appliquée par le routeur, A3 et B1 (§ 3.6).

@@ -552,6 +552,144 @@ class AppairageServiceTest extends TestCase
         $this->assertSame(1, $this->compterEchecs(LimiteTentativesService::cleSession('session-mia')));
     }
 
+    // Ticket 42 : le joueur connecté se lit en un seul endroit, le service ; un identifiant inconnu (compte supprimé) donne null.
+    public function testLeJoueurConnecteSeLitParSonNumero(): void
+    {
+        $lou = $this->creerJoueur('Lou');
+
+        $this->assertSame('Lou', $this->service->joueur($lou->id)->identifiant);
+        $this->assertNull($this->service->joueur($lou->id + 1000));
+    }
+
+    // B1, sans duo : le service génère le code et rend le joueur à jour, sans redirection.
+    public function testB1SansDuoRendLeJoueurAvecSonCode(): void
+    {
+        $aiguillage = $this->service->salleAttente($this->creerJoueur('Lou'), false, $this->midi);
+
+        $this->assertNull($aiguillage->redirection);
+        $this->assertFalse($aiguillage->dejaEnDuo);
+        $this->assertNotNull($aiguillage->joueur->codeInvitation);
+    }
+
+    // B1 vérifie la formation du duo à chaque chargement : en duo, sans lien reçu, l'étape d'accès décide de l'écran.
+    public function testB1EnDuoRenvoieVersLEtapeDAcces(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+
+        $this->assertSame(EtapeAcces::OnboardingAFaire, $this->service->salleAttente($lou, false, $this->midi)->redirection);
+
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->assertSame(EtapeAcces::Attente, $this->service->salleAttente($this->relire($lou), true, $this->midi)->redirection);
+
+        $this->service->terminerOnboarding($mia, $this->midi);
+        $this->assertSame(EtapeAcces::AccesAuJeu, $this->service->salleAttente($this->relire($lou), false, $this->midi)->redirection);
+    }
+
+    // Variante « déjà en duo » : seulement après l'onboarding des deux, et quand le joueur arrive par un lien d'invitation.
+    public function testB1EnDuoAvecUnLienMontreLaVarianteAvecLePseudoDuPartenaire(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->service->terminerOnboarding($mia, $this->midi);
+
+        $aiguillage = $this->service->salleAttente($this->relire($lou), true, $this->midi);
+
+        $this->assertNull($aiguillage->redirection);
+        $this->assertTrue($aiguillage->dejaEnDuo);
+        $this->assertSame('Mia', $aiguillage->partenaire);
+    }
+
+    // Duo formé entre la lecture du joueur et la génération du code : plus de code à montrer, on recharge B1 (étape « sans duo »).
+    public function testB1RechargeQuandLeDuoSeFormeEntreLaLectureEtLaGeneration(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $this->service->rejoindre($this->creerJoueur('Mia'), $lou->codeInvitation, 'session-mia', $this->midi);
+
+        // $lou est périmé (sans duo) et son code a expiré : la génération se heurte au duo formé entre-temps.
+        $aiguillage = $this->service->salleAttente($lou, false, $this->midi->modify('+2 hours'));
+
+        $this->assertSame(EtapeAcces::SansDuo, $aiguillage->redirection);
+    }
+
+    // Priorité de préremplissage du code : la saisie refusée d'abord, puis le code de l'URL, puis celui conservé en session.
+    public function testLaSaisiePrefilleSuitLaPriorite(): void
+    {
+        $this->assertSame('AAAA', $this->service->saisieAPrefiller('AAAA', 'BBBB', 'CCCC'));
+        $this->assertSame('BBBB', $this->service->saisieAPrefiller('', 'BBBB', 'CCCC'));
+        $this->assertSame('CCCC', $this->service->saisieAPrefiller('', null, 'CCCC'));
+        $this->assertSame('', $this->service->saisieAPrefiller('', null, null));
+    }
+
+    // B2 : étape absente, invalide ou négative : première règle ; étape valide : cette règle.
+    public static function etapesDemandees(): array
+    {
+        return [
+            'absente' => [null, 1],
+            'texte' => ['abc', 1],
+            'zéro' => ['0', 1],
+            'signe' => ['-2', 1],
+            'saut de ligne final' => ["2\n", 1],
+            'deuxième' => ['2', 2],
+            'troisième' => ['3', 3],
+        ];
+    }
+
+    #[DataProvider('etapesDemandees')]
+    public function testB2ChoisitLaRegleDemandee(?string $demandee, int $attendue): void
+    {
+        [$lou] = $this->formerDuo();
+
+        $page = $this->service->pageOnboarding($lou, $demandee);
+
+        $this->assertNull($page->redirection);
+        $this->assertFalse($page->attente);
+        $this->assertSame($attendue, $page->etape);
+        $this->assertSame(count(Regles::toutes()), $page->total);
+        $this->assertSame(Regles::toutes()[$attendue - 1], $page->regle);
+    }
+
+    // Au-delà de la dernière règle : accueil (étape « accès au jeu »).
+    public function testB2AuDelaDeLaDerniereRegleRenvoieALAcces(): void
+    {
+        [$lou] = $this->formerDuo();
+
+        $page = $this->service->pageOnboarding($lou, (string) (count(Regles::toutes()) + 1));
+
+        $this->assertSame(EtapeAcces::AccesAuJeu, $page->redirection);
+    }
+
+    // Il a fini avant son partenaire : variante d'attente quel que soit &etape=, avec le pseudo du partenaire.
+    public function testB2UnJoueurQuiAFiniAttendSonPartenaire(): void
+    {
+        [$lou] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+
+        $page = $this->service->pageOnboarding($this->relire($lou), '2');
+
+        $this->assertNull($page->redirection);
+        $this->assertTrue($page->attente);
+        $this->assertSame('Mia', $page->partenaire);
+    }
+
+    // Les deux ont fini : B2 n'est plus un écran de passage.
+    public function testB2LesDeuxOntFiniRenvoieALAcces(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->service->terminerOnboarding($mia, $this->midi);
+
+        $this->assertSame(EtapeAcces::AccesAuJeu, $this->service->pageOnboarding($this->relire($lou), null)->redirection);
+    }
+
+    // F2 : le pseudo du partenaire, nul sans duo.
+    public function testLePseudoDuPartenaire(): void
+    {
+        [$lou] = $this->formerDuo();
+
+        $this->assertSame('Mia', $this->service->pseudoPartenaire($lou));
+        $this->assertNull($this->service->pseudoPartenaire($this->creerJoueur('Zoe')));
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");
