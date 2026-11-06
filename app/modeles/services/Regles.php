@@ -11,17 +11,6 @@ class Regles
         ['titre' => 'Le cœur et minuit', 'texte' => 'Tu pars avec 5 points de vie. À minuit, un défi non réalisé s\'envole, et un cœur avec lui.'],
     ];
 
-    // Écrans d'où B3 s'ouvre : liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
-    // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
-    private const ORIGINES = ['onboarding', 'profil', 'accueil'];
-
-    // Origine de B3 validée contre la liste fermée ; toute autre valeur (absente, inconnue, tableau) : accueil.
-    // La construction de l'adresse de retour revient au contrôleur : le modèle ne connaît pas les URL.
-    public static function origine(mixed $origine): string
-    {
-        return is_string($origine) && in_array($origine, self::ORIGINES, true) ? $origine : 'accueil';
-    }
-
     /** @return list<array{titre: string, texte: string}> */
     public static function toutes(): array
     {
