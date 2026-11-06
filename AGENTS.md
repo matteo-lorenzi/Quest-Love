@@ -4,7 +4,7 @@ Cadrage de référence : `01-cadrage/cadrage-unifie.md` (fait foi en cas d'écar
 
 ## Standards de code
 
-Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête) : `bash scripts/verifier.sh`, relancé par la CI.
+Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête, motifs en `$`) : `bash scripts/verifier.sh`. Tests de la couche modèle : `bash scripts/tester.sh` (prépare `config.php`, vérifie le phar et la base). La CI relance les deux.
 
 - Tickets et tests citent l'écran et le parcours couverts.
 
