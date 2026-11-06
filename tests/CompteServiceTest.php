@@ -58,7 +58,7 @@ class CompteServiceTest extends TestCase
 
         $accepte
             ? $this->assertInstanceOf(Joueur::class, $resultat)
-            : $this->assertSame(['identifiant' => ['longueur']], $resultat);
+            : $this->assertSame(['identifiant' => [ErreurInscription::Longueur]], $resultat);
     }
 
     public static function longueursDIdentifiant(): array
@@ -79,7 +79,7 @@ class CompteServiceTest extends TestCase
 
         $accepte
             ? $this->assertInstanceOf(Joueur::class, $resultat)
-            : $this->assertSame(['identifiant' => ['caracteres']], $resultat);
+            : $this->assertSame(['identifiant' => [ErreurInscription::Caracteres]], $resultat);
     }
 
     public static function caracteresDIdentifiant(): array
@@ -98,7 +98,7 @@ class CompteServiceTest extends TestCase
 
     // A2 — pseudo de 1 à 30 caractères imprimables : émojis acceptés, caractères de contrôle refusés.
     #[DataProvider('pseudos')]
-    public function testPseudoDeUnATrenteCaracteresImprimables(string $pseudo, ?string $codeErreur): void
+    public function testPseudoDeUnATrenteCaracteresImprimables(string $pseudo, ?ErreurInscription $codeErreur): void
     {
         $resultat = $this->service->inscrire('Nina', $pseudo, self::MDP_VALIDE, $this->midi);
 
@@ -112,10 +112,10 @@ class CompteServiceTest extends TestCase
         return [
             '1 accepté' => ['N', null],
             '30 acceptés' => [str_repeat('é', 30), null],
-            '31 refusés' => [str_repeat('é', 31), 'longueur'],
-            'vide refusé' => ['', 'vide'],
+            '31 refusés' => [str_repeat('é', 31), ErreurInscription::Longueur],
+            'vide refusé' => ['', ErreurInscription::Vide],
             'émoji accepté' => ["Nini \u{1F431}", null],
-            'caractère de contrôle refusé' => ["Ni\u{0007}ni", 'controle'],
+            'caractère de contrôle refusé' => ["Ni\u{0007}ni", ErreurInscription::Controle],
         ];
     }
 
@@ -129,7 +129,7 @@ class CompteServiceTest extends TestCase
 
         $accepte
             ? $this->assertInstanceOf(Joueur::class, $resultat)
-            : $this->assertSame(['mdp' => ['longueur']], $resultat);
+            : $this->assertSame(['mdp' => [ErreurInscription::Longueur]], $resultat);
     }
 
     public static function longueursDeMotDePasse(): array
@@ -144,7 +144,7 @@ class CompteServiceTest extends TestCase
 
     // A2 — une majuscule, une minuscule, un chiffre, un caractère spécial ; l'espace intérieure est un caractère spécial.
     #[DataProvider('compositionsDeMotDePasse')]
-    public function testMotDePasseExigeQuatreFamillesDeCaracteres(string $mdp, ?string $codeErreur): void
+    public function testMotDePasseExigeQuatreFamillesDeCaracteres(string $mdp, ?ErreurInscription $codeErreur): void
     {
         $resultat = $this->service->inscrire('Nina', 'Nini', $mdp, $this->midi);
 
@@ -156,21 +156,21 @@ class CompteServiceTest extends TestCase
     public static function compositionsDeMotDePasse(): array
     {
         return [
-            'sans majuscule' => ['mon chat dort 7 fois!', 'majuscule'],
-            'sans minuscule' => ['MON CHAT DORT 7 FOIS!', 'minuscule'],
-            'sans chiffre' => ['Mon chat dort six fois!', 'chiffre'],
-            'sans caractère spécial' => ['MonChatDortSeptFois7', 'special'],
+            'sans majuscule' => ['mon chat dort 7 fois!', ErreurInscription::Majuscule],
+            'sans minuscule' => ['MON CHAT DORT 7 FOIS!', ErreurInscription::Minuscule],
+            'sans chiffre' => ['Mon chat dort six fois!', ErreurInscription::Chiffre],
+            'sans caractère spécial' => ['MonChatDortSeptFois7', ErreurInscription::Special],
             'espace intérieure comme caractère spécial' => ['Mon chat dort 7', null],
             'émoji comme caractère spécial' => ["MonChatDort7\u{1F431}ABC", null],
             // L'espace de largeur nulle est invisible : elle ne peut pas tenir lieu de caractère spécial.
-            'caractère invisible seul' => ["MonChatDort7\u{200B}ABC", 'special'],
+            'caractère invisible seul' => ["MonChatDort7\u{200B}ABC", ErreurInscription::Special],
         ];
     }
 
     // A2 — une espace (tout séparateur Unicode) en début ou en fin serait invisible dans un champ masqué : refusée, jamais rognée.
     // Un caractère de contrôle est refusé : seule une requête forgée peut l'envoyer.
     #[DataProvider('bordsEtControlesDeMotDePasse')]
-    public function testMotDePasseRefuseEspaceAuxBordsEtCaracteresDeControle(string $mdp, string $codeErreur): void
+    public function testMotDePasseRefuseEspaceAuxBordsEtCaracteresDeControle(string $mdp, ErreurInscription $codeErreur): void
     {
         $resultat = $this->service->inscrire('Nina', 'Nini', $mdp, $this->midi);
 
@@ -180,17 +180,17 @@ class CompteServiceTest extends TestCase
     public static function bordsEtControlesDeMotDePasse(): array
     {
         return [
-            'espace au début' => [' Mon chat dort 7 fois!', 'espace_bord'],
-            'espace à la fin' => ['Mon chat dort 7 fois! ', 'espace_bord'],
-            'espace insécable au début' => ["\u{00A0}Mon chat dort 7 fois!", 'espace_bord'],
-            'tabulation intérieure' => ["Mon chat\tdort 7 fois!", 'controle'],
+            'espace au début' => [' Mon chat dort 7 fois!', ErreurInscription::EspaceBord],
+            'espace à la fin' => ['Mon chat dort 7 fois! ', ErreurInscription::EspaceBord],
+            'espace insécable au début' => ["\u{00A0}Mon chat dort 7 fois!", ErreurInscription::EspaceBord],
+            'tabulation intérieure' => ["Mon chat\tdort 7 fois!", ErreurInscription::Controle],
         ];
     }
 
     // A2 — le mot de passe ne contient ni l'identifiant ni le pseudo, sans tenir compte des majuscules ni des accents ;
     // une valeur de moins de 3 caractères n'est pas comparée, sinon un pseudo comme « A » bloquerait presque tout mot de passe.
     #[DataProvider('motsDePasseContenantUneIdentite')]
-    public function testMotDePasseNeContientNiIdentifiantNiPseudo(string $identifiant, string $pseudo, string $mdp, ?string $codeErreur): void
+    public function testMotDePasseNeContientNiIdentifiantNiPseudo(string $identifiant, string $pseudo, string $mdp, ?ErreurInscription $codeErreur): void
     {
         $resultat = $this->service->inscrire($identifiant, $pseudo, $mdp, $this->midi);
 
@@ -202,9 +202,9 @@ class CompteServiceTest extends TestCase
     public static function motsDePasseContenantUneIdentite(): array
     {
         return [
-            'identifiant, autre casse' => ['Lola', 'Zoé', 'Mon LOLA dort 7 fois!', 'contient_identifiant'],
-            'identifiant, accent retiré' => ['Léo', 'Zoé', 'Chat LEO dort 7 fois!', 'contient_identifiant'],
-            'pseudo, accent et casse' => ['Nina', 'Léa', 'Chat LEA dort 7 fois!', 'contient_pseudo'],
+            'identifiant, autre casse' => ['Lola', 'Zoé', 'Mon LOLA dort 7 fois!', ErreurInscription::ContientIdentifiant],
+            'identifiant, accent retiré' => ['Léo', 'Zoé', 'Chat LEO dort 7 fois!', ErreurInscription::ContientIdentifiant],
+            'pseudo, accent et casse' => ['Nina', 'Léa', 'Chat LEA dort 7 fois!', ErreurInscription::ContientPseudo],
             'pseudo de 2 caractères non comparé' => ['Nina', 'Jo', 'Jo dort 7 fois sur 7!', null],
             'pseudo d\'un caractère non comparé' => ['Nina', 'A', 'Mon chat dort 7 fois!', null],
             'ni l\'un ni l\'autre' => ['Nina', 'Nini', 'Mon chat dort 7 fois!', null],
@@ -217,7 +217,7 @@ class CompteServiceTest extends TestCase
     {
         $resultat = $this->service->inscrire($identifiant, 'Nini', self::MDP_VALIDE, $this->midi);
 
-        $this->assertSame(['identifiant' => ['pris']], $resultat);
+        $this->assertSame(['identifiant' => [ErreurInscription::Pris]], $resultat);
     }
 
     public static function doublonsDeLou(): array
@@ -249,7 +249,7 @@ class CompteServiceTest extends TestCase
 
         $resultat = $service->inscrire('Lou', 'Nini', self::MDP_VALIDE, $this->midi);
 
-        $this->assertSame(['identifiant' => ['pris']], $resultat);
+        $this->assertSame(['identifiant' => [ErreurInscription::Pris]], $resultat);
     }
 
     // A2 puis A3 — un « é » d'un bloc ou en deux temps (e + accent) est le même mot de passe : le compte s'ouvre des deux façons.
@@ -273,7 +273,7 @@ class CompteServiceTest extends TestCase
         $this->assertInstanceOf(Joueur::class, $premier);
         $this->assertSame("L\u{00E9}a", $premier->identifiant);
         $this->assertSame(str_repeat("\u{00E9}", 30), $premier->pseudo);
-        $this->assertSame(['identifiant' => ['pris']], $doublon);
+        $this->assertSame(['identifiant' => [ErreurInscription::Pris]], $doublon);
     }
 
     // A2 — un texte qui n'est pas de l'UTF-8 valide (requête forgée) est refusé, nommé par son champ, sans erreur PHP.
@@ -282,7 +282,7 @@ class CompteServiceTest extends TestCase
         $resultat = $this->service->inscrire("Ni\xFFna", "Ni\xC3", "Mon chat dort 7 fois!\xFE", $this->midi);
 
         $this->assertSame(
-            ['identifiant' => ['encodage'], 'pseudo' => ['encodage'], 'mdp' => ['encodage']],
+            ['identifiant' => [ErreurInscription::Encodage], 'pseudo' => [ErreurInscription::Encodage], 'mdp' => [ErreurInscription::Encodage]],
             $resultat
         );
     }
@@ -310,7 +310,7 @@ class CompteServiceTest extends TestCase
     {
         $resultat = $this->service->inscrire('Nina', "   \u{00A0} ", self::MDP_VALIDE, $this->midi);
 
-        $this->assertSame(['pseudo' => ['vide']], $resultat);
+        $this->assertSame(['pseudo' => [ErreurInscription::Vide]], $resultat);
     }
 
     // A2 — un mot de passe de la liste des plus courants (NCSC) est refusé même s'il respecte toutes les autres règles ;
@@ -320,7 +320,7 @@ class CompteServiceTest extends TestCase
     {
         $resultat = $this->service->inscrire('Nina', 'Nini', $mdp, $this->midi);
 
-        $this->assertSame(['mdp' => ['courant']], $resultat);
+        $this->assertSame(['mdp' => [ErreurInscription::Courant]], $resultat);
     }
 
     public static function motsDePasseCourants(): array
@@ -337,7 +337,7 @@ class CompteServiceTest extends TestCase
     {
         $resultat = $this->service->inscrire('', 'Nini', self::MDP_VALIDE, $this->midi);
 
-        $this->assertSame(['identifiant' => ['longueur']], $resultat);
+        $this->assertSame(['identifiant' => [ErreurInscription::Longueur]], $resultat);
     }
 
     // A2 — chaque critère manquant est nommé, tous ensemble : le joueur corrige tout en une fois.
@@ -347,9 +347,9 @@ class CompteServiceTest extends TestCase
 
         $this->assertSame(
             [
-                'identifiant' => ['longueur'],
-                'pseudo' => ['vide'],
-                'mdp' => ['longueur', 'majuscule', 'chiffre', 'special'],
+                'identifiant' => [ErreurInscription::Longueur],
+                'pseudo' => [ErreurInscription::Vide],
+                'mdp' => [ErreurInscription::Longueur, ErreurInscription::Majuscule, ErreurInscription::Chiffre, ErreurInscription::Special],
             ],
             $resultat
         );
@@ -379,8 +379,8 @@ class CompteServiceTest extends TestCase
     // A3 — un champ vide (ou fait d'espaces) est une erreur de saisie : ni base ni compteur d'échecs touchés.
     public function testConnexionAvecChampVideRenvoieLesErreursSansCompterDEssai(): void
     {
-        $this->assertSame(['identifiant' => 'vide', 'mdp' => 'vide'], $this->service->connecter("\u{00A0} ", '', 'session-a', $this->midi));
-        $this->assertSame(['mdp' => 'vide'], $this->service->connecter('Lou', '', 'session-a', $this->midi));
+        $this->assertSame(['identifiant' => ErreurConnexion::Vide, 'mdp' => ErreurConnexion::Vide], $this->service->connecter("\u{00A0} ", '', 'session-a', $this->midi));
+        $this->assertSame(['mdp' => ErreurConnexion::Vide], $this->service->connecter('Lou', '', 'session-a', $this->midi));
 
         $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM tentative')->fetchColumn());
     }

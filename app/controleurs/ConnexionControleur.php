@@ -46,7 +46,7 @@ class ConnexionControleur
             $this->revenir($identifiant, [], $resultat);
         }
         if ($resultat === null) {
-            $this->revenir($identifiant, ['general' => 'incorrect']);
+            $this->revenir($identifiant, ['general' => ErreurConnexion::Incorrect]);
         }
 
         // Étape 6.5 — succès : nouvel identifiant de session, contre la fixation de session (cadrage § 6.6).

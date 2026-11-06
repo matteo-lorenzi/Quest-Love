@@ -15,14 +15,12 @@ class ReglesControleur
         ]);
     }
 
-    // Écrans d'où B3 s'ouvre : liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
+    // Écrans d'où B3 s'ouvre : l'énumération OrigineRegles est la liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
     // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
-    private const ORIGINES = ['onboarding', 'profil', 'accueil'];
-
-    // Origine de B3 validée contre la liste fermée ; toute autre valeur (absente, inconnue, tableau) : accueil.
-    public static function origine(mixed $origine): string
+    // Origine de B3 validée contre l'énumération ; toute autre valeur (absente, inconnue, tableau) : accueil.
+    public static function origine(mixed $origine): OrigineRegles
     {
-        return is_string($origine) && in_array($origine, self::ORIGINES, true) ? $origine : 'accueil';
+        return is_string($origine) ? (OrigineRegles::tryFrom($origine) ?? OrigineRegles::Accueil) : OrigineRegles::Accueil;
     }
 
     // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par origine() (liste fermée).
@@ -30,9 +28,9 @@ class ReglesControleur
     public static function requeteDeRetour(mixed $origine, mixed $etape): string
     {
         $origine = self::origine($origine);
-        if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
+        if ($origine === OrigineRegles::Onboarding && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
             return "ecran=onboarding&etape=$etape";
         }
-        return "ecran=$origine";
+        return 'ecran=' . $origine->value;
     }
 }
