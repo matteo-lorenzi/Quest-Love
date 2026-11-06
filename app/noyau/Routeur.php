@@ -32,7 +32,7 @@ class Routeur
             self::erreur(404);
         }
         [$classe, $methodeGet, $methodePost, $acces] = self::ECRANS[$ecran];
-        // Étape 2.5 — session inactive depuis plus de 2 h : elle est vidée avant le calcul de $connecte, donc l'étape 5 renvoie vers A3.
+        // Étape 2 (suite) — session inactive depuis plus de 2 h : elle est vidée avant le calcul de $connecte, donc l'étape 5 renvoie vers A3.
         Securite::expirerSiInactive($maintenant->getTimestamp());
         $connecte = isset($_SESSION['joueur_id']);
 

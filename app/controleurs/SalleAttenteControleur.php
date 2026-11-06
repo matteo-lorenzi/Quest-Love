@@ -9,7 +9,7 @@ class SalleAttenteControleur
     // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant) {}
 
-    // GET : afficher le code du joueur et la saisie, ou la variante « déjà en duo ».
+    // GET : la variante « déjà en duo » remplace la saisie quand le joueur a déjà un partenaire.
     public function afficher(): void
     {
         $joueur = Routeur::joueurConnecte($this->pdo);

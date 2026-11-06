@@ -59,12 +59,14 @@ class ConnexionControleur
         Routeur::rediriger(Routeur::ecranDeLEtape(AppairageService::construire($this->pdo)->etapeAcces($resultat)));
     }
 
-    // POST seulement (la table du routeur refuse le GET) : un lien ne peut pas déconnecter quelqu'un à son insu.
+    // Étape 6 — POST seulement (la table du routeur refuse le GET) : un lien ne peut pas déconnecter quelqu'un à son insu.
+    // Le jeton CSRF a déjà été vérifié par le routeur.
     public function deconnecter(): void
     {
-        // On vide la session et on change son identifiant : l'ancien cookie ne donne plus accès à rien.
+        // Étape 6.1 — on vide la session et on change son identifiant : l'ancien cookie ne donne plus accès à rien.
         $_SESSION = [];
         session_regenerate_id(true);
+        // Étape 6.2 — redirection après écriture (§ 2.4) vers A1.
         Routeur::rediriger('bienvenue');
     }
 

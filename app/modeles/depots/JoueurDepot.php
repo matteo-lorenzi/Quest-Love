@@ -14,7 +14,7 @@ class JoueurDepot
         return $ligne ? $this->hydrater($ligne) : null;
     }
 
-    // Sert au routeur pour le niveau d'accès duo (§ 3.6).
+    // Relit le joueur de la session à chaque requête : le duo et l'étape d'accès peuvent avoir changé depuis (§ 3.6).
     public function trouverParId(int $id): ?Joueur
     {
         $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE id = ?');

@@ -19,7 +19,7 @@ class TentativeDepot
         $this->pdo->prepare('DELETE FROM tentative WHERE id = ?')->execute([$id]);
     }
 
-    // Supprime les tentatives antérieures à $avant, pour que la table ne grossisse pas sans fin.
+    // Sans cela la table des tentatives grossirait sans fin : les essais trop vieux ne comptent plus pour aucune limite.
     public function purger(DateTimeImmutable $avant): void
     {
         $this->pdo->prepare('DELETE FROM tentative WHERE date < ?')->execute([$avant->format('Y-m-d H:i:s')]);
