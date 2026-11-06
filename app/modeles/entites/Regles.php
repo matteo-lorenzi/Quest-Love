@@ -15,17 +15,11 @@ class Regles
     // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
     private const ORIGINES = ['onboarding', 'profil', 'accueil'];
 
-    // Requête (sans « index.php? ») du retour de B3 vers son origine. Origine inconnue : accueil.
-    // Avec B2 pour origine, l'étape (chiffres ou « attente ») est reprise ; étape invalide : B2 sans étape, donc première règle.
-    public static function ecranDeRetour(mixed $origine, mixed $etape): string
+    // Origine de B3 validée contre la liste fermée ; toute autre valeur (absente, inconnue, tableau) : accueil.
+    // La construction de l'adresse de retour revient au contrôleur : le modèle ne connaît pas les URL.
+    public static function origine(mixed $origine): string
     {
-        if (!is_string($origine) || !in_array($origine, self::ORIGINES, true)) {
-            return 'ecran=accueil';
-        }
-        if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
-            return "ecran=onboarding&etape=$etape";
-        }
-        return "ecran=$origine";
+        return is_string($origine) && in_array($origine, self::ORIGINES, true) ? $origine : 'accueil';
     }
 
     /** @return list<array{titre: string, texte: string}> */

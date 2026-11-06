@@ -44,21 +44,16 @@ class Routeur
         }
 
         // Étape 5 — préconditions d'accès (§ 3.6).
-        // Un écran réservé aux joueurs connectés renvoie les visiteurs vers la connexion (A3).
-        if ($acces !== 'public' && !$connecte) {
-            self::rediriger('connexion');
-        }
-        // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
-        // Le duo est relu en base à chaque requête : une dissolution par le partenaire prend effet aussitôt.
-        if ($acces === 'duo' || $acces === 'jeu') {
+        // La décision est dans redirectionAcces(), sans base ni session. Le duo est relu en base à chaque requête :
+        // une dissolution par le partenaire prend effet aussitôt.
+        $etape = null;
+        if ($connecte && ($acces === 'duo' || $acces === 'jeu')) {
             $joueur = (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id']);
-            if ($joueur?->duoId === null) {
-                self::rediriger('salle-attente');
-            }
-            // Un écran de jeu exige en plus que les deux joueurs aient fini l'onboarding, quel que soit le chemin d'arrivée (§ 3.6).
-            if ($acces === 'jeu' && self::service($pdo)->etapeAcces($joueur) !== EtapeAcces::AccesAuJeu) {
-                self::rediriger('onboarding');
-            }
+            $etape = $joueur === null ? EtapeAcces::SansDuo : AppairageService::construire($pdo)->etapeAcces($joueur);
+        }
+        $redirection = self::redirectionAcces($acces, $connecte, $etape);
+        if ($redirection !== null) {
+            self::rediriger($redirection);
         }
 
         // Étape 6 — CSRF, puis appel du contrôleur.
@@ -92,9 +87,26 @@ class Routeur
         };
     }
 
-    private static function service(PDO $pdo): AppairageService
+    // Décision de l'étape 5, sans base ni session : l'écran où renvoyer, ou null si l'accès est permis.
+    // $etape : étape d'accès du joueur, nulle tant qu'elle n'a pas été lue (accès public, ou visiteur non connecté).
+    public static function redirectionAcces(string $acces, bool $connecte, ?EtapeAcces $etape): ?string
     {
-        return new AppairageService($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));
+        if ($acces === 'public') {
+            return null;
+        }
+        // Un écran réservé aux joueurs connectés renvoie les visiteurs vers la connexion (A3).
+        if (!$connecte) {
+            return 'connexion';
+        }
+        // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
+        if (($acces === 'duo' || $acces === 'jeu') && ($etape === null || $etape === EtapeAcces::SansDuo)) {
+            return 'salle-attente';
+        }
+        // Un écran de jeu exige en plus que les deux joueurs aient fini l'onboarding, quel que soit le chemin d'arrivée (§ 3.6).
+        if ($acces === 'jeu' && $etape !== EtapeAcces::AccesAuJeu) {
+            return 'onboarding';
+        }
+        return null;
     }
 
     // never, comme rediriger() : après G1, plus rien ne doit s'exécuter.

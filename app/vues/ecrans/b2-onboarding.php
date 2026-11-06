@@ -8,7 +8,7 @@
     <h1 class="onboarding__titre">En attente de <?= $partenaire !== null ? e($partenaire) : 'ton partenaire' ?></h1>
     <p class="onboarding__texte">Tu as fini les règles. Dès que ton partenaire aura fini les siennes, le jeu s'ouvrira : recharge cette page pour le savoir.</p>
     <a class="bouton" href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=attente">Règles complètes</a>
-    <!-- TODO(simplif): l'écran F2 (quitter-duo) n'existe pas, ce lien mène à G1 jusqu'à son écriture (ticket suivant). -->
+    <?php // TODO(simplif): l'écran F2 (quitter-duo) n'existe pas, ce lien mène à G1 jusqu'à son écriture (ticket suivant). ?>
     <p><a href="index.php?ecran=quitter-duo">Quitter mon duo</a></p>
 </main>
 <?php return; endif ?>
@@ -25,7 +25,7 @@
         </form>
     <?php endif ?>
     <a href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=<?= (int) $etape ?>">Règles complètes</a>
-    <!-- « Passer » a le même effet que le bouton du dernier écran. -->
+    <?php // « Passer » a le même effet que le bouton du dernier écran. ?>
     <form method="post" action="index.php?ecran=onboarding">
         <input type="hidden" name="jeton" value="<?= e($jeton) ?>">
         <button class="lien" type="submit">Passer</button>

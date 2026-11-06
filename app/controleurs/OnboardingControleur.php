@@ -3,20 +3,29 @@
 
 class OnboardingControleur
 {
+    private AppairageService $service;
+
     // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ce dont il a besoin (ADR-0001).
-    public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant) {}
+    // Un seul service par requête : il ne garde aucun état.
+    public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant)
+    {
+        $this->service = AppairageService::construire($pdo);
+    }
 
     // GET : une règle par écran, choisie par &etape=.
     public function afficher(): void
     {
         $joueur = $this->joueurConnecte();
-        $etapeAcces = $this->service()->etapeAcces($joueur);
+        $etapeAcces = $this->service->etapeAcces($joueur);
         // Les deux joueurs ont fini : B2 n'est plus un écran de passage.
         if ($etapeAcces === EtapeAcces::AccesAuJeu) {
             Routeur::rediriger('accueil');
         }
-        // Il a fini avant son partenaire : variante d'attente, relue à chaque chargement. Elle sert quel que soit &etape= (y compris
-        // &etape=attente), puisqu'il n'a plus de règle à parcourir ; le routeur et « Passer » y envoient le joueur sans paramètre.
+        // Il a fini avant son partenaire : variante d'attente, relue à chaque chargement.
+        // Écart assumé avec la spec, qui nomme cette variante &etape=attente : elle ne dépend que de l'étape d'accès (relue en base),
+        // jamais du paramètre. Elle sert donc quel que soit &etape=, y compris &etape=attente (lien de retour de B3), et le routeur
+        // comme « Passer » y envoient le joueur sans paramètre ; exiger le paramètre ferait boucler dès qu'un lien l'oublie.
+        // À l'inverse, &etape=attente d'un joueur qui n'a pas fini retombe sur la première règle : la variante n'est jamais montrée à tort.
         if ($etapeAcces === EtapeAcces::Attente) {
             Vue::rendre('b2-onboarding', 'En attente de ton partenaire', [
                 'attente' => true,
@@ -42,14 +51,9 @@ class OnboardingControleur
     // POST : « Passer » et le bouton du dernier écran ont le même effet. Le jeton CSRF a déjà été vérifié par le routeur.
     public function terminer(): void
     {
-        $this->service()->terminerOnboarding($this->joueurConnecte(), $this->maintenant);
-        // L'étape est relue : accueil si le partenaire avait fini, variante d'attente sinon.
-        Routeur::rediriger(Routeur::ecranDeLEtape($this->service()->etapeAcces($this->joueurConnecte())));
-    }
-
-    private function service(): AppairageService
-    {
-        return new AppairageService($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
+        $this->service->terminerOnboarding($this->joueurConnecte(), $this->maintenant);
+        // Le joueur est relu : l'écriture vient de changer son état. Accueil si le partenaire avait fini, variante d'attente sinon.
+        Routeur::rediriger(Routeur::ecranDeLEtape($this->service->etapeAcces($this->joueurConnecte())));
     }
 
     // Le joueur de la session, relu en base. Un compte supprimé entre-temps ramène à la connexion.

@@ -121,24 +121,32 @@ class AppairageService
         if (!$joueur->onboardingVu) {
             return EtapeAcces::OnboardingAFaire;
         }
-        return $this->joueurs->trouverPartenaire($joueur)?->onboardingVu ? EtapeAcces::AccesAuJeu : EtapeAcces::Attente;
+        // Un duo sans second joueur est une base incohérente (le schéma ne la produit pas) : attendre indéfiniment cacherait la panne,
+        // et SansDuo ferait boucler B1 sur elle-même. On échoue donc franchement (500), le joueur n'accède jamais au jeu sur un état faux.
+        $partenaire = $this->joueurs->trouverPartenaire($joueur);
+        if ($partenaire === null) {
+            throw new LogicException("Le duo {$joueur->duoId} n'a pas de second joueur (joueur {$joueur->id}).");
+        }
+        return $partenaire->onboardingVu ? EtapeAcces::AccesAuJeu : EtapeAcces::Attente;
     }
 
     // B2 — « Passer » et le bouton du dernier écran. Idempotent (deux appareils) : le second appel ne change rien, donc ne déplace pas l'activation.
     // Transaction sous verrou des deux joueurs, comme la formation : deux joueurs qui finissent en même temps ne s'ignorent pas.
+    // Le partenaire est lu APRÈS le verrou du joueur, sur sa ligne fraîche : un duo dissous ou refait entre-temps ne trompe pas l'activation.
     public function terminerOnboarding(Joueur $joueur, DateTimeImmutable $maintenant): void
     {
-        if ($joueur->duoId === null) {
-            return;
-        }
-        $partenaire = $this->joueurs->trouverPartenaire($joueur);
         $this->pdo->beginTransaction();
         try {
-            $verrouilles = $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
-            $frais = $verrouilles[$joueur->id] ?? null;
-            if ($frais !== null && $frais->duoId !== null && !$frais->onboardingVu) {
+            $frais = $this->joueurs->verrouiller([$joueur->id])[$joueur->id] ?? null;
+            if ($frais?->duoId !== null && !$frais->onboardingVu) {
+                $partenaire = $this->joueurs->trouverPartenaire($frais);
+                // Les deux lignes, dans l'ordre des numéros. Le joueur est déjà verrouillé : le second verrou n'attend que le partenaire.
+                // Un interblocage reste possible si les deux finissent à la même milliseconde : InnoDB en annule un, le joueur recommence.
+                $verrouilles = $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
                 $this->joueurs->marquerOnboardingVu($joueur->id);
-                if ($partenaire !== null && ($verrouilles[$partenaire->id] ?? null)?->onboardingVu) {
+                $partenaireFrais = $partenaire === null ? null : ($verrouilles[$partenaire->id] ?? null);
+                // N'active que si le partenaire est toujours du même duo et a fini.
+                if ($partenaireFrais?->duoId === $frais->duoId && $partenaireFrais->onboardingVu) {
                     $this->duos->activer($frais->duoId, $maintenant);
                 }
             }
@@ -147,6 +155,12 @@ class AppairageService
             $this->pdo->rollBack();
             throw $erreur;
         }
+    }
+
+    // Un seul point de construction pour le routeur et les contrôleurs : dépôts compris, ce qui n'ajoute aucune règle (ADR-0001).
+    public static function construire(PDO $pdo): self
+    {
+        return new self($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));
     }
 
     // Le code tel qu'on le range : NFC, sans espaces ni tirets (copier-coller de « XXXX-XXXX »), en majuscules.

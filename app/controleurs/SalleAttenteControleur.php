@@ -100,7 +100,7 @@ class SalleAttenteControleur
 
     private function service(): AppairageService
     {
-        return new AppairageService($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
+        return AppairageService::construire($this->pdo);
     }
 
     // Le joueur de la session, relu en base. Un compte supprimé entre-temps ramène à la connexion.

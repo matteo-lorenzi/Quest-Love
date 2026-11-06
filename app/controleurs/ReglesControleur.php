@@ -11,7 +11,18 @@ class ReglesControleur
     {
         Vue::rendre('b3-regles', 'Les règles du jeu', [
             'regles' => Regles::toutes(),
-            'retour' => Regles::ecranDeRetour($_GET['origine'] ?? null, $_GET['etape'] ?? null),
+            'retour' => self::requeteDeRetour($_GET['origine'] ?? null, $_GET['etape'] ?? null),
         ]);
+    }
+
+    // Requête (sans « index.php? ») du retour de B3 vers son origine ; l'origine est validée par le modèle (liste fermée).
+    // Avec B2 pour origine, l'étape (chiffres ou « attente ») est reprise ; étape invalide : B2 sans étape, donc première règle.
+    public static function requeteDeRetour(mixed $origine, mixed $etape): string
+    {
+        $origine = Regles::origine($origine);
+        if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
+            return "ecran=onboarding&etape=$etape";
+        }
+        return "ecran=$origine";
     }
 }
