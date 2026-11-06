@@ -44,9 +44,19 @@ class AppairageService
     }
 
     // B1 — saisie du code d'un partenaire : forme le duo des deux joueurs.
-    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo|RefusCode
     {
         $proprietaire = $this->joueurs->trouverParCode($saisie);
+        // TODO(simplif): faux, régénéré et propriétaire déjà en duo ne sont pas distingués (le code est écrasé ou remis à nul), à garder l'historique des codes si le support en a besoin.
+        if ($proprietaire === null) {
+            return $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
+        }
+        if ($proprietaire->id === $invite->id) {
+            return $this->echec(RefusCode::PropreCode, $invite, $cleSession, $maintenant);
+        }
+        if ($proprietaire->dateExpirationCode <= $maintenant) {
+            return $this->echec(RefusCode::Expire, $invite, $cleSession, $maintenant);
+        }
         $this->pdo->beginTransaction();
         try {
             $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
@@ -59,6 +69,14 @@ class AppairageService
             throw $erreur;
         }
         return $this->duos->trouverParId($duoId);
+    }
+
+    // Un refus qui compte est daté sur les deux compteurs : celui du joueur et celui de la session (cadrage § 6.6).
+    private function echec(RefusCode $refus, Joueur $invite, string $cleSession, DateTimeImmutable $maintenant): RefusCode
+    {
+        $this->limite->echouer((string) $invite->id, TypeTentative::Code, $maintenant);
+        $this->limite->echouer($cleSession, TypeTentative::Code, $maintenant);
+        return $refus;
     }
 
     private function tirerCode(): string

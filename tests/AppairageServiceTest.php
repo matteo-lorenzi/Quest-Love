@@ -86,4 +86,48 @@ class AppairageServiceTest extends TestCase
             $this->assertNull($relu->codeInvitation);
         }
     }
+
+    // Doc technique § 3.6 : saisir son propre code est une erreur courante, nommée comme telle, et elle compte (cadrage § 6.6).
+    public function testSaisirSonPropreCodeEstRefuse(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+
+        $this->assertSame(RefusCode::PropreCode, $this->service->rejoindre($lou, $lou->codeInvitation, 'session-lou', $this->midi));
+        $this->assertSame(1, $this->compterEchecs((string) $lou->id));
+    }
+
+    // Un code vaut 60 minutes : à l'heure pile de l'échéance il a déjà expiré.
+    public function testUnCodeExpireEstRefuse(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $mia = $this->creerJoueur('Mia');
+
+        $this->assertSame(RefusCode::Expire, $this->service->rejoindre($mia, $lou->codeInvitation, 'session-mia', new DateTimeImmutable('2026-10-15 13:00:00')));
+        $this->assertSame(1, $this->compterEchecs((string) $mia->id));
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($mia->id)->duoId);
+    }
+
+    // Doc technique § 3.6 : faux, régénéré, ou dont le propriétaire est déjà en duo, le refus est le même et compte.
+    public function testUnCodeFauxRegenereOuDUnJoueurDejaEnDuoEstPasValable(): void
+    {
+        $depot = new JoueurDepot($this->pdo);
+        $mia = $this->creerJoueur('Mia');
+        $ancien = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $this->service->regenerer($ancien, $this->midi);
+        $zoe = $this->service->code($this->creerJoueur('Zoe'), $this->midi);
+        $this->service->rejoindre($this->creerJoueur('Tom'), $zoe->codeInvitation, 'session-tom', $this->midi);
+
+        foreach (['23456789', $ancien->codeInvitation, $zoe->codeInvitation] as $i => $code) {
+            $this->assertSame(RefusCode::PasValable, $this->service->rejoindre($mia, $code, 'session-mia', $this->midi), "cas $i");
+        }
+        $this->assertSame(3, $this->compterEchecs((string) $mia->id));
+        $this->assertNull($depot->trouverParId($mia->id)->duoId);
+    }
+
+    private function compterEchecs(string $cle): int
+    {
+        $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");
+        $requete->execute([$cle]);
+        return (int) $requete->fetchColumn();
+    }
 }
