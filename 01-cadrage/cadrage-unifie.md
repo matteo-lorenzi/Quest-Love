@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.13 — 6 novembre 2026.** Précise les règles des comptes avant le codage d'A2 (§ 6.6) : Argon2id imposé sans repli, donc sans limite de 72 octets ; définitions de « caractère » (point de code après NFC), de caractère spécial, de caractère de contrôle et d'espace ; NFC étendue à l'identifiant et au pseudo ; liste des mots de passe courants et comparaison de l'identifiant et du pseudo sans tenir compte des majuscules ni des accents ; consigne les décisions du 06/11 (§ 16).
+> **Version 2.14 — 6 novembre 2026.** Fixe où vit le code d'invitation avant le codage de B1 (§ 7) : colonnes de `joueur`, la ligne `duo` n'étant créée qu'à la formation, pour que `joueur.duo_id` nul reste la seule définition de « sans duo » ; précise les essais qui comptent dans la limite de 5 pour un code (§ 6.6) et la variante « déjà en duo » de la salle d'attente, réservée au lien d'invitation (§ 8.5) ; consigne les décisions du 06/11 sur l'appairage (§ 16).
+>
+> La V2.13 (6 novembre 2026) précisait les règles des comptes avant le codage d'A2 (§ 6.6) : Argon2id imposé sans repli, donc sans limite de 72 octets ; définitions de « caractère » (point de code après NFC), de caractère spécial, de caractère de contrôle et d'espace ; NFC étendue à l'identifiant et au pseudo ; liste des mots de passe courants et comparaison de l'identifiant et du pseudo sans tenir compte des majuscules ni des accents ; consigne les décisions du 06/11 (§ 16).
 >
 > La V2.12 (16 octobre 2026) précisait la place de l'espace dans le mot de passe : acceptée à l'intérieur, comptée comme caractère spécial, refusée en début et en fin (§ 6.6) ; consignait les décisions du 16/10 (§ 16).
 >
@@ -271,6 +273,7 @@ Règles des comptes, tranchées le 14/10 avant le premier écran codé. Référe
 - 5 échecs en 15 minutes déclenchent une attente de 15 minutes avant tout nouvel essai.
 - Comptage par identifiant **et** par session : changer d'identifiant ou de session ne remet pas le compteur à zéro.
 - S'applique à la connexion (A3) et à toute vérification d'un code d'invitation (saisie en B1, code reçu par lien et rejoué après inscription ou connexion).
+- Pour un code, comptent comme échec : le propre code du joueur, un code expiré, un code « pas valable » (faux, régénéré, ou dont le propriétaire est déjà en duo : ces trois cas ne sont pas distingués). Ne comptent pas : un essai refusé pendant l'attente, un texte qui n'a pas la forme d'un code (8 caractères de l'alphabet, UTF-8 valide), la requête d'un joueur déjà en duo. Les compteurs sont ceux du joueur et de la session.
 - L'attente est annoncée en texte, avec l'heure à laquelle réessayer ; jamais de blocage définitif du compte.
 
 **Définitions communes** (identifiant, pseudo, mot de passe), tranchées le 06/11
@@ -322,8 +325,8 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 
 | Table | Champs principaux | Contraintes |
 |---|---|---|
-| `joueur` | id, identifiant, pseudo, mdp_hash, duo_id (nullable), pv, date_creation | Pas d'adresse électronique ; identifiant unique sans tenir compte des majuscules ni des accents, pseudo libre (§ 6.6) ; compte réappairable après dissolution |
-| `duo` | id, code_invitation, date_expiration_code, date_creation | Code à usage unique, valable 60 minutes, régénérable ; suppression en cascade |
+| `joueur` | id, identifiant, pseudo, mdp_hash, code_invitation (nullable), date_expiration_code (nullable), duo_id (nullable), pv, date_creation | Pas d'adresse électronique ; identifiant unique sans tenir compte des majuscules ni des accents, pseudo libre (§ 6.6) ; compte réappairable après dissolution ; code unique, à usage unique, valable 60 minutes, régénérable ; `duo_id` nul = sans duo |
+| `duo` | id, date_creation | Créé quand le deuxième joueur saisit le code, jamais avant : un duo porte exactement deux joueurs ; suppression en cascade |
 | `participation` | id, joueur_id, date_jour, reponse, date_reponse | Unicité (`joueur_id`, `date_jour`) |
 | `categorie` | id, libelle | — |
 | `defi` | id, titre, description, categorie_id | — |
@@ -407,7 +410,7 @@ Minimalisme retenu, référence Duolingo. Hypothèse à valider : **structure mi
 - **Connexion** : joueur en duo vers l'accueil ; sans duo, vers B2 si un code valide a été conservé, sinon vers la salle d'attente (avec erreur si le code est invalide).
 - **Code d'invitation** : valable **60 minutes**, affiché en texte statique ; un joueur connecté sans duo qui ouvre un lien arrive en salle d'attente, champ prérempli ; après dissolution, le code reçu n'est pas conservé. La salle d'attente vérifie la formation du duo au chargement de la page.
 - **Salle d'attente (B1)** : compte obligatoire pour jouer. Code d'invitation régénérable par un lien discret « nouveau code » (l'ancien code est invalidé). Sortie par une flèche ← en en-tête, vers le profil (F1) complet, en état « sans duo » (pas de partenaire ni de dissolution). Retour du profil vers la salle d'attente par la même flèche.
-- **Joueur déjà en duo** : la connexion mène directement à l'accueil (C1). S'il arrive sur la salle d'attente (lien d'invitation, URL), il voit une variante « déjà en duo » : ni code ni saisie, rappel du duo actuel, consigne de quitter son duo pour en rejoindre un autre, retour à l'accueil en action principale et « quitter mon duo » (vers F2) en action secondaire.
+- **Joueur déjà en duo** : la connexion mène directement à l'accueil (C1). S'il arrive sur la salle d'attente par un lien d'invitation, il voit une variante « déjà en duo » ; sans lien (rechargement de la salle d'attente après la formation du duo, URL saisie), il est renvoyé à l'accueil (C1). La variante montre : ni code ni saisie, rappel du duo actuel, consigne de quitter son duo pour en rejoindre un autre, retour à l'accueil en action principale et « quitter mon duo » (vers F2) en action secondaire.
 - **Navigation** : barre basse (Accueil, Gages, Historique, Profil), masquée sur les sous-écrans focalisés et les écrans d'événement.
 - **Avatars** : initiale ou pictogramme généré en lot 1 ; version graphique en lot 3. Aucune photo (minimisation, § 10).
 - Les **points de vie** sont le principal objet graphique, sans reposer sur la couleur seule.
@@ -616,6 +619,8 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 **Tranchées le 16/10** : l'espace est acceptée dans le mot de passe et compte comme caractère spécial, mais refusée en début et en fin (§ 6.6). Références comparées : CNIL 2022-100 (points 8, 22, 41), NIST SP 800-63B rév. 4 (§ 3.1.1.2), OWASP, Microsoft Entra ID, Google ; aucune n'interdit l'espace.
 
 **Tranchées le 06/11** (préparation d'A2, #8) : empreinte Argon2id imposée, sans repli ni limite de 72 octets ; un caractère est un point de code compté après NFC, normalisation appliquée à l'identifiant, au pseudo et au mot de passe ; caractère spécial, caractère de contrôle et espace définis (§ 6.6) ; liste NCSC des mots de passe courants, comparaison sans majuscules ni accents ; identifiant et pseudo comparés au mot de passe sans majuscules ni accents, au-delà de 3 caractères. Référence : NIST SP 800-63B rév. 4 (§ 3.1.1.2, mots propres au contexte) et CNIL 2022-100. Écartée : un pseudo généré depuis l'identifiant, qui révélerait l'identifiant au partenaire (décision du 15/10).
+
+**Tranchées le 06/11** (préparation de B1, #9) : le code d'invitation et son échéance vivent dans `joueur`, la ligne `duo` n'est créée qu'à la formation (§ 7, ADR-0002) ; code de 8 caractères tirés de 32 (A-Z sans I ni O, 2 à 9), saisie normalisée (NFC, séparateurs retirés, majuscules), échéance à 60 minutes ; quatre refus distincts pour la saisie (attente, propre code, expiré, pas valable) et ceux qui comptent dans la limite de 5 (§ 6.6) ; limite par joueur et par session, mêmes règles que la connexion ; formation du duo en une transaction sous verrou des deux joueurs ; code reçu avant authentification conservé en session, rejoué une seule fois ; variante « déjà en duo » réservée au lien d'invitation (§ 8.5). Écarté : conserver l'historique des codes pour distinguer « régénéré » et « déjà en duo » de « faux ».
 
 ## 17. Note de fusion
 
