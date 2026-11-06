@@ -11,6 +11,23 @@ class Regles
         ['titre' => 'Le cœur et minuit', 'texte' => 'Tu pars avec 5 points de vie. À minuit, un défi non réalisé s\'envole, et un cœur avec lui.'],
     ];
 
+    // Écrans d'où B3 s'ouvre : liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
+    // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
+    private const ORIGINES = ['onboarding', 'profil', 'accueil'];
+
+    // Requête (sans « index.php? ») du retour de B3 vers son origine. Origine inconnue : accueil.
+    // Avec B2 pour origine, l'étape (chiffres ou « attente ») est reprise ; étape invalide : B2 sans étape, donc première règle.
+    public static function ecranDeRetour(mixed $origine, mixed $etape): string
+    {
+        if (!is_string($origine) || !in_array($origine, self::ORIGINES, true)) {
+            return 'ecran=accueil';
+        }
+        if ($origine === 'onboarding' && is_string($etape) && preg_match('/^([0-9]+|attente)$/D', $etape)) {
+            return "ecran=onboarding&etape=$etape";
+        }
+        return "ecran=$origine";
+    }
+
     /** @return list<array{titre: string, texte: string}> */
     public static function toutes(): array
     {
