@@ -327,6 +327,14 @@ class CompteServiceTest extends TestCase
         ];
     }
 
+    // A2 — un identifiant vide manque seulement à la longueur : on ne lui reproche pas aussi ses « caractères ».
+    public function testIdentifiantVideNeManqueQueALaLongueur(): void
+    {
+        $resultat = $this->service->inscrire('', 'Nini', self::MDP_VALIDE, $this->midi);
+
+        $this->assertSame(['identifiant' => ['longueur']], $resultat);
+    }
+
     // A2 — chaque critère manquant est nommé, tous ensemble : le joueur corrige tout en une fois.
     public function testToutesLesErreursSontRenvoyeesEnsemble(): void
     {

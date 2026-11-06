@@ -48,7 +48,8 @@ class CompteService
             $erreurs['identifiant'][] = 'longueur';
         }
         // Le modificateur u est indispensable : sans lui, \p{L} ne reconnaît pas les lettres accentuées.
-        if (!preg_match('/^[\p{L}\p{N}._-]+$/u', $identifiant)) {
+        // Vide : déjà signalé par la longueur, inutile d'ajouter les caractères.
+        if ($identifiant !== '' && !preg_match('/^[\p{L}\p{N}._-]+$/u', $identifiant)) {
             $erreurs['identifiant'][] = 'caracteres';
         }
         // Doublon : l'interclassement de la colonne ignore majuscules et accents, comme pour connecter().
