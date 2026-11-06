@@ -16,7 +16,7 @@ class ConnexionControleur
         $retour = $_SESSION[self::RETOUR] ?? ['identifiant' => '', 'erreurs' => [], 'attente' => null];
         unset($_SESSION[self::RETOUR]);
         // Un lien d'invitation arrive avec ?code= : on le garde en session pour le préremplir en B1 après la connexion (doc technique § 3.6).
-        $retour['codeRecu'] = SalleAttenteControleur::conserverCodeRecu();
+        $retour['codeRecu'] = CodeRecu::conserver();
 
         // Le titre de la page commence par « Erreur : » pour que le lecteur d'écran l'annonce au rechargement (RGAA 8.6).
         $titre = ($retour['erreurs'] || $retour['attente']) ? 'Erreur : Connexion' : 'Connexion';

@@ -13,34 +13,24 @@ class QuitterDuoControleur
     // GET : l'avertissement d'irréversibilité, la confirmation et l'annulation vers l'écran d'origine.
     public function afficher(): void
     {
-        $joueur = $this->joueurConnecte();
+        $joueur = Routeur::joueurConnecte($this->pdo);
+        $service = AppairageService::construire($this->pdo);
         // Origine absente ou inconnue : l'écran de l'étape d'accès du joueur (relue en base).
         // TODO(simplif): pour un joueur en accès au jeu l'origine vaut « accueil », absent de la table du routeur : Annuler et ← mènent à G1, à corriger quand C1 existe.
         $origine = $_GET['origine'] ?? null;
         if (!is_string($origine) || !in_array($origine, self::ORIGINES, true)) {
-            $origine = Routeur::ecranDeLEtape(AppairageService::construire($this->pdo)->etapeAcces($joueur));
+            $origine = Routeur::ecranDeLEtape($service->etapeAcces($joueur));
         }
         Vue::rendre('f2-quitter-duo', 'Quitter mon duo', [
             'retour' => $origine,
-            'partenaire' => (new JoueurDepot($this->pdo))->trouverPartenaire($joueur)?->pseudo,
+            'partenaire' => $service->pseudoPartenaire($joueur),
         ]);
     }
 
     // POST : le jeton CSRF a déjà été vérifié par le routeur. Le résultat (dissous ou déjà dissous) ne change pas l'écran suivant.
     public function dissoudre(): void
     {
-        AppairageService::construire($this->pdo)->dissoudre($this->joueurConnecte());
+        AppairageService::construire($this->pdo)->dissoudre(Routeur::joueurConnecte($this->pdo));
         Routeur::rediriger('salle-attente');
-    }
-
-    // Le joueur de la session, relu en base. Un compte supprimé entre-temps ramène à la connexion.
-    private function joueurConnecte(): Joueur
-    {
-        $joueur = (new JoueurDepot($this->pdo))->trouverParId($_SESSION['joueur_id']);
-        if ($joueur === null) {
-            $_SESSION = [];
-            Routeur::rediriger('connexion');
-        }
-        return $joueur;
     }
 }
