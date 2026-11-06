@@ -3,6 +3,10 @@
 
 $racine = dirname(__DIR__);
 
+// Aucun message technique (utilisateur de la base, chemin, trace) n'atteint le navigateur, quel que soit php.ini : tout va au journal.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
 // config.php n'est pas versionné : à la première installation, un message clair vaut mieux qu'une erreur fatale.
 if (!is_file($racine . '/config/config.php')) {
     http_response_code(500);
@@ -32,6 +36,17 @@ session_set_cookie_params([
     'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
 ]);
 session_start();
+
+// Exception non attrapée (base injoignable, bogue de contrôleur) : détail au journal, G1 en version 500 pour le joueur.
+set_exception_handler(function (Throwable $exception): void {
+    error_log((string) $exception);
+    try {
+        (new ErreurControleur())->afficher(500);
+    } catch (Throwable) {
+        http_response_code(500);
+        echo 'Erreur interne.';
+    }
+});
 
 $pdo = Bdd::connexion();
 Securite::jeton();
