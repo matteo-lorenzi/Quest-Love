@@ -196,11 +196,11 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 - **A2 · Inscription** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-183)
   Formulaire identifiant + pseudo + mot de passe.
   - Avertissement mot de passe, mention CGU, code prérempli, erreurs
-  - Destinations : B2 (code valide), B1 (sans code ou code invalide), retour A1
+  - Destinations : B1 (code reçu prérempli, à valider), retour A1
 - **A3 · Connexion** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-219)
   Formulaire identifiant + mot de passe.
   - Erreurs, délai après 5 échecs, code conservé
-  - Destinations : C1 (en duo), B2 (code valide), B1
+  - Destinations : C1 (en duo), B1 (code reçu prérempli, à valider)
 - **A4 · Pages légales** (gabarit unique) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=36-243)
   Un seul gabarit, trois contenus sélectionnés par paramètre d'URL.
   - Mentions légales · Politique de confidentialité · Conditions d'utilisation

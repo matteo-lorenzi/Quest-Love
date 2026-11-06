@@ -29,14 +29,21 @@ class AppairageService
         if ($joueur->codeInvitation !== null && $joueur->dateExpirationCode > $maintenant) {
             return $joueur;
         }
-        return $this->regenerer($joueur, $maintenant);
+        return $this->ecrireCode($joueur, $maintenant, $maintenant);
     }
 
     // B1 — lien « nouveau code » : écrase le code, ce qui invalide l'ancien. Renvoie le joueur à jour.
     public function regenerer(Joueur $joueur, DateTimeImmutable $maintenant): Joueur
     {
+        return $this->ecrireCode($joueur, $maintenant, null);
+    }
+
+    // $siExpireAvant : le premier affichage n'écrit que si aucun code valable n'existe, pour ne pas écraser celui qu'un autre appareil vient de créer.
+    // Le joueur relu porte ce que la base contient, que cet appel l'ait écrit ou non.
+    private function ecrireCode(Joueur $joueur, DateTimeImmutable $maintenant, ?DateTimeImmutable $siExpireAvant): Joueur
+    {
         for ($essai = 0; $essai < self::ESSAIS_CODE; $essai++) {
-            if ($this->joueurs->enregistrerCode($joueur->id, $this->tirerCode(), $maintenant->modify('+' . self::VALIDITE))) {
+            if ($this->joueurs->enregistrerCode($joueur->id, $this->tirerCode(), $maintenant->modify('+' . self::VALIDITE), $siExpireAvant)) {
                 return $this->joueurs->trouverParId($joueur->id);
             }
         }
@@ -55,25 +62,23 @@ class AppairageService
         if ($invite->duoId !== null) {
             return RefusCode::DejaEnDuo;
         }
-        // Attente en cours : vérifiée avant le code, et un essai refusé ici n'est pas enregistré, sinon chaque essai la prolongerait.
-        // Deux compteurs, comme la connexion : changer de session ne remet pas celui du joueur à zéro, et inversement.
-        $attente = max(
-            $this->limite->attente((string) $invite->id, TypeTentative::Code, $maintenant),
-            $this->limite->attente($cleSession, TypeTentative::Code, $maintenant),
-        );
-        if ($attente !== null) {
-            return $attente;
+        // Essai réservé avant la vérification, comme la connexion : des requêtes simultanées se comptent entre elles.
+        // Deux compteurs : changer de session ne remet pas celui du joueur à zéro, et inversement. Pendant l'attente, l'essai n'est pas gardé.
+        // Un refus qui compte garde sa réservation ; la formation du duo et le refus « déjà en duo » la rendent.
+        $reservation = $this->limite->reserver([(string) $invite->id, $cleSession], TypeTentative::Code, $maintenant);
+        if ($reservation instanceof DateTimeImmutable) {
+            return $reservation;
         }
         $proprietaire = $this->joueurs->trouverParCode($code);
         // TODO(simplif): faux, régénéré et propriétaire déjà en duo ne sont pas distingués (le code est écrasé ou remis à nul), à garder l'historique des codes si le support en a besoin.
         if ($proprietaire === null) {
-            return $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
+            return RefusCode::PasValable;
         }
         if ($proprietaire->id === $invite->id) {
-            return $this->echec(RefusCode::PropreCode, $invite, $cleSession, $maintenant);
+            return RefusCode::PropreCode;
         }
         if ($proprietaire->dateExpirationCode <= $maintenant) {
-            return $this->echec(RefusCode::Expire, $invite, $cleSession, $maintenant);
+            return RefusCode::Expire;
         }
         // Formation : une transaction, sous verrou des deux joueurs. Ce qui a été lu plus haut a pu changer entre-temps
         // (le propriétaire a régénéré son code, un autre invité l'a pris), donc tout est revérifié sur les lignes verrouillées.
@@ -95,11 +100,15 @@ class AppairageService
             $this->pdo->rollBack();
             throw $erreur;
         }
-        // L'échec est écrit une fois la transaction terminée : dedans, une erreur ultérieure l'annulerait avec le reste.
         if ($duoId === null) {
             // L'invité est entré en duo entre la lecture et le verrou (double clic, deux appareils) : ce n'est pas une erreur de saisie, elle ne compte pas.
-            return $inviteFrais?->duoId !== null ? RefusCode::DejaEnDuo : $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
+            if ($inviteFrais?->duoId !== null) {
+                $this->limite->liberer($reservation);
+                return RefusCode::DejaEnDuo;
+            }
+            return RefusCode::PasValable;
         }
+        $this->limite->liberer($reservation);
         return $this->duos->trouverParId($duoId);
     }
 
@@ -114,14 +123,6 @@ class AppairageService
         // strtoupper et non mb_strtoupper : « ß » deviendrait « SS » et passerait pour deux caractères de l'alphabet.
         $code = strtoupper(preg_replace('/[\p{Z}\p{Pd}]+/u', '', $texte));
         return preg_match('/^[A-HJ-NP-Z2-9]{8}$/D', $code) ? $code : null;
-    }
-
-    // Un refus qui compte est daté sur les deux compteurs : celui du joueur et celui de la session (cadrage § 6.6).
-    private function echec(RefusCode $refus, Joueur $invite, string $cleSession, DateTimeImmutable $maintenant): RefusCode
-    {
-        $this->limite->echouer((string) $invite->id, TypeTentative::Code, $maintenant);
-        $this->limite->echouer($cleSession, TypeTentative::Code, $maintenant);
-        return $refus;
     }
 
     private function tirerCode(): string

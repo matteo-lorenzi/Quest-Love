@@ -3,7 +3,7 @@
 
 class SalleAttenteControleur
 {
-    // Clé de session qui transporte la saisie et le refus du POST (ou du rejeu après connexion) vers le GET qui suit la redirection.
+    // Clé de session qui transporte la saisie et le refus du POST vers le GET qui suit la redirection.
     private const RETOUR = 'retour_salle_attente';
     // Clé de session du code reçu par un lien avant authentification (doc technique § 3.6).
     private const CODE_CONSERVE = 'code_conserve';
@@ -19,8 +19,11 @@ class SalleAttenteControleur
         $joueur = $this->joueurConnecte();
         $retour = $_SESSION[self::RETOUR] ?? ['saisie' => '', 'refus' => null, 'attente' => null];
         unset($_SESSION[self::RETOUR]);
-        // Un lien d'invitation arrive avec ?code= : le champ est prérempli, sans rien valider (un GET n'écrit jamais d'essai).
+        // Le code d'un lien est prérempli, jamais validé ici : un GET n'écrit pas d'essai, et aucun duo ne se forme sans le clic du joueur.
+        // Il vient de l'URL (joueur déjà connecté) ou de la session (lien ouvert avant l'inscription ou la connexion) ; il ne sert qu'une fois.
         $recu = is_string($_GET['code'] ?? null) ? $_GET['code'] : null;
+        $conserve = $_SESSION[self::CODE_CONSERVE] ?? null;
+        unset($_SESSION[self::CODE_CONSERVE]);
 
         // B1 vérifie la formation du duo à chaque chargement (cadrage § 8.5). Un duo formé pendant l'attente renvoie à l'accueil ;
         // le lien d'invitation d'un joueur déjà en duo montre au contraire la variante, pour qu'il comprenne pourquoi il ne peut pas rejoindre.
@@ -36,12 +39,12 @@ class SalleAttenteControleur
         }
 
         // Le premier affichage crée le code : une initialisation idempotente, pas une action du joueur (doc technique § 3.6).
-        $joueur = self::service($this->pdo)->code($joueur, $this->maintenant);
+        $joueur = $this->service()->code($joueur, $this->maintenant);
         // Duo formé entre la lecture et la génération : plus de code à montrer, le rechargement renverra à l'accueil.
         if ($joueur->codeInvitation === null) {
             Routeur::rediriger('salle-attente');
         }
-        $saisie = $retour['saisie'] !== '' ? $retour['saisie'] : ($recu ?? '');
+        $saisie = $retour['saisie'] !== '' ? $retour['saisie'] : ($recu ?? $conserve ?? '');
         $titre = ($retour['refus'] !== null || $retour['attente'] !== null) ? 'Erreur : Salle d\'attente' : 'Salle d\'attente';
         Vue::rendre('b1-salle-attente', $titre, [
             'dejaEnDuo' => false,
@@ -58,7 +61,7 @@ class SalleAttenteControleur
     public function traiter(): void
     {
         $joueur = $this->joueurConnecte();
-        $service = self::service($this->pdo);
+        $service = $this->service();
 
         // Lien « nouveau code » : écrase l'ancien code ; le service n'y touche pas si le joueur est déjà en duo.
         if (($_POST['action'] ?? '') === 'nouveau-code') {
@@ -73,14 +76,20 @@ class SalleAttenteControleur
             // TODO(simplif): la route onboarding n'existe pas (G1), à brancher avec B2.
             Routeur::rediriger('onboarding');
         }
-        self::revenir($saisie, $resultat);
+        // Redirection après écriture (§ 2.4) : même un refus écrit un essai, donc on repasse par un GET.
+        $_SESSION[self::RETOUR] = [
+            'saisie' => $saisie,
+            'refus' => $resultat instanceof RefusCode ? $resultat : null,
+            'attente' => $resultat instanceof DateTimeImmutable ? $resultat : null,
+        ];
+        Routeur::rediriger('salle-attente');
     }
 
     // Appelée par A2 et A3 quand elles affichent le formulaire : garde le code d'un lien d'invitation et renvoie celui en session.
     // TODO(simplif): l'entrée du lien est ?code= sur A2 et A3, faute d'A1 · invitation, à déplacer quand A1 existe ; un lien vers B1 ouvert sans session perd son code (le routeur renvoie à la connexion).
     public static function conserverCodeRecu(): ?string
     {
-        // Un ?code= vide n'est pas un code reçu : on ne garde rien, pour ne pas rejouer un refus de format à vide.
+        // Un ?code= vide n'est pas un code reçu : on ne garde rien.
         $recu = is_string($_GET['code'] ?? null) ? trim($_GET['code']) : '';
         if ($recu !== '') {
             $_SESSION[self::CODE_CONSERVE] = mb_substr($recu, 0, self::LONGUEUR_MAX_CONSERVEE);
@@ -88,40 +97,9 @@ class SalleAttenteControleur
         return $_SESSION[self::CODE_CONSERVE] ?? null;
     }
 
-    // Aiguillage après inscription ou connexion (cadrage § 8.5) : en duo vers l'accueil, code conservé valide vers B2, sinon B1.
-    // Le code est rejoué une seule fois, avec la limite des tentatives (cadrage § 6.6), et ne reste jamais en session.
-    public static function aiguiller(PDO $pdo, Joueur $joueur, DateTimeImmutable $maintenant): never
+    private function service(): AppairageService
     {
-        $code = $_SESSION[self::CODE_CONSERVE] ?? null;
-        unset($_SESSION[self::CODE_CONSERVE]);
-        if ($joueur->duoId !== null) {
-            Routeur::rediriger('accueil');
-        }
-        if ($code === null) {
-            Routeur::rediriger('salle-attente');
-        }
-        $resultat = self::service($pdo)->rejoindre($joueur, $code, session_id(), $maintenant);
-        if ($resultat instanceof Duo) {
-            // TODO(simplif): la route onboarding n'existe pas (G1), à brancher avec B2.
-            Routeur::rediriger('onboarding');
-        }
-        self::revenir($code, $resultat);
-    }
-
-    private static function service(PDO $pdo): AppairageService
-    {
-        return new AppairageService($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));
-    }
-
-    // Redirection après écriture (§ 2.4) : même un refus écrit un essai, donc on repasse par un GET.
-    private static function revenir(string $saisie, DateTimeImmutable|RefusCode $resultat): never
-    {
-        $_SESSION[self::RETOUR] = [
-            'saisie' => $saisie,
-            'refus' => $resultat instanceof RefusCode ? $resultat : null,
-            'attente' => $resultat instanceof DateTimeImmutable ? $resultat : null,
-        ];
-        Routeur::rediriger('salle-attente');
+        return new AppairageService($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
     }
 
     // Le joueur de la session, relu en base. Un compte supprimé entre-temps ramène à la connexion.

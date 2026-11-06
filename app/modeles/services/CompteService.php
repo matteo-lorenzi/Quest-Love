@@ -129,30 +129,26 @@ class CompteService
             return null;
         }
 
-        // Étape 6.1 — attente en cours ?
-        // Vérifiée avant le mot de passe : pendant l'attente, même le bon mot de passe est refusé.
-        // Un essai refusé ici n'est pas enregistré, sinon chaque nouvel essai prolongerait l'attente.
+        // Étape 6.1 — essai réservé, ou attente en cours ?
+        // Réservé avant le mot de passe : des requêtes simultanées se comptent donc entre elles, et seules les cinq premières passent.
+        // Pendant l'attente, même le bon mot de passe est refusé, et l'essai refusé n'est pas gardé.
         // Deux compteurs : par identifiant et par session, pour que changer l'un ou l'autre ne remette pas à zéro.
-        // Quand les deux bloquent, on annonce l'heure la plus tardive ; max() classe null avant toute date.
-        $attente = max(
-            $this->limite->attente($identifiant, TypeTentative::Connexion, $maintenant),
-            $this->limite->attente($cleSession, TypeTentative::Connexion, $maintenant),
-        );
-        if ($attente !== null) {
-            return $attente;
+        $reservation = $this->limite->reserver([$identifiant, $cleSession], TypeTentative::Connexion, $maintenant);
+        if ($reservation instanceof DateTimeImmutable) {
+            return $reservation;
         }
 
         // Étape 6.2 — recherche du joueur, puis vérification de l'empreinte.
         $joueur = $this->joueurs->trouverParIdentifiant($identifiant);
         // Mot de passe normalisé comme à l'inscription (étape 6.0), sinon un compte créé sur un appareil ne s'ouvrirait pas sur un autre.
         if ($joueur !== null && password_verify($mdp, $joueur->mdpHash)) {
+            // Une connexion réussie ne compte pas : l'essai réservé est rendu.
+            $this->limite->liberer($reservation);
             return $joueur;
         }
 
-        // Étape 6.3 — échec : on le date sur les deux compteurs.
+        // Étape 6.3 — échec : l'essai réservé reste, c'est lui qui compte sur les deux compteurs.
         // Un identifiant inconnu est compté comme un autre, et reçoit le même refus.
-        $this->limite->echouer($identifiant, TypeTentative::Connexion, $maintenant);
-        $this->limite->echouer($cleSession, TypeTentative::Connexion, $maintenant);
         return null;
     }
 

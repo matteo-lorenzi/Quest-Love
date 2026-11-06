@@ -294,6 +294,18 @@ class AppairageServiceTest extends TestCase
         $this->assertNotNull($relu->duoId);
     }
 
+    // Deux appareils ouvrent B1 en même temps, sans code : le second ne doit pas écraser celui que le premier affiche,
+    // sinon le partenaire saisirait un code qui n'existe plus (cadrage § 6.7).
+    public function testDeuxPremiersAffichagesSimultanesMontrentLeMemeCode(): void
+    {
+        $lou = $this->creerJoueur('Lou');
+
+        $premier = $this->service->code($lou, $this->midi);
+        $second = $this->service->code($lou, $this->midi);
+
+        $this->assertSame($premier->codeInvitation, $second->codeInvitation);
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");

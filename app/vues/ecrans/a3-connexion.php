@@ -24,8 +24,8 @@ $decrit = fn (string $champ) => isset($erreurs[$champ]) ? "erreur-$champ" : ($me
 </header>
 <main class="connexion">
     <?php if ($codeRecu !== null): ?>
-        <!-- Le code d'un lien d'invitation : affiché tel que reçu, il n'est validé qu'après la connexion ou l'inscription. -->
-        <p class="invitation">Tu as reçu un code d'invitation : <strong><?= e($codeRecu) ?></strong>. Il sera utilisé dès que tu seras connecté.</p>
+        <!-- Le code d'un lien d'invitation : affiché tel que reçu, il n'est validé que si tu le valides en salle d'attente. -->
+        <p class="invitation">Tu as reçu un code d'invitation : <strong><?= e($codeRecu) ?></strong>. Il sera prérempli dans la salle d'attente dès que tu seras connecté.</p>
     <?php endif ?>
     <?php if ($messageGeneral !== null): ?>
         <!-- En tête du formulaire, pour être lue en premier après l'annonce du titre « Erreur : ». -->
