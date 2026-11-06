@@ -446,6 +446,18 @@ class CompteServiceTest extends TestCase
         $this->assertEquals(new DateTimeImmutable('2026-10-15 12:19:00'), $resultat);
     }
 
+    // Normaliser, rogner, puis compter : 30 caractères suivis d'une espace sont un identifiant valide, pas un identifiant « incorrect ».
+    public function testUnIdentifiantDeTrenteCaracteresSuiviDUneEspaceSeConnecte(): void
+    {
+        $long = str_repeat('a', CompteService::IDENTIFIANT_MAX);
+        $this->pdo->prepare(
+            'INSERT INTO joueur (identifiant, pseudo, mdp_hash, date_creation) VALUES (?, ?, ?, ?)'
+        )->execute([$long, 'Long', password_hash(self::MDP, PASSWORD_DEFAULT), '2026-10-01 09:00:00']);
+
+        $this->assertInstanceOf(Joueur::class, $this->service->connecter("$long ", self::MDP, 'session-a', $this->midi));
+        $this->assertNull($this->service->connecter($long . 'b ', self::MDP, 'session-b', $this->midi));
+    }
+
     public function testUnIdentifiantTropLongEstRefuseSansToucherLaBase(): void
     {
         // Plus long que la colonne tentative.cle : en mode strict (MariaDB d'Azrael), l'écrire lèverait une erreur.

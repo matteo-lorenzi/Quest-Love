@@ -134,16 +134,19 @@ class CompteService
     {
         // Étape 6.0 — texte illisible ou identifiant trop long : aucun compte ne peut porter ce nom, on refuse sans toucher la base.
         // Le maxlength du formulaire ne protège pas d'une requête forgée, et la colonne tentative.cle est limitée à 64 caractères.
-        // La NFC vient d'abord : l'identifiant est compté comme à l'inscription, où il a été normalisé (doc technique § 3.6).
+        // Ordre : NFC, rognage (espaces Unicode de bord, comme à l'inscription), puis longueur ; l'identifiant est compté tel qu'il a été enregistré (doc technique § 3.6).
         $identifiant = $this->normaliser($identifiant);
         $mdp = $this->normaliser($mdp);
-        if ($identifiant === null || $mdp === null || mb_strlen($identifiant) > self::IDENTIFIANT_MAX) {
+        if ($identifiant === null || $mdp === null) {
+            return null;
+        }
+        $identifiant = $this->rogner($identifiant);
+        if (mb_strlen($identifiant) > self::IDENTIFIANT_MAX) {
             return null;
         }
 
-        // Étape 6.0 bis — même rognage qu'à l'inscription (espaces Unicode de bord), puis champs vides : une erreur de saisie.
+        // Étape 6.0 bis — champs vides : une erreur de saisie.
         // Ni la base ni le compteur d'échecs ne sont touchés. Le mot de passe, lui, n'est jamais rogné.
-        $identifiant = $this->rogner($identifiant);
         $vides = array_filter(['identifiant' => $identifiant, 'mdp' => $mdp], fn (string $texte) => $texte === '');
         if ($vides) {
             return array_map(fn () => ErreurConnexion::Vide, $vides);
