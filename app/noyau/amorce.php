@@ -9,7 +9,9 @@ ini_set('log_errors', '1');
 
 // En-têtes de sécurité posés avant toute sortie, donc aussi sur le message de configuration absente ci-dessous.
 require __DIR__ . '/Securite.php';
-foreach (Securite::entetes() as $nom => $valeur) {
+$enProduction = !Securite::estLocal($_SERVER['HTTP_HOST'] ?? '');
+$enHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+foreach (Securite::entetes($enProduction && $enHttps) as $nom => $valeur) {
     header("$nom: $valeur");
 }
 
@@ -42,9 +44,9 @@ ini_set('session.gc_maxlifetime', '7200');
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
-    // Secure seulement en HTTPS : WAMP sert en HTTP, où un cookie Secure ne serait jamais renvoyé et la session perdue.
-    // TODO(simplif): le § 3.7 veut Secure sans condition, à forcer une fois le HTTPS d'Azrael confirmé.
-    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    // Secure partout sauf sur le poste de développement : WAMP sert en HTTP, où un cookie Secure ne serait jamais renvoyé et la session perdue.
+    // En production on ne se fie pas à $_SERVER['HTTPS'] : derrière un relais qui termine le TLS, il serait vide.
+    'secure' => $enProduction,
 ]);
 session_start();
 
