@@ -14,6 +14,11 @@ Les tickets et les specs de ce dépôt sont des GitHub Issues (`matteo-lorenzi/Q
 
 Le dépôt se déduit de `git remote -v` ; `gh` le fait seul dans un clone.
 
+## Limites de `gh` 2.40 (poste local)
+
+- `gh pr edit` échoue (dépréciation de Projects classic). Corps d'une PR : `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@fichier.md`.
+- `--parent` et `--add-sub-issue` n'existent pas avant `gh` 2.94 : utiliser `Part of #<parent>` ou l'API (voir ci-dessus).
+
 ## Pull requests comme canal de demande
 
 **PR comme canal de demande : non.** _(Passer à `oui` si ce dépôt traite les PR externes comme des demandes de fonctionnalité ; `/triage` lit ce drapeau.)_

@@ -15,7 +15,8 @@ if [ ! -f app/config/config.php ]; then
     fi
 fi
 
-# 2. phpunit.phar vit hors du dépôt (§ 6.4) : variable PHPUNIT_PHAR, sinon une commande phpunit du PATH.
+# 2. phpunit.phar vit hors du dépôt (§ 6.4) : variable PHPUNIT_PHAR, sinon ~/outils/phpunit.phar, sinon une commande phpunit du PATH.
+[ -z "${PHPUNIT_PHAR:-}" ] && [ -f "$HOME/outils/phpunit.phar" ] && PHPUNIT_PHAR="$HOME/outils/phpunit.phar"
 if [ -n "${PHPUNIT_PHAR:-}" ] && [ -f "$PHPUNIT_PHAR" ]; then
     lancer=(php "$PHPUNIT_PHAR")
 elif command -v phpunit > /dev/null; then

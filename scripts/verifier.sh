@@ -41,5 +41,9 @@ avec_d=$'\\$/[a-zA-Z]*D[a-zA-Z]*[\'"]'
 dollars=$(grep -nE "$motif_dollar" -- $(printf '%s\n' "${fichiers[@]}" | grep '\.php$') /dev/null | grep -vE "$avec_d")
 [ -n "$dollars" ] && signaler "motif terminé par \$ sans modificateur D (utiliser \\z) :"$'\n'"$dollars"
 
+# 6. La couche modèle ne connaît ni les écrans ni les adresses (ADR-0001) : une requête « ecran=… » se construit dans un contrôleur ou le routeur.
+adresses=$(grep -nE 'ecran=' -- $(printf '%s\n' "${fichiers[@]}" | grep '^app/modeles/.*\.php$') /dev/null)
+[ -n "$adresses" ] && signaler "adresse d'écran construite dans app/modeles/ (ADR-0001) :"$'\n'"$adresses"
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"
