@@ -71,7 +71,7 @@ class Routeur
         if ($methode === null) {
             self::erreur(405);
         }
-        // Le contrôleur reçoit la connexion et l'heure, et construit lui-même ses dépôts et services (ADR-0001).
+        // Le routeur ne passe que la connexion et l'heure : le contrôleur construit lui-même ses dépôts et services (ADR-0001).
         (new $classe($pdo, $maintenant))->$methode();
     }
 

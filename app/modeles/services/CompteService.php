@@ -17,7 +17,7 @@ class CompteService
 
     private LimiteTentativesService $limite;
 
-    // Le contrôleur construit les dépôts et les passe ici : aucune dépendance cachée (ADR-0001).
+    // Le contrôleur construit les dépôts et les passe ici (ADR-0001).
     // La règle de limitation est partagée avec AppairageService ; elle n'a pas d'autre état que le dépôt reçu.
     public function __construct(
         private JoueurDepot $joueurs,
