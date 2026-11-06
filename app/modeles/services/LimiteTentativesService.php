@@ -9,6 +9,13 @@ class LimiteTentativesService
 
     public function __construct(private TentativeDepot $tentatives) {}
 
+    // Clé de limitation d'une session : l'identifiant de session ne s'écrit jamais en clair dans la table des tentatives.
+    // SHA-256 en hexadécimal fait déjà 64 caractères, la taille de la colonne tentative.cle ; elle ne peut pas croiser un identifiant (30 au plus) ni un numéro de joueur.
+    public static function cleSession(string $idSession): string
+    {
+        return substr(hash('sha256', $idSession), 0, 64);
+    }
+
     // Réserve un essai sur chaque clé (joueur, session…) avant que le service ne le vérifie.
     // Résultat : les numéros des essais réservés, ou l'heure de réessai (la plus tardive des clés) sans rien garder.
     // L'essai est écrit avant d'être compté, et on ne compte que ceux écrits avant lui : des requêtes simultanées

@@ -542,6 +542,16 @@ class AppairageServiceTest extends TestCase
         $this->assertFalse($this->relire($lou)->onboardingVu);
     }
 
+    // Sécurité (B1) : après un code refusé, la table des tentatives ne contient pas l'identifiant de session lisible.
+    public function testUnCodeRefuseNeLaissePasLIdentifiantDeSessionEnClair(): void
+    {
+        $mia = $this->creerJoueur('Mia');
+        $this->service->rejoindre($mia, '23456789', 'session-mia', $this->midi);
+
+        $this->assertSame(0, $this->compterEchecs('session-mia'));
+        $this->assertSame(1, $this->compterEchecs(LimiteTentativesService::cleSession('session-mia')));
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");
