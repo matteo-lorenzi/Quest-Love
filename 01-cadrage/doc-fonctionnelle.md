@@ -186,7 +186,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 > Pour chaque écran : maquette, éléments affichés, actions possibles, destinations, cas d'erreur. Nomenclature identique à l'inventaire et au fichier Figma.
 > Une variante notée en sous-point n'a pas de cadre dédié dans le Figma : elle est documentée en note sous le cadre concerné (§ 8.5 du cadrage).
-> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 27 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
+> **Maquettes** : [fichier Figma de zonage](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2) — 28 cadres du lot 1, annotés, une bande par parcours. Légende et conventions d'annotation : [section 00 du Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=32-207). Chaque écran ci-dessous renvoie à son cadre.
 
 #### Bande 01 — Arrivée et appairage
 
@@ -212,7 +212,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   Présente les règles du jeu une par une, après l'appairage, à chacun des deux joueurs. Obligatoire : l'accueil n'est accessible que lorsque les deux joueurs ont terminé ou passé l'onboarding ; il est recommencé à chaque nouvel appairage.
   - Trois règles, une par écran, avec la progression (1 / 3) : défi attribué au partenaire (tirage en éventail, choix définitif) ; bascule à 12 h et journée blanche ; points de vie et expiration à minuit
   - « Passer » sur chaque écran, même effet que le bouton du dernier écran ; pas de barre de navigation
-  - Variante : en attente de {pseudo}, vérifiée à chaque chargement, avec « Règles complètes » (B3) et « Quitter mon duo » (F2), sans « Passer » — note sous le cadre B2, étape `&etape=attente`
+  - Variante : en attente de {pseudo}, vérifiée à chaque chargement, avec « Règles complètes » (B3) et « Quitter mon duo » (F2), sans « Passer » — [cadre dédié](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=126-142), étape `&etape=attente`
   - Destinations : C1 (dès que les deux ont fini), B3, F2
 - **B3 · Règles du jeu** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=37-200)
   Rappel des règles du jeu en liste, accessible depuis B2 (« Règles complètes »), depuis l'accueil dans le cas « premier jour demain » (C1) et depuis le profil (F1).

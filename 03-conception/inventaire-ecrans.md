@@ -18,7 +18,8 @@
 | B1 | Salle d'attente (flèche ← vers F1, code à partager, lien « nouveau code », saisie, erreurs : propre code, expiré (60 min) ou régénéré, délai) | 1 | ✅ |
 | B1 | Salle d'attente · cas : déjà en duo (flèche ← vers C1, duo actuel, consigne, retour C1, quitter mon duo vers F2) | 1 | ✅ |
 | B2 | Duo formé + onboarding des règles (une règle par écran, bouton « Passer ») | 1 | ✅ |
-| B3 | Règles du jeu | 1 | ✅ |
+| B2 | Duo formé + onboarding · variante : en attente de {pseudo} (même route, `&etape=attente`, règles complètes et quitter mon duo, sans « Passer ») | 1 | ✅ |
+| B3 | Règles du jeu (retour vers l'écran d'origine, à la même étape quand l'origine est B2) | 1 | ✅ |
 
 ## Bande 02 — Journée de jeu (colonnes : A · zone d'action : B)
 
@@ -75,4 +76,4 @@ F4 Statistiques du couple · F5 Changement de mot de passe / pseudo · avatars g
 
 ## Avancement lot 1
 
-27 cadres zonés sur 27 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).
+28 cadres zonés sur 28 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste ; un cadre ajouté le 06/11 pour la variante d'attente de B2). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).
