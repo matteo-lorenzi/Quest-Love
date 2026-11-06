@@ -112,6 +112,43 @@ class AppairageService
         return $this->duos->trouverParId($duoId);
     }
 
+    // B2 — étape d'accès du joueur (doc technique § 3.6). Le partenaire est relu en base : son état change sans que le joueur agisse.
+    public function etapeAcces(Joueur $joueur): EtapeAcces
+    {
+        if ($joueur->duoId === null) {
+            return EtapeAcces::SansDuo;
+        }
+        if (!$joueur->onboardingVu) {
+            return EtapeAcces::OnboardingAFaire;
+        }
+        return $this->joueurs->trouverPartenaire($joueur)?->onboardingVu ? EtapeAcces::AccesAuJeu : EtapeAcces::Attente;
+    }
+
+    // B2 — « Passer » et le bouton du dernier écran. Idempotent (deux appareils) : le second appel ne change rien, donc ne déplace pas l'activation.
+    // Transaction sous verrou des deux joueurs, comme la formation : deux joueurs qui finissent en même temps ne s'ignorent pas.
+    public function terminerOnboarding(Joueur $joueur, DateTimeImmutable $maintenant): void
+    {
+        if ($joueur->duoId === null) {
+            return;
+        }
+        $partenaire = $this->joueurs->trouverPartenaire($joueur);
+        $this->pdo->beginTransaction();
+        try {
+            $verrouilles = $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
+            $frais = $verrouilles[$joueur->id] ?? null;
+            if ($frais !== null && $frais->duoId !== null && !$frais->onboardingVu) {
+                $this->joueurs->marquerOnboardingVu($joueur->id);
+                if ($partenaire !== null && ($verrouilles[$partenaire->id] ?? null)?->onboardingVu) {
+                    $this->duos->activer($frais->duoId, $maintenant);
+                }
+            }
+            $this->pdo->commit();
+        } catch (Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+    }
+
     // Le code tel qu'on le range : NFC, sans espaces ni tirets (copier-coller de « XXXX-XXXX »), en majuscules.
     // null si ce ne peut pas être un code : UTF-8 invalide, ou autre chose que 8 caractères de l'alphabet.
     private function normaliserCode(string $saisie): ?string

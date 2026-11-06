@@ -14,6 +14,8 @@ final readonly class Joueur
         public ?DateTimeImmutable $dateExpirationCode,
         public ?int $duoId,
         public int $pv,
+        // Onboarding (B2) terminé ou passé avec le duo actuel ; remis à faux à chaque formation de duo.
+        public bool $onboardingVu,
         public DateTimeImmutable $dateCreation,
     ) {}
 }

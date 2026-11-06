@@ -11,7 +11,9 @@ DROP TABLE IF EXISTS duo;
 -- Une ligne n'existe qu'une fois le duo formé : elle porte toujours deux joueurs (ADR-0002).
 CREATE TABLE duo (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  date_creation DATETIME NOT NULL
+  date_creation DATETIME NOT NULL,
+  -- Nulle à la formation ; posée quand les deux joueurs ont fini l'onboarding (cadrage § 4.2 : instant de référence de « duo formé après 12 h »).
+  date_activation DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE joueur (
@@ -27,6 +29,8 @@ CREATE TABLE joueur (
   -- Nul = sans duo ; la suppression du duo (dissolution) remet le joueur à nul.
   duo_id INT UNSIGNED NULL,
   pv TINYINT UNSIGNED NOT NULL DEFAULT 5,
+  -- Onboarding (B2) terminé ou passé avec le duo actuel ; remis à 0 pour les deux joueurs à chaque formation de duo.
+  onboarding_vu TINYINT(1) NOT NULL DEFAULT 0,
   date_creation DATETIME NOT NULL,
   UNIQUE KEY uk_joueur_identifiant (identifiant),
   UNIQUE KEY uk_joueur_code (code_invitation),
