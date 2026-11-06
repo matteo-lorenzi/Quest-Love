@@ -8,15 +8,15 @@ require_once __DIR__ . '/../app/controleurs/ReglesControleur.php';
 
 class ReglesTest extends TestCase
 {
-    // Le contrôleur valide l'origine contre la liste fermée.
-    public function testLOrigineEstValideeContreLaListeFermee(): void
+    // Le contrôleur valide l'origine contre l'énumération : chaque cas est reconnu, tout le reste devient l'accueil.
+    public function testLOrigineEstValideeContreLEnumeration(): void
     {
-        foreach (['onboarding', 'profil', 'accueil'] as $origine) {
-            $this->assertSame($origine, ReglesControleur::origine($origine));
-        }
-        $this->assertSame('accueil', ReglesControleur::origine('evil'));
-        $this->assertSame('accueil', ReglesControleur::origine(null));
-        $this->assertSame('accueil', ReglesControleur::origine(['onboarding']));
+        $this->assertSame(OrigineRegles::Onboarding, ReglesControleur::origine('onboarding'));
+        $this->assertSame(OrigineRegles::Profil, ReglesControleur::origine('profil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine('accueil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine('evil'));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine(null));
+        $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine(['onboarding']));
     }
 
     // Les textes restent la source unique de B2 et de B3.
