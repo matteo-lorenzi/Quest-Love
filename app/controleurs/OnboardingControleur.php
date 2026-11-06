@@ -10,9 +10,19 @@ class OnboardingControleur
     public function afficher(): void
     {
         $joueur = $this->joueurConnecte();
+        $etapeAcces = $this->service()->etapeAcces($joueur);
         // Les deux joueurs ont fini : B2 n'est plus un écran de passage.
-        if ($this->service()->etapeAcces($joueur) === EtapeAcces::AccesAuJeu) {
+        if ($etapeAcces === EtapeAcces::AccesAuJeu) {
             Routeur::rediriger('accueil');
+        }
+        // Il a fini avant son partenaire : variante d'attente, relue à chaque chargement. Elle sert quel que soit &etape= (y compris
+        // &etape=attente), puisqu'il n'a plus de règle à parcourir ; le routeur et « Passer » y envoient le joueur sans paramètre.
+        if ($etapeAcces === EtapeAcces::Attente) {
+            Vue::rendre('b2-onboarding', 'En attente de ton partenaire', [
+                'attente' => true,
+                'partenaire' => (new JoueurDepot($this->pdo))->trouverPartenaire($joueur)?->pseudo,
+            ]);
+            return;
         }
         $regles = Regles::toutes();
         // Étape absente ou invalide : première règle ; au-delà de la dernière : accueil.
@@ -22,6 +32,7 @@ class OnboardingControleur
         }
         // Pas de barre basse sur cet écran : elle ouvrirait un chemin vers C1 sans terminer l'onboarding (cadrage § 8.5).
         Vue::rendre('b2-onboarding', 'Les règles du jeu', [
+            'attente' => false,
             'regle' => $regles[$etape - 1],
             'etape' => $etape,
             'total' => count($regles),
@@ -32,7 +43,8 @@ class OnboardingControleur
     public function terminer(): void
     {
         $this->service()->terminerOnboarding($this->joueurConnecte(), $this->maintenant);
-        Routeur::rediriger('accueil');
+        // L'étape est relue : accueil si le partenaire avait fini, variante d'attente sinon.
+        Routeur::rediriger(Routeur::ecranDeLEtape($this->service()->etapeAcces($this->joueurConnecte())));
     }
 
     private function service(): AppairageService

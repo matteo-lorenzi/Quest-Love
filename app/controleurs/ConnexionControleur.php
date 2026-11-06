@@ -61,9 +61,10 @@ class ConnexionControleur
         session_regenerate_id(true);
         $_SESSION['joueur_id'] = $resultat->id;
 
-        // Étape 6.6 — aiguillage (cadrage § 8.5) : en duo vers l'accueil, sinon vers la salle d'attente, où un code conservé est prérempli.
+        // Étape 6.6 — aiguillage (cadrage § 8.5) : selon l'étape d'accès, B2 tant que les deux n'ont pas fini l'onboarding, sinon l'accueil ; sans duo, la salle d'attente, où un code conservé est prérempli.
         // Le code n'est pas rejoué ici : un lien ne doit pas former un duo sans que le joueur l'ait voulu.
-        Routeur::rediriger($resultat->duoId !== null ? 'accueil' : 'salle-attente');
+        $service = new AppairageService($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
+        Routeur::rediriger(Routeur::ecranDeLEtape($service->etapeAcces($resultat)));
     }
 
     // POST seulement (la table du routeur refuse le GET) : un lien ne peut pas déconnecter quelqu'un à son insu.

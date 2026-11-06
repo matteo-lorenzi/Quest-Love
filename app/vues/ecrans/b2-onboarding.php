@@ -1,8 +1,17 @@
 <?php
 // Vue de l'onboarding — B2 — parcours 1 (appairage) — lot 1 — A.
-// Reçoit de OnboardingControleur : $regle (titre et texte), $etape (à partir de 1) et $total.
-// Aucune barre de navigation : seules sorties, continuer ou passer.
+// Reçoit de OnboardingControleur : $attente ; variante d'attente : $partenaire (pseudo ou null) ; sinon $regle (titre et texte), $etape (à partir de 1) et $total.
+// Aucune barre de navigation : seules sorties, continuer ou passer (variante d'attente : règles complètes ou quitter le duo).
 ?>
+<?php if ($attente): ?>
+<main class="onboarding">
+    <h1 class="onboarding__titre">En attente de <?= $partenaire !== null ? e($partenaire) : 'ton partenaire' ?></h1>
+    <p class="onboarding__texte">Tu as fini les règles. Dès que ton partenaire aura fini les siennes, le jeu s'ouvrira : recharge cette page pour le savoir.</p>
+    <!-- TODO(simplif): les écrans B3 (regles) et F2 (quitter-duo) n'existent pas, ces liens mènent à G1 jusqu'à leur écriture (tickets suivants). -->
+    <a class="bouton" href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=attente">Règles complètes</a>
+    <p><a href="index.php?ecran=quitter-duo">Quitter mon duo</a></p>
+</main>
+<?php return; endif ?>
 <main class="onboarding">
     <p class="onboarding__progression"><?= (int) $etape ?> / <?= (int) $total ?></p>
     <h1 class="onboarding__titre"><?= e($regle['titre']) ?></h1>

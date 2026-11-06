@@ -4,8 +4,9 @@
 class Routeur
 {
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
-    // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte ou duo.
+    // null : l'écran n'accepte pas cette méthode HTTP. Accès : public, connecte, duo, ou jeu (en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
+    // Accueil, tirage et défi reçu y entreront avec l'accès 'jeu' (§ 3.6) ; le verrou est déjà en place à l'étape 5.
     private const ECRANS = [
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', 'public'],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', 'public'],
@@ -48,8 +49,15 @@ class Routeur
         }
         // Un écran réservé aux duos renvoie le joueur sans duo vers la salle d'attente (B1).
         // Le duo est relu en base à chaque requête : une dissolution par le partenaire prend effet aussitôt.
-        if ($acces === 'duo' && (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id'])?->duoId === null) {
-            self::rediriger('salle-attente');
+        if ($acces === 'duo' || $acces === 'jeu') {
+            $joueur = (new JoueurDepot($pdo))->trouverParId($_SESSION['joueur_id']);
+            if ($joueur?->duoId === null) {
+                self::rediriger('salle-attente');
+            }
+            // Un écran de jeu exige en plus que les deux joueurs aient fini l'onboarding, quel que soit le chemin d'arrivée (§ 3.6).
+            if ($acces === 'jeu' && self::service($pdo)->etapeAcces($joueur) !== EtapeAcces::AccesAuJeu) {
+                self::rediriger('onboarding');
+            }
         }
 
         // Étape 6 — CSRF, puis appel du contrôleur.
@@ -71,6 +79,21 @@ class Routeur
     {
         header('Location: index.php?ecran=' . urlencode($ecran));
         exit;
+    }
+
+    // Écran qui correspond à l'étape d'accès : la règle unique appliquée par le routeur, A3 et B1 (§ 3.6).
+    public static function ecranDeLEtape(EtapeAcces $etape): string
+    {
+        return match ($etape) {
+            EtapeAcces::SansDuo => 'salle-attente',
+            EtapeAcces::OnboardingAFaire, EtapeAcces::Attente => 'onboarding',
+            EtapeAcces::AccesAuJeu => 'accueil',
+        };
+    }
+
+    private static function service(PDO $pdo): AppairageService
+    {
+        return new AppairageService($pdo, new JoueurDepot($pdo), new DuoDepot($pdo), new TentativeDepot($pdo));
     }
 
     // never, comme rediriger() : après G1, plus rien ne doit s'exécuter.
