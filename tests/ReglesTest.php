@@ -19,6 +19,14 @@ class ReglesTest extends TestCase
         $this->assertSame(OrigineRegles::Accueil, ReglesControleur::origine(['onboarding']));
     }
 
+    // Chaque cas d'origine a un seul paramètre d'adresse, posé par le contrôleur : l'énumération du modèle ne porte aucun nom d'écran.
+    public function testChaqueOrigineAUnParametreDAdresse(): void
+    {
+        $this->assertSame('onboarding', ReglesControleur::parametre(OrigineRegles::Onboarding));
+        $this->assertSame('profil', ReglesControleur::parametre(OrigineRegles::Profil));
+        $this->assertSame('accueil', ReglesControleur::parametre(OrigineRegles::Accueil));
+    }
+
     // Les textes restent la source unique de B2 et de B3.
     public function testLesTroisReglesSontLues(): void
     {
