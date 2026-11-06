@@ -80,12 +80,17 @@ class JoueurDepot
             ->execute([$duoId, $id]);
     }
 
-    // Remise à zéro d'un joueur dont le duo disparaît : $pv vient du service (règle du jeu), $aSignaler du rôle (partenaire ou non).
+    // Remise à zéro d'un joueur dont le duo disparaît : $pv vient du service (règle du jeu). Ne touche pas au marqueur de dissolution.
     // Le duo_id, lui, retombe à nul par la suppression du duo (ON DELETE SET NULL).
-    public function remettreAZero(int $id, int $pv, bool $aSignaler): void
+    public function remettreAZero(int $id, int $pv): void
     {
-        $this->pdo->prepare('UPDATE joueur SET pv = ?, onboarding_vu = 0, dissolution_a_signaler = ? WHERE id = ?')
-            ->execute([$pv, (int) $aSignaler, $id]);
+        $this->pdo->prepare('UPDATE joueur SET pv = ?, onboarding_vu = 0 WHERE id = ?')->execute([$pv, $id]);
+    }
+
+    // Pose le marqueur « duo dissous par le partenaire » (D3 le lira). Jamais remis à 0 ici : un marqueur non lu doit survivre.
+    public function signalerDissolution(int $id): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET dissolution_a_signaler = 1 WHERE id = ?')->execute([$id]);
     }
 
     public function marquerOnboardingVu(int $id): void

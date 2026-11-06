@@ -424,6 +424,18 @@ class AppairageServiceTest extends TestCase
         $this->assertNull((new DuoDepot($this->pdo))->trouverParId($lou->duoId));
     }
 
+    // Un marqueur posé par une dissolution précédente et pas encore lu (D3) survit à la dissolution suivante du même joueur.
+    public function testDissoudreNEffacePasLeMarqueurDuJoueurQuiDissout(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->pdo->prepare('UPDATE joueur SET dissolution_a_signaler = 1 WHERE id = ?')->execute([$lou->id]);
+
+        $this->assertTrue($this->service->dissoudre($this->relire($lou)));
+
+        $this->assertTrue($this->relire($lou)->dissolutionASignaler);
+        $this->assertTrue($this->relire($mia)->dissolutionASignaler);
+    }
+
     // Un joueur sans duo, ou relu sans duo alors que son objet est périmé (duo encore renseigné), ne déclenche rien et ne pose aucun marqueur.
     public function testDissoudreSansDuoALaRelectureNeFaitRien(): void
     {

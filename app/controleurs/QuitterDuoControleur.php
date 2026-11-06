@@ -15,6 +15,7 @@ class QuitterDuoControleur
     {
         $joueur = $this->joueurConnecte();
         // Origine absente ou inconnue : l'écran de l'étape d'accès du joueur (relue en base).
+        // TODO(simplif): pour un joueur en accès au jeu l'origine vaut « accueil », absent de la table du routeur : Annuler et ← mènent à G1, à corriger quand C1 existe.
         $origine = $_GET['origine'] ?? null;
         if (!is_string($origine) || !in_array($origine, self::ORIGINES, true)) {
             $origine = Routeur::ecranDeLEtape(AppairageService::construire($this->pdo)->etapeAcces($joueur));

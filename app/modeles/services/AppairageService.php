@@ -158,7 +158,8 @@ class AppairageService
     }
 
     // F2 — dissolution du duo. Vrai si un duo a été dissous, faux si le joueur n'en a plus à la relecture (objet périmé, seconde demande, deux appareils).
-    // Même transaction que terminerOnboarding : les deux joueurs verrouillés dans l'ordre des numéros, décision prise sur les lignes fraîches.
+    // Même transaction que terminerOnboarding : décision prise sur les lignes fraîches. Le joueur est verrouillé seul, puis les deux (dans l'ordre des numéros).
+    // Un interblocage reste possible si les deux dissolvent à la même milliseconde : InnoDB en annule un, le joueur recommence.
     public function dissoudre(Joueur $joueur): bool
     {
         $this->pdo->beginTransaction();
@@ -169,9 +170,10 @@ class AppairageService
                 $partenaire = $this->joueurs->trouverPartenaire($frais);
                 $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
                 // TODO(simplif): 5 écrit en dur, à remplacer par la constante de départ de PointsDeVieService quand elle existe.
-                $this->joueurs->remettreAZero($joueur->id, 5, false);
+                $this->joueurs->remettreAZero($joueur->id, 5);
                 if ($partenaire !== null) {
-                    $this->joueurs->remettreAZero($partenaire->id, 5, true);
+                    $this->joueurs->remettreAZero($partenaire->id, 5);
+                    $this->joueurs->signalerDissolution($partenaire->id);
                 }
                 $this->duos->supprimer($frais->duoId);
             }
