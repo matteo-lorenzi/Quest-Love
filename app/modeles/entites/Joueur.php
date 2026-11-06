@@ -3,6 +3,9 @@
 
 final readonly class Joueur
 {
+    // Points de vie au départ et après une dissolution (F2). Seule définition du code ; PointsDeVieService la reprendra à sa création. Le défaut de la colonne pv (sql/schema.sql) reste à part.
+    public const PV_DEPART = 5;
+
     public function __construct(
         public int $id,
         public string $identifiant,

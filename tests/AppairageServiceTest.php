@@ -416,12 +416,22 @@ class AppairageServiceTest extends TestCase
         foreach ([$lou, $mia] as $joueur) {
             $relu = $this->relire($joueur);
             $this->assertNull($relu->duoId);
-            $this->assertSame(5, $relu->pv);
+            $this->assertSame(Joueur::PV_DEPART, $relu->pv);
             $this->assertFalse($relu->onboardingVu);
         }
         $this->assertFalse($this->relire($lou)->dissolutionASignaler);
         $this->assertTrue($this->relire($mia)->dissolutionASignaler);
         $this->assertNull((new DuoDepot($this->pdo))->trouverParId($lou->duoId));
+    }
+
+    // F2 : la valeur de départ vient de Joueur::PV_DEPART. Le comportement seul ne suffit pas (un 5 écrit en dur donnerait le même résultat) : on lit aussi le code de la méthode.
+    public function testDissoudreNeReecritPasLaValeurDeDepartEnDur(): void
+    {
+        $methode = new ReflectionMethod(AppairageService::class, 'dissoudre');
+        $source = implode('', array_slice(file($methode->getFileName()), $methode->getStartLine() - 1, $methode->getEndLine() - $methode->getStartLine() + 1));
+
+        $this->assertDoesNotMatchRegularExpression('/remettreAZero\([^,]+,\s*\d/', $source);
+        $this->assertStringContainsString('Joueur::PV_DEPART', $source);
     }
 
     // Un marqueur posé par une dissolution précédente et pas encore lu (D3) survit à la dissolution suivante du même joueur.
