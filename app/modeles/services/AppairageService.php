@@ -169,10 +169,9 @@ class AppairageService
             if ($dissous) {
                 $partenaire = $this->joueurs->trouverPartenaire($frais);
                 $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
-                // TODO(simplif): 5 écrit en dur, à remplacer par la constante de départ de PointsDeVieService quand elle existe.
-                $this->joueurs->remettreAZero($joueur->id, 5);
+                $this->joueurs->remettreAZero($joueur->id, Joueur::PV_DEPART);
                 if ($partenaire !== null) {
-                    $this->joueurs->remettreAZero($partenaire->id, 5);
+                    $this->joueurs->remettreAZero($partenaire->id, Joueur::PV_DEPART);
                     $this->joueurs->signalerDissolution($partenaire->id);
                 }
                 $this->duos->supprimer($frais->duoId);

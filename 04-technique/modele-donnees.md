@@ -198,7 +198,6 @@ F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule
 - [ ] **Cascade** : `mission`, `tirage`, `participation` et `gage` portent un `duo_id` avec `ON DELETE CASCADE` vers `duo`. `tirage_proposition` suit `tirage` par la même cascade. Aucune clé étrangère vers `joueur` ne doit bloquer le `DELETE FROM duo` : les joueurs ne sont pas supprimés à la dissolution. Un oubli de cascade échoue franchement (erreur de clé étrangère à la suppression), il ne laisse pas de données orphelines en silence. `DuoDepot::supprimer` reste une seule instruction et ne change pas.
 - [ ] **`sql/schema.sql`** : les tables de jeu sont supprimées avant `joueur` et `duo` (ordre des `DROP`).
 - [ ] **Test** : ajouter à `tests/AppairageServiceTest.php` un cas qui crée des lignes de chaque table de jeu pour deux duos, dissout l'un et vérifie que seules les lignes du duo dissous disparaissent.
-- [ ] **PV** : remplacer le `5` écrit en dur dans la dissolution par la constante de départ de `PointsDeVieService` (le `TODO(simplif)` du code le rappelle).
 - [ ] **F3** : `SupprimerCompteControleur` appelle `dissoudre` avant de supprimer la ligne `joueur` (cadrage § 10), sans réécrire la suppression des données de jeu.
 - Code d'invitation : rien à faire. `code_invitation` est déjà nul depuis la formation du duo ; B1 en génère un nouveau à son prochain affichage (cadrage § 7).
 - `tentative` n'est pas une donnée de jeu : la dissolution n'y touche pas.
