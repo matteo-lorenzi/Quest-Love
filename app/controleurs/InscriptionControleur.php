@@ -41,6 +41,7 @@ class InscriptionControleur
 
         // Nouvel identifiant de session, contre la fixation de session (cadrage § 6.6) : le joueur est connecté d'office.
         session_regenerate_id(true);
+        Securite::renouvelerJeton();
         $_SESSION['joueur_id'] = $resultat->id;
 
         // Un joueur tout juste inscrit n'a pas de duo : B1, où un code conservé est prérempli, sans être rejoué (un lien ne forme pas un duo à l'insu du joueur).

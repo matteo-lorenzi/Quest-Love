@@ -59,6 +59,7 @@ class ConnexionControleur
 
         // Étape 6.5 — succès : nouvel identifiant de session, contre la fixation de session (cadrage § 6.6).
         session_regenerate_id(true);
+        Securite::renouvelerJeton();
         $_SESSION['joueur_id'] = $resultat->id;
 
         // Étape 6.6 — aiguillage (cadrage § 8.5) : selon l'étape d'accès, B2 tant que les deux n'ont pas fini l'onboarding, sinon l'accueil ; sans duo, la salle d'attente, où un code conservé est prérempli.

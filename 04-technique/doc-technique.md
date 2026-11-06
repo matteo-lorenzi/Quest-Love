@@ -227,7 +227,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 
 ### 3.7 Sécurité
 
-- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService` : chaque essai est écrit avant d'être vérifié, et libéré s'il réussit ; seuls comptent les essais écrits plus tôt, donc des requêtes simultanées ne dépassent pas 5, qui demande du SQL et vit donc dans le modèle (§ 2.4).
+- **Classes** : `noyau/Securite.php` pour le jeton CSRF (renouvelé à la connexion et à l'inscription) et l'expiration de la session après 2 h d'inactivité ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService` : chaque essai est écrit avant d'être vérifié, et libéré s'il réussit ; seuls comptent les essais écrits plus tôt, donc des requêtes simultanées ne dépassent pas 5, qui demande du SQL et vit donc dans le modèle (§ 2.4).
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.

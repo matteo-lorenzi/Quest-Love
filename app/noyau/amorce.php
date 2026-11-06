@@ -34,6 +34,11 @@ spl_autoload_register(function (string $classe) use ($racine): void {
 
 date_default_timezone_set('Europe/Paris');
 
+// Mode strict et cookies seulement : la session refuse un identifiant qu'elle n'a pas émis, et aucun identifiant ne passe par l'URL.
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+// Le ramasse-miettes de PHP supprime les sessions après 24 min par défaut : sans cela, « une session récente continue » ne tiendrait pas jusqu'à 2 h (Securite::DELAI_INACTIVITE).
+ini_set('session.gc_maxlifetime', '7200');
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',

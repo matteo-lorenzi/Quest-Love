@@ -18,6 +18,46 @@ class SecuriteTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'none'", $entetes['Content-Security-Policy']);
     }
 
+    protected function setUp(): void
+    {
+        $_SESSION = [];
+    }
+
+    // Ticket #34 : le jeton change après renouvellement, et l'ancien ne passe plus la vérification.
+    public function testRenouvelerJetonInvalideLAncien(): void
+    {
+        $ancien = Securite::jeton();
+        Securite::renouvelerJeton();
+        $this->assertNotSame($ancien, Securite::jeton());
+        $this->assertFalse(Securite::verifier($ancien));
+        $this->assertTrue(Securite::verifier(Securite::jeton()));
+    }
+
+    // Ticket #34 : plus de 2 h sans requête, un joueur connecté perd sa session (le routeur le renvoie alors vers A3).
+    public function testSessionInactiveDepuisPlusDeDeuxHeuresExpire(): void
+    {
+        $_SESSION = ['joueur_id' => 1, 'activite' => 1000];
+        $this->assertTrue(Securite::expirerSiInactive(1000 + 7201));
+        $this->assertArrayNotHasKey('joueur_id', $_SESSION);
+    }
+
+    // Ticket #34 : une session récente continue, et sa date d'activité avance.
+    public function testSessionRecenteContinue(): void
+    {
+        $_SESSION = ['joueur_id' => 1, 'activite' => 1000];
+        $this->assertFalse(Securite::expirerSiInactive(1000 + 7200));
+        $this->assertSame(1, $_SESSION['joueur_id']);
+        $this->assertSame(8200, $_SESSION['activite']);
+    }
+
+    // Un visiteur non connecté n'a rien à perdre : sa session (jeton, code reçu) reste.
+    public function testVisiteurNonConnecteNExpirePas(): void
+    {
+        $_SESSION = ['activite' => 1000, 'jeton' => 'x'];
+        $this->assertFalse(Securite::expirerSiInactive(1000 + 99999));
+        $this->assertSame('x', $_SESSION['jeton']);
+    }
+
     // La CSP ne casse ni les styles en ligne ni les formulaires envoyés vers le site lui-même.
     public function testCspLaisseStylesEnLigneEtFormulaires(): void
     {
