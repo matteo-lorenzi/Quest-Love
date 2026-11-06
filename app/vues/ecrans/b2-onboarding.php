@@ -8,8 +8,7 @@
     <h1 class="onboarding__titre">En attente de <?= $partenaire !== null ? e($partenaire) : 'ton partenaire' ?></h1>
     <p class="onboarding__texte">Tu as fini les règles. Dès que ton partenaire aura fini les siennes, le jeu s'ouvrira : recharge cette page pour le savoir.</p>
     <a class="bouton" href="index.php?ecran=regles&amp;origine=onboarding&amp;etape=attente">Règles complètes</a>
-    <?php // TODO(simplif): l'écran F2 (quitter-duo) n'existe pas, ce lien mène à G1 jusqu'à son écriture (ticket suivant). ?>
-    <p><a href="index.php?ecran=quitter-duo">Quitter mon duo</a></p>
+    <p><a href="index.php?ecran=quitter-duo&amp;origine=onboarding">Quitter mon duo</a></p>
 </main>
 <?php return; endif ?>
 <main class="onboarding">

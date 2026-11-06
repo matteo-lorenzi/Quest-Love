@@ -13,6 +13,8 @@ class Routeur
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', 'connecte'],
         'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', 'connecte'],
         'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', 'duo'],
+        // Accès 'duo', donc sans le verrou du jeu : un joueur dont le partenaire n'a pas fini l'onboarding doit pouvoir sortir (cadrage § 8.5).
+        'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', 'duo'],
         'regles' => ['ReglesControleur', 'afficher', null, 'connecte'],
         'erreur' => ['ErreurControleur', 'afficher', null, 'public'],
     ];
