@@ -1,5 +1,5 @@
 <?php
-// Jeton CSRF — tous écrans — lot 1 — commun. La limitation des tentatives demande du SQL : elle vit dans CompteService (#3).
+// Sécurité de session et de réponse — tous écrans — lot 1 — commun : jeton CSRF, en-têtes HTTP de toute réponse, expiration de la session inactive. La limitation des tentatives demande du SQL : elle vit dans LimiteTentativesService.
 
 class Securite
 {

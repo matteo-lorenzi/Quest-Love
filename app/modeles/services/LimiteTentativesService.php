@@ -8,7 +8,7 @@ class LimiteTentativesService
     public const FENETRE = '15 minutes';
     // Plafond de la clé IP : plus large, car une adresse peut être partagée (box, école) ; il freine un script qui change de session à chaque requête.
     public const ECHECS_MAX_IP = 30;
-    // Au-delà de 30 minutes, un essai ne compte plus pour aucune clé (voir attente()) : on le supprime.
+    // Au-delà de 30 minutes (15 de fenêtre + 15 d'attente, voir attente()), un essai ne compte plus pour aucune clé : on le supprime.
     private const CONSERVATION = '-30 minutes';
 
     public function __construct(private TentativeDepot $tentatives) {}
@@ -31,8 +31,8 @@ class LimiteTentativesService
     // L'essai est écrit avant d'être compté, et on ne compte que ceux écrits avant lui : des requêtes simultanées
     // voient chacune les précédentes, donc seules les cinq premières passent, sans attendre le verdict des autres.
     // Un échec garde sa réservation ; un essai réussi la rend avec liberer(), il ne compte pas.
-    /** @return int[]|DateTimeImmutable */
     // $ip : adresse du client, comptée en plus avec un plafond de 30 ; null (hors requête web) la laisse de côté.
+    /** @return int[]|DateTimeImmutable */
     public function reserver(array $cles, TypeTentative $type, DateTimeImmutable $maintenant, ?string $ip = null): array|DateTimeImmutable
     {
         $this->tentatives->purger($maintenant->modify(self::CONSERVATION));
@@ -66,10 +66,10 @@ class LimiteTentativesService
     // Heure de réessai si la clé est en attente, sinon null. Ne compte que les essais écrits avant $avantId.
     // L'attente part de l'échec qui atteint le plafond, qui est le plus récent puisque les essais refusés ne sont pas gardés.
     // Une fenêtre comptée depuis maintenant libérerait trop tôt : les 5 échecs en sortent avant la fin de l'attente.
-    // On remonte donc de 30 minutes : 15 pour que les 5 échecs aient eu lieu, 15 pour l'attente qui les suit.
+    // On remonte donc de CONSERVATION (30 minutes) : 15 pour que les 5 échecs aient eu lieu, 15 pour l'attente qui les suit.
     private function attente(string $cle, TypeTentative $type, DateTimeImmutable $maintenant, int $avantId, int $plafond): ?DateTimeImmutable
     {
-        $echecs = $this->tentatives->datesDepuis($cle, $type, $maintenant->modify('-30 minutes'), $avantId);
+        $echecs = $this->tentatives->datesDepuis($cle, $type, $maintenant->modify(self::CONSERVATION), $avantId);
         if (count($echecs) < $plafond) {
             return null;
         }
