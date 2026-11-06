@@ -23,8 +23,17 @@ class AppairageService
         $this->limite = new LimiteTentatives($tentatives);
     }
 
-    // B1 — donne au joueur un nouveau code valable 60 minutes et renvoie le joueur à jour.
+    // B1 — le code du joueur s'il est encore valable (c'est celui qu'il a pu donner), sinon un nouveau.
     public function code(Joueur $joueur, DateTimeImmutable $maintenant): Joueur
+    {
+        if ($joueur->codeInvitation !== null && $joueur->dateExpirationCode > $maintenant) {
+            return $joueur;
+        }
+        return $this->regenerer($joueur, $maintenant);
+    }
+
+    // B1 — lien « nouveau code » : écrase le code, ce qui invalide l'ancien. Renvoie le joueur à jour.
+    public function regenerer(Joueur $joueur, DateTimeImmutable $maintenant): Joueur
     {
         for ($essai = 0; $essai < self::ESSAIS_CODE; $essai++) {
             if ($this->joueurs->enregistrerCode($joueur->id, $this->tirerCode(), $maintenant->modify('+' . self::VALIDITE))) {
@@ -32,6 +41,24 @@ class AppairageService
             }
         }
         throw new RuntimeException('Aucun code libre après ' . self::ESSAIS_CODE . ' tirages.');
+    }
+
+    // B1 — saisie du code d'un partenaire : forme le duo des deux joueurs.
+    public function rejoindre(Joueur $invite, string $saisie, string $cleSession, DateTimeImmutable $maintenant): Duo
+    {
+        $proprietaire = $this->joueurs->trouverParCode($saisie);
+        $this->pdo->beginTransaction();
+        try {
+            $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
+            $duoId = $this->duos->creer($maintenant);
+            $this->joueurs->rattacherAuDuo($invite->id, $duoId);
+            $this->joueurs->rattacherAuDuo($proprietaire->id, $duoId);
+            $this->pdo->commit();
+        } catch (Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+        return $this->duos->trouverParId($duoId);
     }
 
     private function tirerCode(): string

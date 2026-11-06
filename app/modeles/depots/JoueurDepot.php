@@ -41,6 +41,36 @@ class JoueurDepot
         return (int) $this->pdo->lastInsertId();
     }
 
+    // Le code est sensible à la casse (colonne ascii_bin) : le service le normalise avant de chercher.
+    public function trouverParCode(string $code): ?Joueur
+    {
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE code_invitation = ?');
+        $requete->execute([$code]);
+        $ligne = $requete->fetch();
+        return $ligne ? $this->hydrater($ligne) : null;
+    }
+
+    // Verrou en écriture jusqu'à la fin de la transaction, pris dans l'ordre des numéros : deux appairages croisés ne se bloquent pas l'un l'autre.
+    /** @return Joueur[] indexés par numéro */
+    public function verrouiller(array $ids): array
+    {
+        sort($ids);
+        $requete = $this->pdo->prepare('SELECT * FROM joueur WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') ORDER BY id FOR UPDATE');
+        $requete->execute($ids);
+        $joueurs = [];
+        foreach ($requete->fetchAll() as $ligne) {
+            $joueurs[(int) $ligne['id']] = $this->hydrater($ligne);
+        }
+        return $joueurs;
+    }
+
+    // Le code ne sert qu'une fois : il disparaît avec le rattachement.
+    public function rattacherAuDuo(int $id, int $duoId): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET duo_id = ?, code_invitation = NULL, date_expiration_code = NULL WHERE id = ?')
+            ->execute([$duoId, $id]);
+    }
+
     // Écrase le code du joueur et repousse l'échéance : c'est ce qui invalide l'ancien (ADR-0002).
     // Faux si le code est déjà porté par un autre joueur : la clé unique tranche, et c'est ici qu'on reconnaît son erreur (1062), comme pour ajouter().
     public function enregistrerCode(int $id, string $code, DateTimeImmutable $expiration): bool

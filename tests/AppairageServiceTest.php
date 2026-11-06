@@ -36,4 +36,54 @@ class AppairageServiceTest extends TestCase
         $this->assertEquals(new DateTimeImmutable('2026-10-15 13:00:00'), $joueur->dateExpirationCode);
         $this->assertNull($joueur->duoId);
     }
+
+    // B1 est rechargé souvent : tant que le code est valable, le joueur retrouve le même, celui qu'il a peut-être déjà donné.
+    public function testUnCodeEncoreValableEstRenduTelQuel(): void
+    {
+        $premier = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+
+        $second = $this->service->code($premier, $this->midi->modify('+59 minutes'));
+
+        $this->assertSame($premier->codeInvitation, $second->codeInvitation);
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 13:00:00'), $second->dateExpirationCode);
+    }
+
+    // Un code expiré ne sert plus à rien : B1 en donne un nouveau, valable à partir de maintenant.
+    public function testUnCodeExpireEstRemplace(): void
+    {
+        $premier = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+
+        $second = $this->service->code($premier, new DateTimeImmutable('2026-10-15 13:00:00'));
+
+        $this->assertNotSame($premier->codeInvitation, $second->codeInvitation);
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 14:00:00'), $second->dateExpirationCode);
+    }
+
+    // Lien « nouveau code » : le code change même s'il était encore valable, et l'échéance repart.
+    public function testRegenererRemplaceUnCodeEncoreValable(): void
+    {
+        $premier = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+
+        $second = $this->service->regenerer($premier, $this->midi->modify('+10 minutes'));
+
+        $this->assertNotSame($premier->codeInvitation, $second->codeInvitation);
+        $this->assertEquals(new DateTimeImmutable('2026-10-15 13:10:00'), $second->dateExpirationCode);
+    }
+
+    // Doc technique § 3.6 : le duo naît quand le deuxième joueur saisit le code, avec ses deux joueurs ; les codes disparaissent.
+    public function testUnCodeValableFormeLeDuoDesDeuxJoueurs(): void
+    {
+        $proprietaire = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $invite = $this->creerJoueur('Mia');
+
+        $duo = $this->service->rejoindre($invite, $proprietaire->codeInvitation, 'session-mia', $this->midi->modify('+5 minutes'));
+
+        $this->assertInstanceOf(Duo::class, $duo);
+        $depot = new JoueurDepot($this->pdo);
+        foreach ([$proprietaire, $invite] as $joueur) {
+            $relu = $depot->trouverParId($joueur->id);
+            $this->assertSame($duo->id, $relu->duoId);
+            $this->assertNull($relu->codeInvitation);
+        }
+    }
 }
