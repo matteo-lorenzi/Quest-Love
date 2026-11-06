@@ -35,7 +35,12 @@ class SalleAttenteControleur
             return;
         }
 
+        // Le premier affichage crée le code : une initialisation idempotente, pas une action du joueur (doc technique § 3.6).
         $joueur = self::service($this->pdo)->code($joueur, $this->maintenant);
+        // Duo formé entre la lecture et la génération : plus de code à montrer, le rechargement renverra à l'accueil.
+        if ($joueur->codeInvitation === null) {
+            Routeur::rediriger('salle-attente');
+        }
         $saisie = $retour['saisie'] !== '' ? $retour['saisie'] : ($recu ?? '');
         $titre = ($retour['refus'] !== null || $retour['attente'] !== null) ? 'Erreur : Salle d\'attente' : 'Salle d\'attente';
         Vue::rendre('b1-salle-attente', $titre, [
@@ -55,11 +60,9 @@ class SalleAttenteControleur
         $joueur = $this->joueurConnecte();
         $service = self::service($this->pdo);
 
-        // Lien « nouveau code » : écrase l'ancien code. Sans effet pour un joueur déjà en duo, qui n'a plus de code.
+        // Lien « nouveau code » : écrase l'ancien code ; le service n'y touche pas si le joueur est déjà en duo.
         if (($_POST['action'] ?? '') === 'nouveau-code') {
-            if ($joueur->duoId === null) {
-                $service->regenerer($joueur, $this->maintenant);
-            }
+            $service->regenerer($joueur, $this->maintenant);
             Routeur::rediriger('salle-attente');
         }
 
@@ -74,11 +77,13 @@ class SalleAttenteControleur
     }
 
     // Appelée par A2 et A3 quand elles affichent le formulaire : garde le code d'un lien d'invitation et renvoie celui en session.
-    // TODO(simplif): l'entrée du lien est ?code= sur A2 et A3, faute d'A1 · invitation, à déplacer quand A1 existe.
+    // TODO(simplif): l'entrée du lien est ?code= sur A2 et A3, faute d'A1 · invitation, à déplacer quand A1 existe ; un lien vers B1 ouvert sans session perd son code (le routeur renvoie à la connexion).
     public static function conserverCodeRecu(): ?string
     {
-        if (is_string($_GET['code'] ?? null)) {
-            $_SESSION[self::CODE_CONSERVE] = mb_substr($_GET['code'], 0, self::LONGUEUR_MAX_CONSERVEE);
+        // Un ?code= vide n'est pas un code reçu : on ne garde rien, pour ne pas rejouer un refus de format à vide.
+        $recu = is_string($_GET['code'] ?? null) ? trim($_GET['code']) : '';
+        if ($recu !== '') {
+            $_SESSION[self::CODE_CONSERVE] = mb_substr($recu, 0, self::LONGUEUR_MAX_CONSERVEE);
         }
         return $_SESSION[self::CODE_CONSERVE] ?? null;
     }

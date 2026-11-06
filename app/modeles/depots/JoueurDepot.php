@@ -81,11 +81,12 @@ class JoueurDepot
     }
 
     // Écrase le code du joueur et repousse l'échéance : c'est ce qui invalide l'ancien (ADR-0002).
+    // Sans effet sur un joueur déjà en duo : une régénération qui croise la formation ne doit pas lui recréer un code.
     // Faux si le code est déjà porté par un autre joueur : la clé unique tranche, et c'est ici qu'on reconnaît son erreur (1062), comme pour ajouter().
     public function enregistrerCode(int $id, string $code, DateTimeImmutable $expiration): bool
     {
         try {
-            $this->pdo->prepare('UPDATE joueur SET code_invitation = ?, date_expiration_code = ? WHERE id = ?')
+            $this->pdo->prepare('UPDATE joueur SET code_invitation = ?, date_expiration_code = ? WHERE id = ? AND duo_id IS NULL')
                 ->execute([$code, $expiration->format('Y-m-d H:i:s'), $id]);
         } catch (PDOException $erreur) {
             if (($erreur->errorInfo[1] ?? null) === 1062) {

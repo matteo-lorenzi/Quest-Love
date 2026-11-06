@@ -52,7 +52,6 @@ if (!$dejaEnDuo) {
             <h2 id="titre-saisie">Le code de ton partenaire</h2>
             <form class="formulaire" method="post" action="index.php?ecran=salle-attente">
                 <input type="hidden" name="jeton" value="<?= e($jeton) ?>">
-                <input type="hidden" name="action" value="saisir">
                 <div class="formulaire__champ">
                     <label for="code">Code reçu</label>
                     <!-- Pas de maxlength ni de motif : le copier-coller de « XXXX-XXXX », avec ou sans tiret, doit passer (cadrage § 6.6). -->

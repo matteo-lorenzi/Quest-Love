@@ -12,7 +12,7 @@ class CompteService
     public const MDP_MIN = 12;
     public const MDP_MAX = 64;
 
-    private LimiteTentatives $limite;
+    private LimiteTentativesService $limite;
 
     // Le contrôleur construit les dépôts et les passe ici : aucune dépendance cachée (ADR-0001).
     // La règle de limitation est partagée avec AppairageService ; elle n'a pas d'autre état que le dépôt reçu.
@@ -20,7 +20,7 @@ class CompteService
         private JoueurDepot $joueurs,
         TentativeDepot $tentatives,
     ) {
-        $this->limite = new LimiteTentatives($tentatives);
+        $this->limite = new LimiteTentativesService($tentatives);
     }
 
     // A2 — le contrôleur d'inscription appelle ce service avec les trois champs du formulaire.

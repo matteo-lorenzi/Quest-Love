@@ -10,9 +10,9 @@ class AppairageService
     // Tirages avant d'abandonner sur une collision de la clé unique : 32⁸ codes possibles, une collision est déjà exceptionnelle.
     private const ESSAIS_CODE = 5;
 
-    private LimiteTentatives $limite;
+    private LimiteTentativesService $limite;
 
-    // Le contrôleur construit les dépôts et les passe ici : aucune dépendance cachée (ADR-0001).
+    // Le contrôleur construit les dépôts et les passe ici (ADR-0001). La règle de limitation, elle, est construite ici depuis le dépôt reçu : elle n'a pas d'autre état.
     // Le service reçoit aussi la connexion : la formation du duo est une transaction, et les transactions vivent dans les services.
     public function __construct(
         private PDO $pdo,
@@ -20,7 +20,7 @@ class AppairageService
         private DuoDepot $duos,
         TentativeDepot $tentatives,
     ) {
-        $this->limite = new LimiteTentatives($tentatives);
+        $this->limite = new LimiteTentativesService($tentatives);
     }
 
     // B1 — le code du joueur s'il est encore valable (c'est celui qu'il a pu donner), sinon un nouveau.
@@ -78,6 +78,7 @@ class AppairageService
         // Formation : une transaction, sous verrou des deux joueurs. Ce qui a été lu plus haut a pu changer entre-temps
         // (le propriétaire a régénéré son code, un autre invité l'a pris), donc tout est revérifié sur les lignes verrouillées.
         $duoId = null;
+        $inviteFrais = null;
         $this->pdo->beginTransaction();
         try {
             $verrouilles = $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
@@ -96,7 +97,8 @@ class AppairageService
         }
         // L'échec est écrit une fois la transaction terminée : dedans, une erreur ultérieure l'annulerait avec le reste.
         if ($duoId === null) {
-            return $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
+            // L'invité est entré en duo entre la lecture et le verrou (double clic, deux appareils) : ce n'est pas une erreur de saisie, elle ne compte pas.
+            return $inviteFrais?->duoId !== null ? RefusCode::DejaEnDuo : $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
         }
         return $this->duos->trouverParId($duoId);
     }
@@ -109,7 +111,8 @@ class AppairageService
         if ($texte === false) {
             return null;
         }
-        $code = mb_strtoupper(preg_replace('/[\p{Z}\p{Pd}]+/u', '', $texte));
+        // strtoupper et non mb_strtoupper : « ß » deviendrait « SS » et passerait pour deux caractères de l'alphabet.
+        $code = strtoupper(preg_replace('/[\p{Z}\p{Pd}]+/u', '', $texte));
         return preg_match('/^[A-HJ-NP-Z2-9]{8}$/D', $code) ? $code : null;
     }
 

@@ -1,19 +1,19 @@
 <?php
-// Tests de LimiteTentatives — A3 Connexion et B1 Salle d'attente — parcours 1 (arrivée et appairage) — lot 1 — A.
+// Tests de LimiteTentativesService — A3 Connexion et B1 Salle d'attente — parcours 1 (arrivée et appairage) — lot 1 — A.
 
 use PHPUnit\Framework\TestCase;
 
-class LimiteTentativesTest extends TestCase
+class LimiteTentativesServiceTest extends TestCase
 {
     private PDO $pdo;
-    private LimiteTentatives $limite;
+    private LimiteTentativesService $limite;
     private DateTimeImmutable $midi;
 
     protected function setUp(): void
     {
         $this->pdo = Bdd::connexion();
         $this->pdo->exec('DELETE FROM tentative');
-        $this->limite = new LimiteTentatives(new TentativeDepot($this->pdo));
+        $this->limite = new LimiteTentativesService(new TentativeDepot($this->pdo));
         $this->midi = new DateTimeImmutable('2026-10-15 12:00:00');
     }
 

@@ -133,7 +133,9 @@ class AppairageServiceTest extends TestCase
             'trop long' => ['ABCDEFGHJ'],
             'lettre hors alphabet' => ['ABCDEFGI'],
             'chiffre hors alphabet' => ['ABCDEFG0'],
-            'texte non UTF-8' => ["ABCDEFÿþ"],
+            'texte non UTF-8' => ["ABCDEF\xFF\xFE"],
+            // mb_strtoupper en ferait « SSABCDEF », un code valable : seules les lettres ASCII se mettent en majuscules.
+            'lettre dont la majuscule compte deux caractères' => ['ßABCDEF'],
         ];
     }
 
@@ -248,6 +250,48 @@ class AppairageServiceTest extends TestCase
         $this->assertSame(RefusCode::PasValable, $refus);
         $this->assertSame(1, $this->compterDuos());
         $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($mia->id)->duoId);
+    }
+
+    // Cadrage § 6.6 : comptage par joueur ET par session. Changer de session ne libère pas le joueur, changer de joueur ne libère pas la session.
+    public function testChangerDeSessionOuDeJoueurNeRemetPasLeCompteurAZero(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $mia = $this->creerJoueur('Mia');
+        $zoe = $this->creerJoueur('Zoe');
+        for ($i = 0; $i < 5; $i++) {
+            $this->service->rejoindre($mia, '23456789', 'session-mia', $this->midi);
+        }
+        $apres = $this->midi->modify('+1 minute');
+
+        $this->assertInstanceOf(DateTimeImmutable::class, $this->service->rejoindre($mia, $lou->codeInvitation, 'autre-session', $apres));
+        $this->assertInstanceOf(DateTimeImmutable::class, $this->service->rejoindre($zoe, $lou->codeInvitation, 'session-mia', $apres));
+    }
+
+    // Double clic ou deux appareils : la deuxième requête a lu l'invité sans duo, mais le duo s'est formé avant son verrou.
+    // Ce n'est pas une erreur de saisie : elle ne compte pas dans la limite de 5.
+    public function testUnInviteDejaEnDuoSousVerrouEstRefuseSansCompterDEchec(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $mia = $this->service->code($this->creerJoueur('Mia'), $this->midi);
+        $tom = $this->creerJoueur('Tom');
+        $this->service->rejoindre($tom, $lou->codeInvitation, 'session-tom', $this->midi);
+
+        $refus = $this->service->rejoindre($tom, $mia->codeInvitation, 'session-tom', $this->midi);
+
+        $this->assertSame(RefusCode::DejaEnDuo, $refus);
+        $this->assertSame(0, $this->compterEchecs((string) $tom->id));
+    }
+
+    // Course : l'invité entre en duo pendant que le propriétaire régénère. Le code ne doit pas être recréé sur un joueur déjà en duo.
+    public function testUnCodeNeEstJamaisEcritSurUnJoueurDejaEnDuo(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $this->service->rejoindre($this->creerJoueur('Tom'), $lou->codeInvitation, 'session-tom', $this->midi);
+
+        $relu = $this->service->regenerer($lou, $this->midi);
+
+        $this->assertNull($relu->codeInvitation);
+        $this->assertNotNull($relu->duoId);
     }
 
     private function compterEchecs(string $cle): int

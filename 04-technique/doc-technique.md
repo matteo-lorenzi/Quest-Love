@@ -214,7 +214,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Mot de passe** : `password_hash` au stockage (`PASSWORD_ARGON2ID` imposé, sans repli sur l'algorithme par défaut ni limite de 72 octets : disponible sur Azrael et sur WAMP, vérifié le 16/10, #10), `password_verify` à la vérification. Avant l'un comme l'autre, le mot de passe est normalisé en NFC, comme l'identifiant et le pseudo, par une seule fonction privée de `CompteService` qui refuse un texte non UTF-8 (`Normalizer::normalize`, extension `intl`, active sur Azrael en PHP 8.2.30 et sur WAMP en PHP 8.2.29) : un « é » peut être encodé différemment selon l'appareil, et sans normalisation un compte créé sur un téléphone ne s'ouvrirait plus sur un autre (NIST SP 800-63B rév. 4, § 3.1.1.2). Règles de longueur, de composition, de liste noire, d'identifiant et de pseudo : cadrage § 6.6, contrôlées dans `CompteService` et rappelées en texte sous les champs de A2.
 - **Session** : identifiant régénéré à la connexion ; la session ne porte que l'identifiant du joueur et la file d'événements, jamais l'état de jeu.
 - **Déconnexion** : route `deconnexion`, sans vue, acceptée uniquement en `POST` avec jeton CSRF ; elle détruit la session puis redirige vers A1. Dans F1, le bouton de déconnexion est donc un formulaire. Raison : une requête `GET` ne doit rien modifier côté serveur ; sinon un préchargement de lien, un aperçu de messagerie ou une image piégée sur un autre site pourrait déconnecter le joueur à son insu. Une seule règle, sans exception : toute action passe par `POST` et CSRF.
-- **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide. Il vit dans `joueur` (`code_invitation`, `date_expiration_code`), la ligne `duo` n'étant créée qu'à la formation ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Huit caractères parmi `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, tirés par `random_bytes` ; une collision sur la clé unique relance le tirage. La saisie est normalisée (NFC, séparateurs retirés, majuscules) avant toute recherche.
+- **Code d'invitation** : à usage unique, 60 minutes, régénérable — la régénération écrase l'ancien code, ce qui l'invalide. Il est créé au premier affichage de B1 (initialisation idempotente : le seul écrit d'un GET, qui n'est pas une action du joueur). Il vit dans `joueur` (`code_invitation`, `date_expiration_code`), la ligne `duo` n'étant créée qu'à la formation ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Huit caractères parmi `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, tirés par `random_bytes` ; une collision sur la clé unique relance le tirage. La saisie est normalisée (NFC, séparateurs retirés, majuscules) avant toute recherche.
 - **Code conservé** : un code reçu avant authentification est gardé en session, tel que reçu, et rejoué une seule fois après inscription ou connexion, avec les mêmes règles et la même limite que la saisie en B1.
 - **Aiguillage après authentification** : en duo vers C1 ; sans duo avec code valide vers B2 ; sinon vers B1, avec message d'erreur si le code était invalide.
 - **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; avec un duo formé, il renvoie vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo »).
@@ -224,7 +224,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 
 ### 3.7 Sécurité
 
-- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `CompteService` et `TentativeDepot` pour la limitation des tentatives, qui demande du SQL et vit donc dans le modèle (§ 2.4).
+- **Classes** : `noyau/Securite.php` pour le jeton CSRF ; `LimiteTentativesService` et `TentativeDepot` pour la limitation des tentatives, partagée par `CompteService` et `AppairageService`, qui demande du SQL et vit donc dans le modèle (§ 2.4).
 - **CSRF** : un jeton par session, vérifié par le routeur sur toute requête `POST`, déconnexion comprise ; échec vers G1.
 - **Injection SQL** : requêtes préparées exclusivement.
 - **Injection HTML** : échappement systématique des textes libres à la sortie — pseudos et gages.
@@ -320,7 +320,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 - [x] Entités `Joueur`, `Duo`, `RefusCode` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
 - [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
-- [x] `AppairageService` — code d'invitation, formation · `LimiteTentatives` _(la dissolution arrive avec F2)_
+- [x] `AppairageService` — code d'invitation, formation · `LimiteTentativesService` _(la dissolution arrive avec F2)_
 - [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`

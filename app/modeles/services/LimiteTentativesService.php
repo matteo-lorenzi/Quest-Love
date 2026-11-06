@@ -1,7 +1,7 @@
 <?php
 // Limitation des tentatives — A3 Connexion et B1 Salle d'attente — lot 1 — A. Règle commune à la connexion et au code d'invitation (cadrage § 6.6).
 
-class LimiteTentatives
+class LimiteTentativesService
 {
     // 5 échecs en 15 minutes, puis 15 minutes d'attente (cadrage § 6.6).
     private const ECHECS_MAX = 5;
