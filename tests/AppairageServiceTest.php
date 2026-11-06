@@ -182,6 +182,74 @@ class AppairageServiceTest extends TestCase
         $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($mia->id)->duoId);
     }
 
+    // Un joueur déjà en duo n'a pas de saisie en B1 : un POST forgé est refusé sans compter, et ne touche à rien.
+    public function testUnJoueurDejaEnDuoNePeutPasRejoindreUnAutreDuo(): void
+    {
+        $depot = new JoueurDepot($this->pdo);
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $tom = $this->creerJoueur('Tom');
+        $this->service->rejoindre($tom, $lou->codeInvitation, 'session-tom', $this->midi);
+        $mia = $this->service->code($this->creerJoueur('Mia'), $this->midi);
+
+        $refus = $this->service->rejoindre($depot->trouverParId($tom->id), $mia->codeInvitation, 'session-tom', $this->midi);
+
+        $this->assertSame(RefusCode::DejaEnDuo, $refus);
+        $this->assertSame(0, $this->compterEchecs((string) $tom->id));
+        $this->assertSame($mia->codeInvitation, $depot->trouverParId($mia->id)->codeInvitation);
+    }
+
+    // Dépôt qui ment : il rend le propriétaire tel qu'il était avant que la base change, comme le ferait une lecture faite juste avant une autre requête.
+    // Même technique que le dépôt aveugle de CompteServiceTest : seul le verrou pris dans la transaction peut alors rattraper l'erreur.
+    private function serviceAvecProprietairePerime(Joueur $perime): AppairageService
+    {
+        $menteur = new class ($this->pdo, $perime) extends JoueurDepot {
+            public function __construct(PDO $pdo, private Joueur $perime)
+            {
+                parent::__construct($pdo);
+            }
+
+            public function trouverParCode(string $code): ?Joueur
+            {
+                return $this->perime;
+            }
+        };
+        return new AppairageService($this->pdo, $menteur, new DuoDepot($this->pdo), new TentativeDepot($this->pdo));
+    }
+
+    private function compterDuos(): int
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM duo')->fetchColumn();
+    }
+
+    // Course : le propriétaire régénère son code pendant qu'un invité saisit l'ancien. La revérification sous verrou refuse, sans duo à moitié formé.
+    public function testUnCodeRegenereEntreLaLectureEtLeVerrouEstRefuse(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $this->service->regenerer($lou, $this->midi);
+        $mia = $this->creerJoueur('Mia');
+
+        $refus = $this->serviceAvecProprietairePerime($lou)->rejoindre($mia, $lou->codeInvitation, 'session-mia', $this->midi);
+
+        $this->assertSame(RefusCode::PasValable, $refus);
+        $this->assertSame(0, $this->compterDuos());
+        $this->assertSame(1, $this->compterEchecs((string) $mia->id));
+    }
+
+    // Course : un autre invité forme le duo du propriétaire pendant la saisie. Le second invité est refusé et le duo existant reste intact.
+    public function testUnProprietaireEntreEnDuoEntreLaLectureEtLeVerrouEstRefuse(): void
+    {
+        $lou = $this->service->code($this->creerJoueur('Lou'), $this->midi);
+        $tom = $this->creerJoueur('Tom');
+        $this->service->rejoindre($tom, $lou->codeInvitation, 'session-tom', $this->midi);
+        $mia = $this->creerJoueur('Mia');
+
+        $refus = $this->serviceAvecProprietairePerime($lou)->rejoindre($mia, $lou->codeInvitation, 'session-mia', $this->midi);
+
+        $this->assertSame(RefusCode::PasValable, $refus);
+        $this->assertSame(1, $this->compterDuos());
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($mia->id)->duoId);
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");

@@ -51,6 +51,10 @@ class AppairageService
         if ($code === null) {
             return RefusCode::Format;
         }
+        // Un joueur déjà en duo n'a pas de saisie en B1 : seule une requête forgée arrive ici, elle ne compte pas.
+        if ($invite->duoId !== null) {
+            return RefusCode::DejaEnDuo;
+        }
         // Attente en cours : vérifiée avant le code, et un essai refusé ici n'est pas enregistré, sinon chaque essai la prolongerait.
         // Deux compteurs, comme la connexion : changer de session ne remet pas celui du joueur à zéro, et inversement.
         $attente = max(
@@ -71,16 +75,28 @@ class AppairageService
         if ($proprietaire->dateExpirationCode <= $maintenant) {
             return $this->echec(RefusCode::Expire, $invite, $cleSession, $maintenant);
         }
+        // Formation : une transaction, sous verrou des deux joueurs. Ce qui a été lu plus haut a pu changer entre-temps
+        // (le propriétaire a régénéré son code, un autre invité l'a pris), donc tout est revérifié sur les lignes verrouillées.
+        $duoId = null;
         $this->pdo->beginTransaction();
         try {
-            $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
-            $duoId = $this->duos->creer($maintenant);
-            $this->joueurs->rattacherAuDuo($invite->id, $duoId);
-            $this->joueurs->rattacherAuDuo($proprietaire->id, $duoId);
+            $verrouilles = $this->joueurs->verrouiller([$invite->id, $proprietaire->id]);
+            $inviteFrais = $verrouilles[$invite->id] ?? null;
+            $proprietaireFrais = $verrouilles[$proprietaire->id] ?? null;
+            if ($inviteFrais?->duoId === null && $proprietaireFrais !== null && $proprietaireFrais->duoId === null
+                && $proprietaireFrais->codeInvitation === $code && $proprietaireFrais->dateExpirationCode > $maintenant) {
+                $duoId = $this->duos->creer($maintenant);
+                $this->joueurs->rattacherAuDuo($invite->id, $duoId);
+                $this->joueurs->rattacherAuDuo($proprietaire->id, $duoId);
+            }
             $this->pdo->commit();
         } catch (Throwable $erreur) {
             $this->pdo->rollBack();
             throw $erreur;
+        }
+        // L'échec est écrit une fois la transaction terminée : dedans, une erreur ultérieure l'annulerait avec le reste.
+        if ($duoId === null) {
+            return $this->echec(RefusCode::PasValable, $invite, $cleSession, $maintenant);
         }
         return $this->duos->trouverParId($duoId);
     }
