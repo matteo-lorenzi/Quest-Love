@@ -22,7 +22,7 @@ Pitch :
 >
 > Drôle, quotidien, jamais intime. Un duo fermé, pas de conversation, pas de score : juste ce qu'il faut de hasard pour n'avoir rien à négocier.
 
-Application : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/>
+Application : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/quest-love/public/>
 
 Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 
