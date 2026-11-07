@@ -21,6 +21,6 @@ En réponse à la réserve de l'enseignant (courriel du 12/10/2026 : les MVC s'a
 ## Consequences
 
 - URL de la forme `index.php?ecran=accueil` : pas de réécriture d'URL au lot 1. Les `.htaccess` sont pris en compte sur Azrael (courriel du 12/10), ce qui laisse la réécriture possible plus tard sans toucher la table de routage.
-- Si Azrael ne permet pas de faire de `app/public/` la racine du site, un `.htaccess` à la racine de `app/` redirige vers `public/`.
+- Azrael ne permet pas de faire de `app/public/` la racine du site : chaque dossier interne d'`app/` porte un `.htaccess` `Require all denied`, aucun à la racine d'`app/` (un `.htaccess` restrictif y masquait le dossier dans l'index d'Azrael). L'application se joint par `quest-love/public/`.
 - Le dossier `modeles/` change de sens : il contenait les gabarits (désormais `vues/`), il contient maintenant les entités, les dépôts et les services.
 - Coût d'apprentissage pour qui découvre le MVC : le contrôleur frontal, le routeur et l'écran de référence A3 sont écrits en premier et annotés étape par étape, puis réexpliqués par chacun des deux membres avant d'écrire le deuxième écran.

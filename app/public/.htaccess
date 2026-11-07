@@ -1,2 +1,2 @@
-# Racine web — tous écrans — lot 1 — commun. Rouvre public/, fermé par le .htaccess d'app/.
+# Racine web — tous écrans — lot 1 — commun. Rouvre public/ : la racine d'Azrael exige un mot de passe.
 Require all granted

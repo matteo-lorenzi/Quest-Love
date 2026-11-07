@@ -1,0 +1,4 @@
+# Accès au dossier vues/ — aucun écran — lot 1 — commun. Seul public/ est joignable par URL (ADR-0001).
+# Un .htaccess par dossier interne, aucun à la racine d'app/ : sinon Azrael masque quest-love/ dans l'index.
+# TODO(simplif): tout nouveau dossier interne d'app/ doit recevoir ce fichier, à contrôler dans verifier.sh si les dossiers se multiplient.
+Require all denied
