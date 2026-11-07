@@ -8,8 +8,9 @@
 // `sql/demonstration.sql` et ses comptes de démonstration ne se chargent jamais sur Azrael.
 const BDD_HOTE = 'localhost';
 const BDD_NOM = 'quest_love';
-const BDD_UTILISATEUR = 'root';
-const BDD_MOT_DE_PASSE = '';
+// Marqueurs /*secret(*/…/*)*/ : debug.php affiche « …secret… » au lieu de la valeur ; garder valeur et marqueurs sur une ligne.
+const BDD_UTILISATEUR = /*secret(*/'root'/*)*/;
+const BDD_MOT_DE_PASSE = /*secret(*/''/*)*/;
 
 // Décalage de démonstration appliqué à l'horloge par index.php, par exemple '+11 hours 55 minutes' (doc technique § 3.8).
 // Vide en fonctionnement normal.
