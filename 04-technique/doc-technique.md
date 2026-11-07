@@ -34,7 +34,7 @@ Pitch :
 >
 > Drôle, quotidien, jamais intime. Un duo fermé, pas de conversation, pas de score : juste ce qu'il faut de hasard pour n'avoir rien à négocier.
 
-Application : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/`
+Application : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/quest-love/public/`
 
 Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 
@@ -47,7 +47,7 @@ Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 | MariaDB 10, moteur InnoDB | Transactions et verrous disponibles ; schéma validé avant implémentation (S8) |
 | Aucune tâche planifiée | Expiration, révélation et défi aléatoire calculés au chargement de page (§ 3.2) |
 | Pas de gestionnaire de dépendances | Aucune bibliothèque tierce, ni côté serveur ni côté client ; l'outil de test reste hors de `app/` et hors du dépôt (§ 6.4) |
-| `.htaccess` pris en compte (courriel du 12/10) | Redirection vers `app/public/` possible si la racine servie ne peut pas être changée (§ 6.1) |
+| `.htaccess` pris en compte (courriel du 12/10) | Racine servie non modifiable : dossiers internes fermés par `.htaccess`, application jointe par `quest-love/public/` (§ 6.1) |
 | Pas d'accès SSH, seulement SFTP (courriel du 12/10) | Déploiement par SFTP ; tests et réinitialisation des bases exécutés en local (§ 6.3, § 6.4) |
 | `debug.php` déposé à la racine | Consultation du code source par le jury, dès S2 |
 

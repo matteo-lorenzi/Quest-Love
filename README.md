@@ -143,7 +143,7 @@ Les fichiers `.json` sont les fichiers de travail générés par l'outil de conc
 - Parcours 1 — arrivée et appairage (FigJam) : https://www.figma.com/board/NDb4YHNxJ62zUXGGJ9a3Vn/Quest---Love---Parcours-1-_-arriv%C3%A9e-et-appairage--v3-?node-id=0-1
 - Parcours 2 — journée de jeu (FigJam) : https://www.figma.com/board/vBm24iEeigI92RZ99AyWxM/Quest---Love---Parcours-2-_-journ%C3%A9e-de-jeu--v3-
 - Parcours 3 — fin de défi et événements (FigJam) : https://www.figma.com/board/UHsyf9H1fFEcpqHKkIm49F/Quest---Love---Parcours-3-_-fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-
-- Application déployée : https://azrael.sha.univ-poitiers.fr/~mlorenzi/
+- Application déployée : https://azrael.sha.univ-poitiers.fr/~mlorenzi/quest-love/public/
 - Code source : https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php
 
 ## Outillage IA
