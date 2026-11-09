@@ -25,6 +25,119 @@ Relations :
 - un `tirage` porte exactement trois `tirage_proposition` ;
 - une `mission` naît d'un `tirage` choisi ou d'une attribution aléatoire, et pointe un `defi`.
 
+### Diagramme
+
+Tiré du § 2. « prévue » : table absente de `sql/schema.sql` ; « prévu » : colonne absente. Entiers non signés partout ; libellé d'un lien : colonne, règle de suppression.
+
+```mermaid
+erDiagram
+    duo {
+        int id PK
+        datetime date_creation "non nul"
+        datetime date_activation "nullable"
+    }
+    joueur {
+        int id PK
+        varchar(30) identifiant UK "unicode_ci"
+        varchar(30) pseudo "non nul"
+        varchar(255) mdp_hash "non nul"
+        char(8) code_invitation UK "ascii_bin, nullable"
+        datetime date_expiration_code "nullable"
+        int duo_id FK "nullable"
+        tinyint(1) onboarding_vu "défaut 0"
+        tinyint pv "défaut 5"
+        datetime debut_cycle "nullable, prévu"
+        datetime date_creation "non nul"
+    }
+    participation["participation (prévue)"] {
+        int id PK
+        int duo_id FK "non nul"
+        int joueur_id FK "UK (joueur_id, date_jour)"
+        date date_jour "non nul"
+        enum reponse "oui | non"
+        datetime date_reponse "non nul"
+    }
+    categorie["categorie (prévue)"] {
+        int id PK
+        varchar(40) libelle UK
+    }
+    defi["defi (prévue)"] {
+        int id PK
+        varchar(120) titre "non nul"
+        text description "non nul"
+        int categorie_id FK
+    }
+    tirage["tirage (prévue)"] {
+        int id PK
+        int duo_id FK "non nul"
+        date date_jour "UK (date_jour, emetteur_id)"
+        int emetteur_id FK
+        int destinataire_id FK
+    }
+    tirage_proposition["tirage_proposition (prévue)"] {
+        int id PK
+        int tirage_id FK "UK (tirage_id, defi_id)"
+        int defi_id FK
+    }
+    mission["mission (prévue)"] {
+        int id PK
+        int duo_id FK "non nul"
+        int tirage_id FK, UK "non nul"
+        int defi_id FK
+        int emetteur_id FK
+        int destinataire_id FK
+        enum origine "choix | aleatoire"
+        datetime date_attribution "non nul"
+        datetime date_revelation "nullable"
+        datetime date_decouverte "nullable"
+        datetime date_limite "non nul"
+        enum statut "voir § 3"
+        datetime date_validation "nullable"
+    }
+    gage["gage (prévue, lot 2)"] {
+        int id PK
+        int duo_id FK "non nul"
+        int auteur_id FK
+        int destinataire_id FK
+        text texte "non nul"
+        datetime date_creation "non nul"
+        enum statut "en_attente | realise | conteste"
+        tinyint nb_contestations "défaut 0, plafond 1"
+    }
+    tentative {
+        int id PK
+        varchar(64) cle "non nul"
+        enum type "connexion | code | inscription"
+        datetime date "non nul"
+    }
+    evenement {
+        int id PK
+        int joueur_id FK "non nul"
+        enum type "duo_dissous | expiration | remise_a_cinq | aleatoire"
+        date date_jour "non nul"
+        datetime date_creation "non nul"
+    }
+
+    joueur }o--o| duo : "duo_id, SET NULL"
+    evenement }o--|| joueur : "joueur_id, CASCADE"
+    participation }o--|| duo : "duo_id, CASCADE"
+    participation }o--|| joueur : "joueur_id, RESTRICT"
+    defi }o--|| categorie : "categorie_id"
+    tirage }o--|| duo : "duo_id, CASCADE"
+    tirage }o--|| joueur : "emetteur_id, RESTRICT"
+    tirage }o--|| joueur : "destinataire_id, RESTRICT"
+    tirage_proposition }|--|| tirage : "tirage_id, CASCADE"
+    tirage_proposition }o--|| defi : "defi_id"
+    mission |o--|| tirage : "tirage_id"
+    mission }o--|| duo : "duo_id, CASCADE"
+    mission }o--|| defi : "defi_id"
+    mission }o--|| joueur : "emetteur_id, RESTRICT"
+    mission }o--|| joueur : "destinataire_id, RESTRICT"
+    gage }o--|| duo : "duo_id, CASCADE"
+    gage }o--|| joueur : "auteur_id, RESTRICT"
+    gage }o--|| joueur : "destinataire_id, RESTRICT"
+```
+
 ## 2. Tables
 
 ### `joueur`
