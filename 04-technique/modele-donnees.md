@@ -5,7 +5,8 @@
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.5 — 6 novembre 2026.** Ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
+> **Version 1.6 — 12 novembre 2026.** Diagramme et § 2 alignés sur `sql/schema.sql` : retrait de `evenement` et de `joueur.debut_cycle` (sans source dans le cadrage), ajout de `joueur.dissolution_a_signaler`, du type `inscription` de `tentative`, et des `duo_id` portant la cascade (§ 6) ; index `tirage` fusionné dans son unicité (§ 5). Normalisation : retrait de `tirage.date_choix` et de `tirage_proposition.choisi`, que `mission.tirage_id` rend redondants (cadrage V2.16).
+> Version 1.5 du 6 novembre 2026 : ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
 > Version 1.4 du 6 novembre 2026 : le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
 > Version 1.3 du 15 octobre 2026 : identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
 > Version 1.2 du 14 octobre 2026 : unicité du pseudo sans tenir compte des majuscules ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
@@ -27,7 +28,7 @@ Relations :
 
 ### Diagramme
 
-Tiré du § 2. « prévue » : table absente de `sql/schema.sql` ; « prévu » : colonne absente. Entiers non signés partout ; libellé d'un lien : colonne, règle de suppression.
+Tiré du § 2. « prévue » : table absente de `sql/schema.sql`. Entiers non signés partout ; libellé d'un lien : colonne, règle de suppression.
 
 ```mermaid
 erDiagram
@@ -46,7 +47,7 @@ erDiagram
         int duo_id FK "nullable"
         tinyint(1) onboarding_vu "défaut 0"
         tinyint pv "défaut 5"
-        datetime debut_cycle "nullable, prévu"
+        tinyint(1) dissolution_a_signaler "défaut 0"
         datetime date_creation "non nul"
     }
     participation["participation (prévue)"] {
@@ -70,7 +71,7 @@ erDiagram
     tirage["tirage (prévue)"] {
         int id PK
         int duo_id FK "non nul"
-        date date_jour "UK (date_jour, emetteur_id)"
+        date date_jour "UK (emetteur_id, date_jour)"
         int emetteur_id FK
         int destinataire_id FK
     }
@@ -110,16 +111,8 @@ erDiagram
         enum type "connexion | code | inscription"
         datetime date "non nul"
     }
-    evenement {
-        int id PK
-        int joueur_id FK "non nul"
-        enum type "duo_dissous | expiration | remise_a_cinq | aleatoire"
-        date date_jour "non nul"
-        datetime date_creation "non nul"
-    }
 
     joueur }o--o| duo : "duo_id, SET NULL"
-    evenement }o--|| joueur : "joueur_id, CASCADE"
     participation }o--|| duo : "duo_id, CASCADE"
     participation }o--|| joueur : "joueur_id, RESTRICT"
     defi }o--|| categorie : "categorie_id"
@@ -176,6 +169,7 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `joueur_id` | entier non signé | clé étrangère vers `joueur` |
 | `date_jour` | date | non nul |
 | `reponse` | énumération `oui` / `non` | non nul |
@@ -199,23 +193,25 @@ erDiagram
 | Table | Champ | Type | Contrainte |
 |---|---|---|---|
 | `tirage` | `id` | entier non signé | clé primaire |
+| `tirage` | `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `tirage` | `date_jour` | date | non nul |
 | `tirage` | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
-| `tirage` | `date_choix` | date-heure | nullable tant que le choix n'est pas fait |
 | `tirage_proposition` | `id` | entier non signé | clé primaire |
 | `tirage_proposition` | `tirage_id` | entier non signé | clé étrangère vers `tirage`, suppression en cascade |
 | `tirage_proposition` | `defi_id` | entier non signé | clé étrangère vers `defi` |
-| `tirage_proposition` | `choisi` | booléen | non nul, défaut faux |
 
-- `choisi` est renseigné par le joueur, ou par le système lors d'une attribution aléatoire.
-- `date_choix` nulle après la bascule de midi signale un joueur passif.
+- Le choix n'est pas stocké ici : c'est la `mission` qui pointe ce `tirage` (`mission.tirage_id`). Proposition retenue : celle dont le `defi_id` est celui de la mission ; instant du choix : `mission.date_attribution`. Une seule source, aucune copie à tenir d'accord.
+- Tirage sans mission : choix pas encore fait. Mission d'origine `aleatoire` : joueur passif à la bascule de midi.
+- Propositions non choisies (exclues 3 jours, cadrage § 4.6) : celles du tirage dont le `defi_id` diffère de celui de sa mission.
 
 ### `mission`
 
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
+| `tirage_id` | entier non signé | non nul, unique, clé étrangère vers `tirage` : le tirage dont le défi est issu |
 | `defi_id` | entier non signé | clé étrangère vers `defi` |
 | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
@@ -234,6 +230,7 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `auteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
 | `texte` | texte | non nul, échappé à l'affichage |
@@ -246,11 +243,11 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `cle` | chaîne 64 | connexion : identifiant saisi ou identifiant de session ; code : numéro du joueur ou identifiant de session |
-| `type` | énumération `connexion` / `code` | non nul |
+| `cle` | chaîne 64 | non nul ; connexion : identifiant saisi ; code : numéro du joueur ; tous types : empreinte SHA-256 de la session et de l'adresse IP, jamais en clair |
+| `type` | énumération `connexion` / `code` / `inscription` | non nul ; inscription : clé IP seule |
 | `date` | date-heure | non nul |
 
-- Purge des lignes de plus de 24 h, au rattrapage, pour éviter que la table enfle.
+- Purge des lignes de plus de 30 minutes (15 de fenêtre + 15 d'attente) à chaque essai, par `LimiteTentativesService` : la table ne peut pas enfler.
 
 ## 3. Cycle de vie d'une mission
 
@@ -280,7 +277,7 @@ Posées **en base**, pas seulement vérifiées en PHP. Ce sont elles qui rendent
 | Contrainte | Table | Ce qu'elle empêche |
 |---|---|---|
 | Unicité `(joueur_id, date_jour)` | `participation` | Deux réponses contradictoires, et le double clic |
-| Unicité `(date_jour, emetteur_id)` | `tirage` | Un second tirage obtenu par rechargement, et la double attribution aléatoire |
+| Unicité `(emetteur_id, date_jour)` | `tirage` | Un second tirage obtenu par rechargement, et la double attribution aléatoire |
 | Unicité `(tirage_id, defi_id)` | `tirage_proposition` | Un doublon parmi les trois propositions |
 
 ## 5. Index
@@ -289,7 +286,7 @@ Au-delà des clés primaires et étrangères :
 
 - `mission` sur `(destinataire_id, statut, date_limite)` — requête du rattrapage, la plus fréquente de l'application.
 - `mission` sur `(emetteur_id, date_attribution)` — accueil et historique.
-- `tirage` sur `(emetteur_id, date_jour)` — lecture des propositions du jour.
+- `tirage` : aucun index en plus. L'unicité du § 4 est déclarée `(emetteur_id, date_jour)`, `emetteur_id` en tête : elle sert aussi à la lecture des propositions du jour et à la clé étrangère `emetteur_id`.
 - `tentative` sur `(cle, type, date)` — comptage des dernières minutes.
 - `joueur` sur `duo_id`.
 
@@ -320,5 +317,5 @@ F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule
 - [x] Longueur et alphabet du code d'invitation — 8 caractères parmi 32 : A à Z sans I ni O, 2 à 9 (tranché le 06/11).
 - [ ] Longueur maximale d'un titre et d'une description de défi, une fois les 15 premiers défis écrits (S5).
 - [ ] Longueur maximale d'un gage.
-- [ ] Purge des `tentative` : au rattrapage, ou par une instruction manuelle.
+- [x] Purge des `tentative` — à chaque essai, lignes de plus de 30 minutes (tranché par A3 et B1).
 - [ ] Conservation ou non de l'historique des missions après dissolution — actuellement supprimé.

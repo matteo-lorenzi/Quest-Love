@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.15 — 6 novembre 2026.** Reporte les décisions sur l'écran B2 avant son codage : l'onboarding des règles est obligatoire pour les deux joueurs avant l'accueil (§ 8.5), deux colonnes portent son état, `onboarding_vu` sur `joueur` et `date_activation` sur `duo` (§ 7), et « duo formé après 12 h » se calcule sur l'instant où les deux l'ont terminé (§ 4.2) ; consigne les décisions du 06/11 sur B2 (§ 16).
+> **Version 2.16 — 12 novembre 2026.** Normalise le tirage avant la validation du schéma (§ 7) : `tirage.date_choix` et `tirage_proposition.choisi` disparaissent, la `mission` pointant son tirage porte seule le défi retenu et l'instant du choix ; `tirage` reçoit le `duo_id` de la suppression en cascade.
+>
+> La V2.15 (6 novembre 2026) : reporte les décisions sur l'écran B2 avant son codage : l'onboarding des règles est obligatoire pour les deux joueurs avant l'accueil (§ 8.5), deux colonnes portent son état, `onboarding_vu` sur `joueur` et `date_activation` sur `duo` (§ 7), et « duo formé après 12 h » se calcule sur l'instant où les deux l'ont terminé (§ 4.2) ; consigne les décisions du 06/11 sur B2 (§ 16).
 >
 > La V2.14 (6 novembre 2026) : fixe où vit le code d'invitation avant le codage de B1 (§ 7) : colonnes de `joueur`, la ligne `duo` n'étant créée qu'à la formation, pour que `joueur.duo_id` nul reste la seule définition de « sans duo » ; supprime le rejeu automatique du code reçu par lien : il est prérempli en B1 et le joueur le valide d'un clic, pour qu'un lien ne puisse pas former un duo à son insu (§ 6.6, § 8.5) ; précise les essais qui comptent dans la limite de 5 pour un code, comptés avant d'être vérifiés pour résister aux requêtes simultanées (§ 6.6) et la variante « déjà en duo » de la salle d'attente, réservée au lien d'invitation (§ 8.5) ; consigne les décisions du 06/11 sur l'appairage (§ 16).
 >
@@ -331,14 +333,14 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 |---|---|---|
 | `joueur` | id, identifiant, pseudo, mdp_hash, code_invitation (nullable), date_expiration_code (nullable), duo_id (nullable), onboarding_vu, pv, date_creation | Pas d'adresse électronique ; identifiant unique sans tenir compte des majuscules ni des accents, pseudo libre (§ 6.6) ; compte réappairable après dissolution ; code unique, à usage unique, valable 60 minutes, régénérable ; `duo_id` nul = sans duo ; `onboarding_vu` booléen, défaut 0, remis à 0 pour les deux joueurs à chaque formation de duo |
 | `duo` | id, date_creation, date_activation (nullable) | Créé quand le deuxième joueur saisit le code, jamais avant : un duo porte exactement deux joueurs ; suppression en cascade ; `date_activation` nulle à la formation, posée quand les deux joueurs ont terminé l'onboarding |
-| `participation` | id, joueur_id, date_jour, reponse, date_reponse | Unicité (`joueur_id`, `date_jour`) |
+| `participation` | id, duo_id, joueur_id, date_jour, reponse, date_reponse | Unicité (`joueur_id`, `date_jour`) |
 | `categorie` | id, libelle | — |
 | `defi` | id, titre, description, categorie_id | — |
-| `tirage` | id, date_jour, emetteur_id, destinataire_id, date_choix | Unicité (`date_jour`, `emetteur_id`) |
-| `tirage_proposition` | id, tirage_id, defi_id, choisi | `choisi` renseignable par le système |
-| `mission` | id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | — |
-| `gage` | id, auteur_id, destinataire_id, texte, date_creation, statut, nb_contestations | Une contestation maximum |
-| `tentative` | id, cle (identifiant ou session), type (`connexion` / `code`), date | Limitation des essais |
+| `tirage` | id, duo_id, date_jour, emetteur_id, destinataire_id | Unicité (`emetteur_id`, `date_jour`) |
+| `tirage_proposition` | id, tirage_id, defi_id | Le choix n'est pas stocké ici : la `mission` pointe son tirage |
+| `mission` | id, duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | Unicité (`tirage_id`) : un seul choix par tirage |
+| `gage` | id, duo_id, auteur_id, destinataire_id, texte, date_creation, statut, nb_contestations | Une contestation maximum |
+| `tentative` | id, cle (identifiant, joueur, session ou IP), type (`connexion` / `code` / `inscription`), date | Limitation des essais |
 
 ### Statuts de `mission`
 

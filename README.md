@@ -106,6 +106,33 @@ Repli sans diagramme (même contenu) :
 Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
 <!-- TODO(simplif): statuts écrits à la main, à automatiser s'ils dérivent du code -->
 
+## Modèle de données
+
+Dix tables, noms identiques à `sql/schema.sql`. Seules `joueur`, `duo` et `tentative` existent en base ; les autres sont prévues (`gage` au lot 2). Colonnes, contraintes et index : [`04-technique/modele-donnees.md`](04-technique/modele-donnees.md), à valider en S8. Libellé d'un lien : colonne, règle de suppression.
+
+```mermaid
+erDiagram
+    joueur }o--o| duo : "duo_id, SET NULL"
+    participation }o--|| duo : "duo_id, CASCADE"
+    participation }o--|| joueur : "joueur_id"
+    tirage }o--|| duo : "duo_id, CASCADE"
+    tirage }o--|| joueur : "emetteur_id, destinataire_id"
+    tirage_proposition }|--|| tirage : "tirage_id, CASCADE"
+    tirage_proposition }o--|| defi : "defi_id"
+    defi }o--|| categorie : "categorie_id"
+    mission |o--|| tirage : "tirage_id"
+    mission }o--|| duo : "duo_id, CASCADE"
+    mission }o--|| defi : "defi_id"
+    mission }o--|| joueur : "emetteur_id, destinataire_id"
+    gage }o--|| duo : "duo_id, CASCADE"
+    gage }o--|| joueur : "auteur_id, destinataire_id"
+    tentative
+```
+
+- `joueur.duo_id` nul = sans duo ; une ligne `duo` naît à la formation et porte toujours deux `joueur` (ADR-0002).
+- Dissolution = `DELETE FROM duo` : la cascade efface `participation`, `tirage`, `tirage_proposition`, `mission` et `gage` du duo ; les `joueur` restent.
+- `tentative` n'est reliée à rien : limitation des essais de connexion, de code et d'inscription.
+
 ## Où trouver quoi
 
 | Dossier | Contenu |
@@ -124,7 +151,7 @@ Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
 
 | Document | Rôle | Statut |
 |---|---|---|
-| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.10 (14/10/2026) — règles des comptes, vocabulaire du glossaire, rétroplanning indicatif et checkpoints |
+| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.16 (12/11/2026) — tirage normalisé : le choix vit dans `mission` |
 | `01-cadrage/doc-fonctionnelle.md` | Documentation fonctionnelle : écrans, règles, lots. | V1.1 (14/10/2026) — codes d'écrans dans les lots, gestion du temps au lot 1 |
 | `01-cadrage/remarques-jury.md` | Suivi des remarques de l'encadrant et du jury : source, statut, réponse ; questions de soutenance anticipées. | V1.1 (14/10/2026) — aucune remarque bloquante |
 | `01-cadrage/lean-canvas.json` | Cadrage stratégique : problème, utilisateurs, hypothèses. | Encadrés 7 et 8 à compléter |
@@ -133,7 +160,7 @@ Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
 | `02-recherche-utilisateur/guide-animation-focus-group.md` | Déroulé et questions du focus group (2 h, 6 à 8 participants). | v0.3 (07/10/2026) — exercice, séance non tenue |
 | `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.2 — lot 1 complet (28/28 cadres) |
 | `04-technique/doc-technique.md` | Description technique : architecture MVC, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.2 (14/10/2026) — horloge et simulation du temps, méthode des bases, tests, déconnexion en `POST` |
-| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.3 (15/10/2026) — tables `joueur` et `duo`, identifiant de connexion unique séparé du pseudo affiché · **à valider en S8** |
+| `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.6 (12/11/2026) — diagramme et tables alignés sur `sql/schema.sql` · **à valider en S8** |
 
 Les fichiers `.json` sont les fichiers de travail générés par l'outil de conception ; les `.md` du même nom en sont la version lisible. Les deux se modifient ensemble.
 
