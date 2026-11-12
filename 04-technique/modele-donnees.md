@@ -5,7 +5,8 @@
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.5 — 6 novembre 2026.** Ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
+> **Version 1.6 — 12 novembre 2026.** Diagramme et § 2 alignés sur `sql/schema.sql` : retrait de `evenement` et de `joueur.debut_cycle` (sans source dans le cadrage), ajout de `joueur.dissolution_a_signaler`, du type `inscription` de `tentative`, et des `duo_id` portant la cascade (§ 6) ; index `tirage` fusionné dans son unicité (§ 5). Normalisation : retrait de `tirage.date_choix` et de `tirage_proposition.choisi`, que `mission.tirage_id` rend redondants (cadrage V2.16). Ajout du MCD et du MLD (§ 1).
+> Version 1.5 du 6 novembre 2026 : ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
 > Version 1.4 du 6 novembre 2026 : le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
 > Version 1.3 du 15 octobre 2026 : identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
 > Version 1.2 du 14 octobre 2026 : unicité du pseudo sans tenir compte des majuscules ; le tableau préliminaire du cadrage § 7 utilise désormais lui aussi `joueur` et `duo`.
@@ -25,9 +26,81 @@ Relations :
 - un `tirage` porte exactement trois `tirage_proposition` ;
 - une `mission` naît d'un `tirage` choisi ou d'une attribution aléatoire, et pointe un `defi`.
 
-### Diagramme
+Trois niveaux, du métier au SQL : MCD (règles de gestion, Merise), MLD (tables et clés, forme textuelle), MPD (types et règles MySQL, diagramme).
 
-Tiré du § 2. « prévue » : table absente de `sql/schema.sql` ; « prévu » : colonne absente. Entiers non signés partout ; libellé d'un lien : colonne, règle de suppression.
+### MCD
+
+Entités en rectangle, identifiant souligné ; associations en ovale ; cardinalités `min,max` côté entité. Aucune clé étrangère à ce niveau.
+
+```mermaid
+flowchart TB
+    DUO["<b>DUO</b><br><u>id</u><br>date_creation<br>date_activation"]
+    JOUEUR["<b>JOUEUR</b><br><u>id</u><br>identifiant<br>pseudo<br>mdp_hash<br>code_invitation<br>date_expiration_code<br>onboarding_vu<br>pv<br>dissolution_a_signaler<br>date_creation"]
+    PARTICIPATION["<b>PARTICIPATION</b><br><u>id</u><br>date_jour<br>reponse<br>date_reponse"]
+    TIRAGE["<b>TIRAGE</b><br><u>id</u><br>date_jour"]
+    GAGE["<b>GAGE</b> (lot 2)<br><u>id</u><br>texte<br>date_creation<br>statut<br>nb_contestations"]
+    MISSION["<b>MISSION</b><br><u>id</u><br>origine<br>date_attribution<br>date_revelation<br>date_decouverte<br>date_limite<br>statut<br>date_validation"]
+    DEFI["<b>DEFI</b><br><u>id</u><br>titre<br>description"]
+    CATEGORIE["<b>CATEGORIE</b><br><u>id</u><br>libelle"]
+    TENTATIVE["<b>TENTATIVE</b><br><u>id</u><br>cle<br>type<br>date"]
+
+    appartenir([appartenir])
+    enregistrer([enregistrer])
+    repondre([répondre])
+    tirer([tirer])
+    emettre([émettre])
+    recevoir([recevoir])
+    contenir([contenir])
+    rediger([rédiger])
+    subir([subir])
+    proposer([proposer])
+    donner([donner])
+    porter([porter sur])
+    classer([classer])
+
+    DUO -- "2,2" --- appartenir -- "0,1" --- JOUEUR
+    DUO -- "0,n" --- enregistrer -- "1,1" --- PARTICIPATION
+    JOUEUR -- "0,n" --- repondre -- "1,1" --- PARTICIPATION
+    DUO -- "0,n" --- tirer -- "1,1" --- TIRAGE
+    JOUEUR -- "0,n" --- emettre -- "1,1" --- TIRAGE
+    JOUEUR -- "0,n" --- recevoir -- "1,1" --- TIRAGE
+    DUO -- "0,n" --- contenir -- "1,1" --- GAGE
+    JOUEUR -- "0,n" --- rediger -- "1,1" --- GAGE
+    JOUEUR -- "0,n" --- subir -- "1,1" --- GAGE
+    TIRAGE -- "3,3" --- proposer -- "0,n" --- DEFI
+    TIRAGE -- "0,1" --- donner -- "1,1" --- MISSION
+    MISSION -- "1,1" --- porter -- "0,n" --- DEFI
+    DEFI -- "1,1" --- classer -- "0,n" --- CATEGORIE
+```
+
+- `proposer` est la seule association n-n : elle devient la table `tirage_proposition` au MLD.
+- `TENTATIVE` n'est liée à rien : technique, elle compte des essais par clé hachée, pas par joueur.
+
+### MLD
+
+Clé primaire soulignée, clé étrangère précédée de `#`.
+
+- DUO (<ins>id</ins>, date_creation, date_activation)
+- JOUEUR (<ins>id</ins>, identifiant, pseudo, mdp_hash, code_invitation, date_expiration_code, onboarding_vu, pv, dissolution_a_signaler, date_creation, #duo_id)
+- PARTICIPATION (<ins>id</ins>, date_jour, reponse, date_reponse, #duo_id, #joueur_id)
+- CATEGORIE (<ins>id</ins>, libelle)
+- DEFI (<ins>id</ins>, titre, description, #categorie_id)
+- TIRAGE (<ins>id</ins>, date_jour, #duo_id, #emetteur_id, #destinataire_id)
+- TIRAGE_PROPOSITION (<ins>#tirage_id, #defi_id</ins>)
+- MISSION (<ins>id</ins>, origine, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation, #tirage_id, #defi_id)
+- GAGE (<ins>id</ins>, texte, date_creation, statut, nb_contestations, #duo_id, #auteur_id, #destinataire_id)
+- TENTATIVE (<ins>id</ins>, cle, type, date)
+
+`#emetteur_id`, `#destinataire_id` et `#auteur_id` pointent `JOUEUR` ; un même `JOUEUR` est ainsi relié deux fois à `TIRAGE` et à `GAGE`, une fois par rôle.
+
+Écarts voulus du MPD par rapport au MLD :
+
+- `tirage_proposition` reçoit un `id` technique ; le couple `(tirage_id, defi_id)` reste unique (§ 4).
+- `mission` recopie `duo_id`, `emetteur_id` et `destinataire_id` de son tirage : `duo_id` porte la cascade de la dissolution (§ 6), `destinataire_id` et `emetteur_id` servent les index du rattrapage et de l'accueil (§ 5) sans jointure.
+
+### Diagramme (MPD)
+
+Tiré du § 2. « prévue » : table absente de `sql/schema.sql`. Entiers non signés partout ; libellé d'un lien : colonne, règle de suppression. Lecture de haut en bas : table référencée au-dessus, table qui porte la clé étrangère (`FK`, placée juste après `PK`) en dessous ; une table de liaison se lit entre ses deux tables.
 
 ```mermaid
 erDiagram
@@ -38,15 +111,15 @@ erDiagram
     }
     joueur {
         int id PK
+        int duo_id FK "nullable"
         varchar(30) identifiant UK "unicode_ci"
         varchar(30) pseudo "non nul"
         varchar(255) mdp_hash "non nul"
         char(8) code_invitation UK "ascii_bin, nullable"
         datetime date_expiration_code "nullable"
-        int duo_id FK "nullable"
         tinyint(1) onboarding_vu "défaut 0"
         tinyint pv "défaut 5"
-        datetime debut_cycle "nullable, prévu"
+        tinyint(1) dissolution_a_signaler "défaut 0"
         datetime date_creation "non nul"
     }
     participation["participation (prévue)"] {
@@ -70,9 +143,9 @@ erDiagram
     tirage["tirage (prévue)"] {
         int id PK
         int duo_id FK "non nul"
-        date date_jour "UK (date_jour, emetteur_id)"
         int emetteur_id FK
         int destinataire_id FK
+        date date_jour "UK (emetteur_id, date_jour)"
     }
     tirage_proposition["tirage_proposition (prévue)"] {
         int id PK
@@ -110,32 +183,24 @@ erDiagram
         enum type "connexion | code | inscription"
         datetime date "non nul"
     }
-    evenement {
-        int id PK
-        int joueur_id FK "non nul"
-        enum type "duo_dissous | expiration | remise_a_cinq | aleatoire"
-        date date_jour "non nul"
-        datetime date_creation "non nul"
-    }
 
-    joueur }o--o| duo : "duo_id, SET NULL"
-    evenement }o--|| joueur : "joueur_id, CASCADE"
-    participation }o--|| duo : "duo_id, CASCADE"
-    participation }o--|| joueur : "joueur_id, RESTRICT"
-    defi }o--|| categorie : "categorie_id"
-    tirage }o--|| duo : "duo_id, CASCADE"
-    tirage }o--|| joueur : "emetteur_id, RESTRICT"
-    tirage }o--|| joueur : "destinataire_id, RESTRICT"
-    tirage_proposition }|--|| tirage : "tirage_id, CASCADE"
+    duo |o--|{ joueur : "duo_id, SET NULL"
+    duo ||--o{ participation : "duo_id, CASCADE"
+    joueur ||--o{ participation : "joueur_id, RESTRICT"
+    duo ||--o{ tirage : "duo_id, CASCADE"
+    joueur ||--o{ tirage : "emetteur_id, RESTRICT"
+    joueur ||--o{ tirage : "destinataire_id, RESTRICT"
+    tirage ||--|{ tirage_proposition : "tirage_id, CASCADE"
     tirage_proposition }o--|| defi : "defi_id"
-    mission |o--|| tirage : "tirage_id"
-    mission }o--|| duo : "duo_id, CASCADE"
+    defi }o--|| categorie : "categorie_id"
+    tirage ||--o| mission : "tirage_id"
+    duo ||--o{ mission : "duo_id, CASCADE"
+    joueur ||--o{ mission : "emetteur_id, RESTRICT"
+    joueur ||--o{ mission : "destinataire_id, RESTRICT"
     mission }o--|| defi : "defi_id"
-    mission }o--|| joueur : "emetteur_id, RESTRICT"
-    mission }o--|| joueur : "destinataire_id, RESTRICT"
-    gage }o--|| duo : "duo_id, CASCADE"
-    gage }o--|| joueur : "auteur_id, RESTRICT"
-    gage }o--|| joueur : "destinataire_id, RESTRICT"
+    duo ||--o{ gage : "duo_id, CASCADE"
+    joueur ||--o{ gage : "auteur_id, RESTRICT"
+    joueur ||--o{ gage : "destinataire_id, RESTRICT"
 ```
 
 ## 2. Tables
@@ -176,6 +241,7 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `joueur_id` | entier non signé | clé étrangère vers `joueur` |
 | `date_jour` | date | non nul |
 | `reponse` | énumération `oui` / `non` | non nul |
@@ -199,23 +265,25 @@ erDiagram
 | Table | Champ | Type | Contrainte |
 |---|---|---|---|
 | `tirage` | `id` | entier non signé | clé primaire |
+| `tirage` | `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `tirage` | `date_jour` | date | non nul |
 | `tirage` | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
-| `tirage` | `date_choix` | date-heure | nullable tant que le choix n'est pas fait |
 | `tirage_proposition` | `id` | entier non signé | clé primaire |
 | `tirage_proposition` | `tirage_id` | entier non signé | clé étrangère vers `tirage`, suppression en cascade |
 | `tirage_proposition` | `defi_id` | entier non signé | clé étrangère vers `defi` |
-| `tirage_proposition` | `choisi` | booléen | non nul, défaut faux |
 
-- `choisi` est renseigné par le joueur, ou par le système lors d'une attribution aléatoire.
-- `date_choix` nulle après la bascule de midi signale un joueur passif.
+- Le choix n'est pas stocké ici : c'est la `mission` qui pointe ce `tirage` (`mission.tirage_id`). Proposition retenue : celle dont le `defi_id` est celui de la mission ; instant du choix : `mission.date_attribution`. Une seule source, aucune copie à tenir d'accord.
+- Tirage sans mission : choix pas encore fait. Mission d'origine `aleatoire` : joueur passif à la bascule de midi.
+- Propositions non choisies (exclues 3 jours, cadrage § 4.6) : celles du tirage dont le `defi_id` diffère de celui de sa mission.
 
 ### `mission`
 
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
+| `tirage_id` | entier non signé | non nul, unique, clé étrangère vers `tirage` : le tirage dont le défi est issu |
 | `defi_id` | entier non signé | clé étrangère vers `defi` |
 | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
@@ -234,6 +302,7 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `auteur_id` | entier non signé | clé étrangère vers `joueur` |
 | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
 | `texte` | texte | non nul, échappé à l'affichage |
@@ -246,11 +315,11 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `cle` | chaîne 64 | connexion : identifiant saisi ou identifiant de session ; code : numéro du joueur ou identifiant de session |
-| `type` | énumération `connexion` / `code` | non nul |
+| `cle` | chaîne 64 | non nul ; connexion : identifiant saisi ; code : numéro du joueur ; tous types : empreinte SHA-256 de la session et de l'adresse IP, jamais en clair |
+| `type` | énumération `connexion` / `code` / `inscription` | non nul ; inscription : clé IP seule |
 | `date` | date-heure | non nul |
 
-- Purge des lignes de plus de 24 h, au rattrapage, pour éviter que la table enfle.
+- Purge des lignes de plus de 30 minutes (15 de fenêtre + 15 d'attente) à chaque essai, par `LimiteTentativesService` : la table ne peut pas enfler.
 
 ## 3. Cycle de vie d'une mission
 
@@ -280,7 +349,7 @@ Posées **en base**, pas seulement vérifiées en PHP. Ce sont elles qui rendent
 | Contrainte | Table | Ce qu'elle empêche |
 |---|---|---|
 | Unicité `(joueur_id, date_jour)` | `participation` | Deux réponses contradictoires, et le double clic |
-| Unicité `(date_jour, emetteur_id)` | `tirage` | Un second tirage obtenu par rechargement, et la double attribution aléatoire |
+| Unicité `(emetteur_id, date_jour)` | `tirage` | Un second tirage obtenu par rechargement, et la double attribution aléatoire |
 | Unicité `(tirage_id, defi_id)` | `tirage_proposition` | Un doublon parmi les trois propositions |
 
 ## 5. Index
@@ -289,7 +358,7 @@ Au-delà des clés primaires et étrangères :
 
 - `mission` sur `(destinataire_id, statut, date_limite)` — requête du rattrapage, la plus fréquente de l'application.
 - `mission` sur `(emetteur_id, date_attribution)` — accueil et historique.
-- `tirage` sur `(emetteur_id, date_jour)` — lecture des propositions du jour.
+- `tirage` : aucun index en plus. L'unicité du § 4 est déclarée `(emetteur_id, date_jour)`, `emetteur_id` en tête : elle sert aussi à la lecture des propositions du jour et à la clé étrangère `emetteur_id`.
 - `tentative` sur `(cle, type, date)` — comptage des dernières minutes.
 - `joueur` sur `duo_id`.
 
@@ -320,5 +389,5 @@ F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule
 - [x] Longueur et alphabet du code d'invitation — 8 caractères parmi 32 : A à Z sans I ni O, 2 à 9 (tranché le 06/11).
 - [ ] Longueur maximale d'un titre et d'une description de défi, une fois les 15 premiers défis écrits (S5).
 - [ ] Longueur maximale d'un gage.
-- [ ] Purge des `tentative` : au rattrapage, ou par une instruction manuelle.
+- [x] Purge des `tentative` — à chaque essai, lignes de plus de 30 minutes (tranché par A3 et B1).
 - [ ] Conservation ou non de l'historique des missions après dissolution — actuellement supprimé.

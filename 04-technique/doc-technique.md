@@ -186,9 +186,9 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Service** : `TirageService`.
 - **Génération** : à la première demande du joueur dans la journée, jamais avant. Les trois défis sont écrits immédiatement dans `tirage_proposition` ; toute lecture ultérieure relit ces lignes. Sans cette persistance, un rechargement permettrait de retirer jusqu'à obtenir un défi facile.
 - **Réservoir** : défis jamais reçus par le destinataire, sans doublon entre les trois, en excluant ceux proposés et non choisis depuis moins de trois jours. Sous trois défis disponibles, le cycle du destinataire repart à zéro.
-- **Choix** : marque la proposition retenue, renseigne `date_choix` et crée la mission. Accepté seulement avant la bascule.
+- **Choix** : crée la mission, qui pointe le tirage (`mission.tirage_id`) : c'est elle qui porte le défi retenu et l'instant du choix. Accepté seulement avant la bascule ; l'unicité de `mission.tirage_id` empêche un second choix.
 - **Défi aléatoire** : tiré parmi les propositions **déjà persistées** du joueur passif — donc aucun nouveau tirage. Marqué d'une origine `aleatoire`, qui déclenche l'écran D2.
-- **Idempotence** : l'unicité `(date_jour, emetteur_id)` empêche le double jeu de propositions et la double attribution aléatoire.
+- **Idempotence** : l'unicité `(emetteur_id, date_jour)` empêche le double jeu de propositions et la double attribution aléatoire.
 - **Règle** : cadrage § 4.2, § 4.6, § 6.2.
 
 ### 3.4 Cycle de vie d'une mission
