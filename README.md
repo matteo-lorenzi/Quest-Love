@@ -120,9 +120,8 @@ erDiagram
     tirage_proposition }|--|| tirage : "tirage_id, CASCADE"
     tirage_proposition }o--|| defi : "defi_id"
     defi }o--|| categorie : "categorie_id"
-    mission |o--|| tirage : "tirage_id"
+    mission |o--|| tirage_proposition : "(tirage_id, defi_id), CASCADE"
     mission }o--|| duo : "duo_id, CASCADE"
-    mission }o--|| defi : "defi_id"
     mission }o--|| joueur : "emetteur_id, destinataire_id"
     gage }o--|| duo : "duo_id, CASCADE"
     gage }o--|| joueur : "auteur_id, destinataire_id"
@@ -151,7 +150,7 @@ erDiagram
 
 | Document | Rôle | Statut |
 |---|---|---|
-| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.16 (12/11/2026) — tirage normalisé : le choix vit dans `mission` |
+| `01-cadrage/cadrage-unifie.md` | Cahier des charges. Toute règle est arrêtée ici **avant** d'être codée. | V2.17 (14/11/2026) — clé composite `mission(tirage_id, defi_id)` vers `tirage_proposition` |
 | `01-cadrage/doc-fonctionnelle.md` | Documentation fonctionnelle : écrans, règles, lots. | V1.1 (14/10/2026) — codes d'écrans dans les lots, gestion du temps au lot 1 |
 | `01-cadrage/remarques-jury.md` | Suivi des remarques de l'encadrant et du jury : source, statut, réponse ; questions de soutenance anticipées. | V1.1 (14/10/2026) — aucune remarque bloquante |
 | `01-cadrage/lean-canvas.json` | Cadrage stratégique : problème, utilisateurs, hypothèses. | Encadrés 7 et 8 à compléter |

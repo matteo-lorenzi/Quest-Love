@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.16 — 12 novembre 2026.** Normalise le tirage avant la validation du schéma (§ 7) : `tirage.date_choix` et `tirage_proposition.choisi` disparaissent, la `mission` pointant son tirage porte seule le défi retenu et l'instant du choix ; `tirage` reçoit le `duo_id` de la suppression en cascade.
+> **Version 2.17 — 14 novembre 2026.** Précise le § 7 : le défi d'une `mission` est l'une des trois propositions de son tirage, d'où une clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (modèle de données v1.7).
+>
+> La V2.16 (12 novembre 2026) : normalise le tirage avant la validation du schéma (§ 7) : `tirage.date_choix` et `tirage_proposition.choisi` disparaissent, la `mission` pointant son tirage porte seule le défi retenu et l'instant du choix ; `tirage` reçoit le `duo_id` de la suppression en cascade.
 >
 > La V2.15 (6 novembre 2026) : reporte les décisions sur l'écran B2 avant son codage : l'onboarding des règles est obligatoire pour les deux joueurs avant l'accueil (§ 8.5), deux colonnes portent son état, `onboarding_vu` sur `joueur` et `date_activation` sur `duo` (§ 7), et « duo formé après 12 h » se calcule sur l'instant où les deux l'ont terminé (§ 4.2) ; consigne les décisions du 06/11 sur B2 (§ 16).
 >
@@ -337,8 +339,8 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 | `categorie` | id, libelle | — |
 | `defi` | id, titre, description, categorie_id | — |
 | `tirage` | id, duo_id, date_jour, emetteur_id, destinataire_id | Unicité (`emetteur_id`, `date_jour`) |
-| `tirage_proposition` | id, tirage_id, defi_id | Le choix n'est pas stocké ici : la `mission` pointe son tirage |
-| `mission` | id, duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | Unicité (`tirage_id`) : un seul choix par tirage |
+| `tirage_proposition` | id, tirage_id, defi_id | Unicité (`tirage_id`, `defi_id`) ; le choix n'est pas stocké ici : la `mission` pointe son tirage |
+| `mission` | id, duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | Unicité (`tirage_id`) : un seul choix par tirage ; clé étrangère composite (`tirage_id`, `defi_id`) vers `tirage_proposition` : le défi retenu est l'une des trois propositions du tirage |
 | `gage` | id, duo_id, auteur_id, destinataire_id, texte, date_creation, statut, nb_contestations | Une contestation maximum |
 | `tentative` | id, cle (identifiant, joueur, session ou IP), type (`connexion` / `code` / `inscription`), date | Limitation des essais |
 

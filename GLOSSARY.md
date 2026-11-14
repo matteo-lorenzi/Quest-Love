@@ -65,18 +65,34 @@ Période de jeu identifiée par une date, de 00 h à minuit, bornée par la basc
 Journée de jeu sans mission ni perte de PV, parce qu'un joueur a répondu non ou n'a pas répondu avant 12 h.
 _Éviter_ : jour off, pause
 
+**Participation** :
+Réponse définitive d'un joueur à « On joue aujourd'hui ? », donnée avant 12 h. Une seule par joueur et par journée de jeu ; la journée n'est jouée que si les deux répondent oui.
+_Éviter_ : vote, inscription (à la journée)
+
 **Tirage** :
-Les trois défis proposés à un émetteur pour une journée, parmi lesquels il en choisit un.
+Ligne qui consigne, pour une journée, l'émetteur, le destinataire et les trois propositions qui lui sont faites ; il en choisit une. « Tirer » est le verbe : l'application tire trois défis au hasard et les inscrit au tirage, une seule fois par émetteur et par journée.
 _Éviter_ : pioche, main
+
+**Proposition** :
+Un des trois défis offerts par un tirage. Liaison entre un tirage et un défi : un défi peut figurer dans de nombreux tirages, un tirage en porte exactement trois.
+_Éviter_ : option, carte
 
 ## Jeu
 
 **Défi** :
-Entrée de la bibliothèque : une action rédigée, réalisable en une journée, rattachée à une catégorie.
+Entrée de la bibliothèque : une action rédigée, réalisable en une journée, rattachée à une catégorie. Modèle partagé et réutilisable : la mission en est l'instance.
+
+**Catégorie** :
+Regroupement de la bibliothèque, 4 à 5 au total, déduit des défis écrits. Un défi appartient à une seule catégorie.
+_Éviter_ : type, thème
 
 **Mission** :
 Défi attribué à un destinataire pour une journée de jeu donnée. Terme interne : les joueurs ne voient que le mot « défi ».
 _Éviter_ : défi du jour, quête
+
+**Attribution** :
+Création de la mission : l'émetteur retient l'une des trois propositions de son tirage, ou l'application en choisit une au hasard à 12 h quand il n'a rien choisi. Fixe l'origine de la mission (`choix` ou `aleatoire`).
+_Éviter_ : affectation, envoi
 
 **Révélation** :
 Moment où une mission devient visible pour son destinataire : dès que les deux joueurs ont choisi, ou à 12 h au plus tard.
@@ -86,6 +102,14 @@ _Éviter_ : notification, annonce
 Première consultation, par son destinataire, d'une mission déjà révélée. Une mission peut expirer sans avoir été découverte.
 _Éviter_ : lecture, ouverture
 
+**Validation** :
+Déclaration du destinataire, après confirmation, qu'il a réalisé sa mission. Fait passer la mission de en cours à validée.
+_Éviter_ : réussite, preuve
+
+**Expiration** :
+Passage d'une mission en cours à expirée quand minuit est passé sans validation, constaté au rattrapage ; le destinataire perd 1 PV. Une mission peut expirer sans avoir été découverte.
+_Éviter_ : échec, péremption
+
 **Point de vie (PV)** :
 Unité du capital de chaque joueur, 5 au départ, perdue quand une mission n'est pas réalisée à temps.
 _Éviter_ : vie, cœur, score
@@ -93,3 +117,9 @@ _Éviter_ : vie, cœur, score
 **Gage** :
 Action libre rédigée par le partenaire, que doit réaliser le joueur tombé à 0 PV (lot 2).
 _Éviter_ : punition, sanction
+
+## Technique
+
+**Tentative** :
+Ligne qui compte un essai de connexion, de code ou d'inscription, sous une clé hachée, pour limiter les essais. Purgée au bout de 30 minutes ; jamais liée à un joueur.
+_Éviter_ : essai (le mot désigne l'acte, pas la ligne), échec, log

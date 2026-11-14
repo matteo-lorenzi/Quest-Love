@@ -5,7 +5,8 @@
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.6 — 12 novembre 2026.** Diagramme et § 2 alignés sur `sql/schema.sql` : retrait de `evenement` et de `joueur.debut_cycle` (sans source dans le cadrage), ajout de `joueur.dissolution_a_signaler`, du type `inscription` de `tentative`, et des `duo_id` portant la cascade (§ 6) ; index `tirage` fusionné dans son unicité (§ 5). Normalisation : retrait de `tirage.date_choix` et de `tirage_proposition.choisi`, que `mission.tirage_id` rend redondants (cadrage V2.16). Ajout du MCD et du MLD (§ 1).
+> **Version 1.7 — 14 novembre 2026.** Le défi d'une `mission` doit être l'une des trois propositions de son tirage : clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (MLD, MPD, § 2) ; règle du « exactement trois » consignée au § 2 ; copies voulues marquées `TODO(simplif)` ([ADR-0003](../docs/adr/0003-tirage-proposition-table-de-liaison.md)).
+> Version 1.6 du 12 novembre 2026 : diagramme et § 2 alignés sur `sql/schema.sql` : retrait de `evenement` et de `joueur.debut_cycle` (sans source dans le cadrage), ajout de `joueur.dissolution_a_signaler`, du type `inscription` de `tentative`, et des `duo_id` portant la cascade (§ 6) ; index `tirage` fusionné dans son unicité (§ 5). Normalisation : retrait de `tirage.date_choix` et de `tirage_proposition.choisi`, que `mission.tirage_id` rend redondants (cadrage V2.16). Ajout du MCD et du MLD (§ 1).
 > Version 1.5 du 6 novembre 2026 : ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
 > Version 1.4 du 6 novembre 2026 : le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
 > Version 1.3 du 15 octobre 2026 : identifiant de connexion unique séparé du pseudo affiché, libre (cadrage § 6.6).
@@ -87,11 +88,13 @@ Clé primaire soulignée, clé étrangère précédée de `#`.
 - DEFI (<ins>id</ins>, titre, description, #categorie_id)
 - TIRAGE (<ins>id</ins>, date_jour, #duo_id, #emetteur_id, #destinataire_id)
 - TIRAGE_PROPOSITION (<ins>#tirage_id, #defi_id</ins>)
-- MISSION (<ins>id</ins>, origine, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation, #tirage_id, #defi_id)
+- MISSION (<ins>id</ins>, origine, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation, #tirage_id, #defi_id) — clé étrangère composite `(#tirage_id, #defi_id)` vers `TIRAGE_PROPOSITION`
 - GAGE (<ins>id</ins>, texte, date_creation, statut, nb_contestations, #duo_id, #auteur_id, #destinataire_id)
 - TENTATIVE (<ins>id</ins>, cle, type, date)
 
 `#emetteur_id`, `#destinataire_id` et `#auteur_id` pointent `JOUEUR` ; un même `JOUEUR` est ainsi relié deux fois à `TIRAGE` et à `GAGE`, une fois par rôle.
+
+`MISSION (tirage_id, defi_id)` référence `TIRAGE_PROPOSITION (tirage_id, defi_id)` : le défi d'une mission est forcément l'une des trois propositions de son tirage (cadrage § 4.2 : le défi aléatoire est tiré parmi elles).
 
 Écarts voulus du MPD par rapport au MLD :
 
@@ -155,8 +158,8 @@ erDiagram
     mission["mission (prévue)"] {
         int id PK
         int duo_id FK "non nul"
-        int tirage_id FK, UK "non nul"
-        int defi_id FK
+        int tirage_id FK, UK "non nul ; FK composite avec defi_id"
+        int defi_id FK "FK composite avec tirage_id"
         int emetteur_id FK
         int destinataire_id FK
         enum origine "choix | aleatoire"
@@ -193,11 +196,10 @@ erDiagram
     tirage ||--|{ tirage_proposition : "tirage_id, CASCADE"
     tirage_proposition }o--|| defi : "defi_id"
     defi }o--|| categorie : "categorie_id"
-    tirage ||--o| mission : "tirage_id"
+    tirage_proposition ||--o| mission : "(tirage_id, defi_id), CASCADE"
     duo ||--o{ mission : "duo_id, CASCADE"
     joueur ||--o{ mission : "emetteur_id, RESTRICT"
     joueur ||--o{ mission : "destinataire_id, RESTRICT"
-    mission }o--|| defi : "defi_id"
     duo ||--o{ gage : "duo_id, CASCADE"
     joueur ||--o{ gage : "auteur_id, RESTRICT"
     joueur ||--o{ gage : "destinataire_id, RESTRICT"
@@ -268,12 +270,13 @@ erDiagram
 | `tirage` | `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
 | `tirage` | `date_jour` | date | non nul |
 | `tirage` | `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
-| `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
+| `tirage` | `destinataire_id` | entier non signé | clé étrangère vers `joueur` ; `TODO(simplif)` : copie de l'autre joueur du duo, déjà déductible de `duo_id` et `emetteur_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
 | `tirage_proposition` | `id` | entier non signé | clé primaire |
 | `tirage_proposition` | `tirage_id` | entier non signé | clé étrangère vers `tirage`, suppression en cascade |
 | `tirage_proposition` | `defi_id` | entier non signé | clé étrangère vers `defi` |
 
 - Le choix n'est pas stocké ici : c'est la `mission` qui pointe ce `tirage` (`mission.tirage_id`). Proposition retenue : celle dont le `defi_id` est celui de la mission ; instant du choix : `mission.date_attribution`. Une seule source, aucune copie à tenir d'accord.
+- Exactement trois propositions par tirage : règle tenue par l'application, pas par la base. Les trois lignes sont insérées dans la transaction qui crée le tirage ; un test le vérifie (cadrage § 6.2).
 - Tirage sans mission : choix pas encore fait. Mission d'origine `aleatoire` : joueur passif à la bascule de midi.
 - Propositions non choisies (exclues 3 jours, cadrage § 4.6) : celles du tirage dont le `defi_id` diffère de celui de sa mission.
 
@@ -282,16 +285,16 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade |
-| `tirage_id` | entier non signé | non nul, unique, clé étrangère vers `tirage` : le tirage dont le défi est issu |
-| `defi_id` | entier non signé | clé étrangère vers `defi` |
-| `emetteur_id` | entier non signé | clé étrangère vers `joueur` |
-| `destinataire_id` | entier non signé | clé étrangère vers `joueur` |
+| `duo_id` | entier non signé | non nul, clé étrangère vers `duo`, suppression en cascade ; `TODO(simplif)` : copie de `tirage.duo_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
+| `tirage_id` | entier non signé | non nul, unique ; avec `defi_id`, clé étrangère composite vers `tirage_proposition(tirage_id, defi_id)`, suppression en cascade : le tirage dont le défi est issu |
+| `defi_id` | entier non signé | non nul ; second membre de la clé étrangère composite : le défi est l'une des trois propositions du tirage |
+| `emetteur_id` | entier non signé | clé étrangère vers `joueur` ; `TODO(simplif)` : copie de `tirage.emetteur_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
+| `destinataire_id` | entier non signé | clé étrangère vers `joueur` ; `TODO(simplif)` : copie de `tirage.destinataire_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
 | `origine` | énumération `choix` / `aleatoire` | non nul |
 | `date_attribution` | date-heure | non nul |
 | `date_revelation` | date-heure | nullable |
 | `date_decouverte` | date-heure | nullable |
-| `date_limite` | date-heure | non nul, minuit du jour d'attribution |
+| `date_limite` | date-heure | non nul, minuit du jour d'attribution ; `TODO(simplif)` : copie calculée de `date_attribution`, divergence possible entre copie et source, à revoir si un bug apparaît |
 | `statut` | énumération, voir § 3 | non nul |
 | `date_validation` | date-heure | nullable |
 
