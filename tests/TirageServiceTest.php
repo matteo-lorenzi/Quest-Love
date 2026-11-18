@@ -133,4 +133,84 @@ class TirageServiceTest extends TestCase
         $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
         $this->assertSame(3, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage_proposition')->fetchColumn());
     }
+
+    // Bibliothèque réduite à $nombre défis, pour que les propositions attendues se déduisent sans hasard. Les tests suivants en gardent au moins trois.
+    /** @return int[] */
+    private function bibliotheque(int $nombre): array
+    {
+        $this->pdo->exec('DELETE FROM defi');
+        $ajout = $this->pdo->prepare("INSERT INTO defi (titre, description, categorie_id) SELECT ?, 'Pour le test.', id FROM categorie WHERE libelle = 'Catégorie du test de tirage'");
+        $ids = [];
+        foreach (range(1, $nombre) as $n) {
+            $ajout->execute(["Défi de réservoir $n"]);
+            $ids[] = (int) $this->pdo->lastInsertId();
+        }
+        return $ids;
+    }
+
+    // Une journée passée de $emetteur vers $destinataire : ses propositions et, si $retenu est donné, la mission révélée qui en est issue.
+    private function journeePassee(Joueur $emetteur, Joueur $destinataire, string $decalage, array $defiIds, ?int $retenu = null): void
+    {
+        $jour = $this->matin->modify($decalage);
+        $tirages = new TirageDepot($this->pdo);
+        $tirages->creer($emetteur->duoId, $emetteur->id, $destinataire->id, $jour, $defiIds);
+        if ($retenu !== null) {
+            $missions = new MissionDepot($this->pdo);
+            $mission = $missions->ajouter($tirages->trouverParEmetteurEtJour($emetteur->id, $jour), $retenu, $jour, $jour->modify('tomorrow'));
+            $missions->reveler($mission, $jour);
+        }
+    }
+
+    // C2 éventail, réservoir : un défi déjà reçu par Mia ne lui est plus proposé ; restent exactement les trois autres.
+    public function testUnDefiDejaRecuNestPlusPropose(): void
+    {
+        [$a, $b, $c, $d] = $this->bibliotheque(4);
+        [$lou, $mia] = $this->formerDuo();
+        $this->journeePassee($lou, $mia, '-10 days', [$a, $b, $c], $a);
+
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertEqualsCanonicalizing([$b, $c, $d], $tirage->defiIds);
+    }
+
+    // C2 éventail, fenêtre de trois jours : les propositions non retenues d'avant-hier restent écartées, celles d'il y a trois jours reviennent.
+    public function testUnePropositionNonRetenueRevientApresTroisJours(): void
+    {
+        [$a, $b, $c, $d, $e, $f] = $this->bibliotheque(6);
+        [$lou, $mia] = $this->formerDuo();
+        $this->journeePassee($lou, $mia, '-3 days', [$a, $b, $c]);
+        $this->journeePassee($lou, $mia, '-2 days', [$d, $e, $f]);
+
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertEqualsCanonicalizing([$a, $b, $c], $tirage->defiIds);
+    }
+
+    // C2 éventail, remise à zéro : Mia a reçu deux des quatre défis, il en reste deux ; son cycle repart à zéro et trois propositions distinctes sont tirées.
+    public function testSousTroisDefisDisponiblesLeCycleRepartAZero(): void
+    {
+        [$a, $b, $c, $d] = $this->bibliotheque(4);
+        [$lou, $mia] = $this->formerDuo();
+        $this->journeePassee($lou, $mia, '-20 days', [$a, $b, $c], $a);
+        $this->journeePassee($lou, $mia, '-10 days', [$b, $c, $d], $b);
+
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertCount(3, array_unique($tirage->defiIds));
+        $this->assertEmpty(array_diff($tirage->defiIds, [$a, $b, $c, $d]));
+    }
+
+    // Après la remise à zéro, le nouveau cycle écarte ce qu'il a déjà donné : c, reçu quand il ne restait que c et d, n'est pas reproposé.
+    public function testLeCycleRepartiEcarteLesDefisRecusDepuis(): void
+    {
+        [$a, $b, $c, $d] = $this->bibliotheque(4);
+        [$lou, $mia] = $this->formerDuo();
+        $this->journeePassee($lou, $mia, '-30 days', [$a, $b, $c], $a);
+        $this->journeePassee($lou, $mia, '-20 days', [$b, $c, $d], $b);
+        $this->journeePassee($lou, $mia, '-10 days', [$a, $c, $d], $c);
+
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertEqualsCanonicalizing([$a, $b, $d], $tirage->defiIds);
+    }
 }

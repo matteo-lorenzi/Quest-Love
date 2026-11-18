@@ -27,15 +27,42 @@ class TirageService
         $destinataire = $this->joueurs->trouverPartenaire($emetteur);
         // Sous transaction : un tirage n'existe jamais sans ses trois propositions. Une demande concurrente déjà passée fait renvoyer null à creer :
         // rien n'est écrit, et la relecture rend le tirage de l'autre demande (clé unique, modèle de données § 4).
-        // TODO(simplif): réservoir = toute la bibliothèque, sans exclusion des défis reçus ni des trois jours, à remplacer par les règles de la #72.
         $this->pdo->beginTransaction();
         try {
-            $this->tirages->creer($emetteur->duoId, $emetteur->id, $destinataire->id, $jour, array_rand($this->defis->tous(), 3));
+            $this->tirages->creer($emetteur->duoId, $emetteur->id, $destinataire->id, $jour, $this->proposer($destinataire->id, $jour));
             $this->pdo->commit();
         } catch (Throwable $erreur) {
             $this->pdo->rollBack();
             throw $erreur;
         }
         return $this->tirages->trouverParEmetteurEtJour($emetteur->id, $jour);
+    }
+
+    // Réservoir du destinataire (doc technique § 3.3) : les défis qu'il n'a jamais reçus, hors propositions non retenues depuis moins de trois jours.
+    /** @return int[] trois numéros de défi distincts */
+    private function proposer(int $destinataireId, DateTimeImmutable $jour): array
+    {
+        $bibliotheque = $this->defis->tous();
+        $recents = array_flip($this->defis->nonRetenusApres($destinataireId, $jour->modify('-3 days')));
+        // Le cycle n'est pas stocké (modèle de données, sans debut_cycle) : il se rejoue sur les défis reçus, dans l'ordre, en repartant de zéro
+        // chaque fois qu'il ne laissait plus trois défis. Sans ce rejeu, chaque tirage après le premier épuisement repartirait de zéro.
+        // TODO(simplif): le rejeu ignore la fenêtre de trois jours et suppose la bibliothèque inchangée, à revoir si une remise à zéro tombe à contretemps.
+        $cycle = [];
+        foreach ($this->defis->recusPar($destinataireId) as $defiId) {
+            if (count(array_diff_key($bibliotheque, $cycle)) < 3) {
+                $cycle = [];
+            }
+            $cycle[$defiId] = true;
+        }
+        $disponibles = array_diff_key($bibliotheque, $cycle, $recents);
+        // Sous trois défis, le cycle repart à zéro : les défis reçus redeviennent disponibles.
+        if (count($disponibles) < 3) {
+            $disponibles = array_diff_key($bibliotheque, $recents);
+        }
+        // La fenêtre n'écarte que les propositions des deux dernières journées : elle ne cède à son tour que pour une bibliothèque minuscule (tests).
+        if (count($disponibles) < 3) {
+            $disponibles = $bibliotheque;
+        }
+        return array_rand($disponibles, 3);
     }
 }
