@@ -42,3 +42,27 @@ INSERT INTO duo (id, date_creation, date_activation) VALUES (4, CONCAT(CURDATE()
 INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
   (104, 'zoe', 'Zoé', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 4, 1, CONCAT(CURDATE(), ' 13:40:00')),
   (105, 'max', 'Max', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 4, 1, CONCAT(CURDATE(), ' 13:45:00'));
+
+-- Un cinquième duo pour C1 état 3 : Eva et Léo ont dit oui aujourd'hui, chacun lit « à toi de piocher » et ouvre C2.
+-- Aucun tirage écrit ici : le premier passage sur C2 le crée. Même limite que l'état 2 : ne vaut que le jour du rechargement (CURDATE()), avant 12 h.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (5, '2026-10-05 18:00:00', '2026-10-05 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (106, 'eva', 'Eva', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 5, 1, '2026-10-05 17:50:00'),
+  (107, 'leo', 'Léo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 5, 1, '2026-10-05 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (5, 106, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00')),
+  (5, 107, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:10:00'));
+
+-- Un sixième duo pour C1 état 4 : Ana a choisi le défi de Noé (mission non révélée), Noé doit encore piocher (état 3).
+-- Même limite que l'état 2 : ne vaut que le jour du rechargement (CURDATE()), avant 12 h. Défis 1 à 3 : les premiers de defis.sql.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (6, '2026-10-06 18:00:00', '2026-10-06 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (108, 'ana', 'Ana', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 6, 1, '2026-10-06 17:50:00'),
+  (109, 'noe', 'Noé', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 6, 1, '2026-10-06 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (6, 108, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00')),
+  (6, 109, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:05:00'));
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES (1, 6, 108, 109, CURDATE());
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (1, 1), (1, 2), (1, 3);
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
+  (6, 1, 2, 108, 109, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele');

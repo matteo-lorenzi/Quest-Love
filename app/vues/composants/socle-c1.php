@@ -7,8 +7,8 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
 [$statutJoueur, $statutPartenaire, $centre] = match ($etat) {
     EtatAccueil::Question => ['Pas encore répondu', '', 'On joue aujourd\'hui ?'],
     EtatAccueil::AttentePartenaire => ['Oui', 'Pas encore répondu', 'En attente de ' . $nomPartenaire],
-    // TODO(simplif): textes d'attente, remplacés par les états 3 et 4 (#58).
-    EtatAccueil::LesDeuxOntDitOui => ['Oui', 'Oui', '[TEXTE À RÉDIGER : vous jouez aujourd\'hui, tirage à venir]'],
+    EtatAccueil::ATirer => ['Oui', 'Oui', 'À toi de piocher'],
+    EtatAccueil::DefiEnvoye => ['Défi envoyé', 'Oui', 'En attente de révélation'],
     EtatAccueil::JourneeBlanche => ['', '', 'Journée blanche'],
     EtatAccueil::PremierJourDemain => ['', '', 'Premier jour de jeu demain'],
 };
@@ -33,6 +33,10 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
             <a class="bouton bouton--secondaire" href="index.php?ecran=accueil&amp;confirmer=non">Pas aujourd'hui</a>
         <?php elseif ($etat === EtatAccueil::AttentePartenaire): ?>
             <p>Recharge la page pour savoir si <?= e($nomPartenaire) ?> a répondu.</p>
+        <?php elseif ($etat === EtatAccueil::ATirer): ?>
+            <a class="bouton" href="index.php?ecran=tirage">Piocher le défi de <?= e($nomPartenaire) ?></a>
+        <?php elseif ($etat === EtatAccueil::DefiEnvoye): ?>
+            <p>Défi envoyé à <?= e($nomPartenaire) ?>. Ta mission sera révélée dès que <?= e($nomPartenaire) ?> aura pioché la tienne.</p>
         <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
             <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
         <?php elseif ($etat === EtatAccueil::PremierJourDemain): ?>
