@@ -146,8 +146,8 @@ class SchemaTest extends TestCase
     // Le duo d'abord : sa suppression emporte les données de jeu, qui bloqueraient celle des joueurs.
     private function viderLaBase(): void
     {
-        $this->pdo->exec('DELETE FROM duo');
-        $this->pdo->exec('DELETE FROM joueur');
+        viderLaBase($this->pdo);
+        // Ces tests chargent leurs propres défis : les données de référence partent aussi.
         $this->pdo->exec('DELETE FROM defi');
         $this->pdo->exec('DELETE FROM categorie');
     }

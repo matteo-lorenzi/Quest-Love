@@ -14,9 +14,7 @@ class JourneeServiceTest extends TestCase
     {
         // Comme le test d'appairage : base locale vidée, l'heure passée en paramètre. Les duos sont formés par chaque test.
         $this->pdo = Bdd::connexion();
-        // Le duo d'abord : ses participations partent avec lui (ON DELETE CASCADE), puis plus rien ne retient les joueurs.
-        $this->pdo->exec('DELETE FROM duo');
-        $this->pdo->exec('DELETE FROM joueur');
+        viderLaBase($this->pdo);
 
         $this->service = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo));
         $this->matin = new DateTimeImmutable('2026-10-15 09:00:00');

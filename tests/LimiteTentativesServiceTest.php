@@ -12,7 +12,7 @@ class LimiteTentativesServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = Bdd::connexion();
-        $this->pdo->exec('DELETE FROM tentative');
+        viderLaBase($this->pdo);
         $this->limite = new LimiteTentativesService(new TentativeDepot($this->pdo));
         $this->midi = new DateTimeImmutable('2026-10-15 12:00:00');
     }

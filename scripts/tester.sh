@@ -4,8 +4,8 @@
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # 1. config.php n'est pas versionné : un worktree neuf n'en a pas. On reprend celui du dossier principal du dépôt.
+principal=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
 if [ ! -f app/config/config.php ]; then
-    principal=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
     if [ -f "$principal/app/config/config.php" ]; then
         cp "$principal/app/config/config.php" app/config/config.php
         echo "config.php copié depuis $principal"
@@ -26,10 +26,30 @@ else
     exit 1
 fi
 
-# 3. La base locale doit répondre, sinon l'amorce des tests échoue sur une trace PDO peu lisible (WAMP : démarrer MySQL).
-if ! php -r 'require "app/config/config.php"; require "app/noyau/Bdd.php"; try { Bdd::connexion(); } catch (PDOException $e) { fwrite(STDERR, $e->getMessage() . "\n"); exit(1); }'; then
-    echo "ÉCHEC : la base locale ne répond pas (message ci-dessus). Démarrer MySQL (WAMP) et vérifier app/config/config.php." >&2
+# 3. Le serveur MySQL doit répondre, sinon l'amorce des tests échoue sur une trace PDO peu lisible.
+#    Sous WAMP, le service wampmysqld64 est démarré au besoin (le compte du poste en a le droit sans être administrateur).
+joindre_serveur() {
+    php -r 'require "app/config/config.php"; try { new PDO("mysql:host=" . BDD_HOTE, BDD_UTILISATEUR, BDD_MOT_DE_PASSE); } catch (PDOException $e) { fwrite(STDERR, $e->getMessage() . "\n"); exit(1); }'
+}
+if ! joindre_serveur 2> /dev/null && command -v powershell.exe > /dev/null; then
+    echo "MySQL ne répond pas : démarrage du service wampmysqld64."
+    powershell.exe -NoProfile -Command 'Start-Service wampmysqld64'
+    for _ in 1 2 3 4 5 6 7 8 9 10; do joindre_serveur 2> /dev/null && break; sleep 1; done
+fi
+if ! joindre_serveur; then
+    echo "ÉCHEC : le serveur MySQL ne répond pas (message ci-dessus). Démarrer MySQL (WAMP) et vérifier app/config/config.php." >&2
     exit 1
+fi
+
+# 4. Un worktree teste sur sa propre base, pour que deux worktrees testés en même temps ne vident pas la base l'un de l'autre (§ 6.3).
+#    Le dossier principal garde la base de config.php, celle de l'application servie.
+# TODO(simplif): la base d'un worktree supprimé reste sur le serveur, à effacer à la main (DROP DATABASE) ; nettoyage automatique si elles s'accumulent.
+if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
+    dossier=$(basename "$PWD")
+    base="quest_love_$(printf '%s' "$dossier" | tr -c 'a-zA-Z0-9' '_' | cut -c1-50)"
+    sed -i "s/^const BDD_NOM = .*/const BDD_NOM = '$base';/" app/config/config.php
+    php -r 'require "app/config/config.php"; (new PDO("mysql:host=" . BDD_HOTE, BDD_UTILISATEUR, BDD_MOT_DE_PASSE))->exec("CREATE DATABASE IF NOT EXISTS `" . BDD_NOM . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");' || exit 1
+    echo "Base de test du worktree : $base"
 fi
 
 exec "${lancer[@]}" "$@"

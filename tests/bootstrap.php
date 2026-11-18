@@ -7,6 +7,20 @@ require __DIR__ . '/../sql/reinitialiser.php';
 
 date_default_timezone_set('Europe/Paris');
 
+// Vide toutes les tables, sauf les défis et leurs catégories, données de référence chargées par sql/defis.sql.
+// La liste vient de la base : une nouvelle table est vidée sans retoucher les tests.
+function viderLaBase(PDO $pdo): void
+{
+    $tables = $pdo->query(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name NOT IN ('categorie', 'defi')"
+    )->fetchAll(PDO::FETCH_COLUMN);
+    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+    foreach ($tables as $table) {
+        $pdo->exec("DELETE FROM `$table`");
+    }
+    $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+}
+
 // Même chargement automatique que l'application, limité à la couche modèle testée.
 spl_autoload_register(function (string $classe): void {
     foreach (['modeles/entites', 'modeles/depots', 'modeles/services'] as $dossier) {
