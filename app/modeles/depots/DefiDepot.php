@@ -3,11 +3,13 @@
 
 class DefiDepot
 {
+    private const SELECTION = 'SELECT defi.*, categorie.libelle FROM defi JOIN categorie ON categorie.id = defi.categorie_id';
+
     public function __construct(private PDO $pdo) {}
 
     public function trouverParId(int $id): ?Defi
     {
-        $requete = $this->pdo->prepare('SELECT defi.*, categorie.libelle FROM defi JOIN categorie ON categorie.id = defi.categorie_id WHERE defi.id = ?');
+        $requete = $this->pdo->prepare(self::SELECTION . ' WHERE defi.id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch();
         return $ligne ? $this->hydrater($ligne) : null;
@@ -18,7 +20,7 @@ class DefiDepot
     public function tous(): array
     {
         $defis = [];
-        foreach ($this->pdo->query('SELECT defi.*, categorie.libelle FROM defi JOIN categorie ON categorie.id = defi.categorie_id ORDER BY defi.id') as $ligne) {
+        foreach ($this->pdo->query(self::SELECTION . ' ORDER BY defi.id') as $ligne) {
             $defis[(int) $ligne['id']] = $this->hydrater($ligne);
         }
         return $defis;

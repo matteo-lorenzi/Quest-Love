@@ -1,5 +1,5 @@
 <?php
-// Tests de cohérence du schéma SQL et des contraintes de la base de jeu — aucun écran — Journée de jeu — lot 1 — commun.
+// Tests de cohérence du schéma SQL et des contraintes de la base de jeu — C1 Accueil, C2 Tirage et C3 Défi reçu — parcours 2 (journée de jeu) — lot 1 — commun.
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -10,18 +10,14 @@ class SchemaTest extends TestCase
 
     protected function setUp(): void
     {
-        // Le duo d'abord : sa suppression emporte les données de jeu, qui bloqueraient celle des joueurs.
         $this->pdo = Bdd::connexion();
-        $this->pdo->exec('DELETE FROM duo');
-        $this->pdo->exec('DELETE FROM joueur');
-        $this->pdo->exec('DELETE FROM defi');
-        $this->pdo->exec('DELETE FROM categorie');
+        $this->viderLaBase();
     }
 
     // Les autres classes de test vident joueur sans passer par duo : aucune ligne de jeu ne doit leur survivre.
     protected function tearDown(): void
     {
-        $this->setUp();
+        $this->viderLaBase();
     }
 
     public static function enumerations(): array
@@ -56,16 +52,30 @@ class SchemaTest extends TestCase
         $this->assertSame(['attribue_non_revele', 'en_cours', 'valide', 'expire', 'annule'], $valeurs);
     }
 
-    // Doc technique § 6.3 : la commande de réinitialisation recharge schéma et défis sur une base existante, puis le jeu provisoire est en place (§ 5.1).
+    // Doc technique § 6.3 et § 5.1 : sur une base existante, le jeu provisoire remplace les défis.
     public function testLaReinitialisationChargeLeJeuProvisoireDeDefis(): void
     {
-        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/../sql/reinitialiser.php') . ' 2>&1', $sortie, $code);
-        $this->assertSame(0, $code, implode("\n", $sortie));
+        $this->reinitialiser();
 
         $this->assertSame(4, (int) $this->pdo->query('SELECT COUNT(*) FROM categorie')->fetchColumn());
         $defis = (int) $this->pdo->query('SELECT COUNT(*) FROM defi')->fetchColumn();
         $this->assertGreaterThanOrEqual(12, $defis);
         $this->assertLessThanOrEqual(18, $defis);
+    }
+
+    // Doc technique § 6.3 : un poste neuf n'a encore aucune table (ticket #66).
+    public function testLaReinitialisationReconstruitUneBaseVide(): void
+    {
+        $tables = $this->pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+        $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        foreach ($tables as $table) {
+            $this->pdo->exec("DROP TABLE `$table`");
+        }
+        $this->pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+
+        $this->reinitialiser();
+
+        $this->assertEqualsCanonicalizing($tables, $this->pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN));
     }
 
     // Modèle de données § 4 : une réponse par joueur et par journée, même sur un double clic.
@@ -84,7 +94,6 @@ class SchemaTest extends TestCase
         $this->assertDoublonRefuse(fn() => $this->inserer('tirage', ['duo_id' => $jeu['duo'], 'emetteur_id' => $jeu['emetteur'], 'destinataire_id' => $jeu['destinataire'], 'date_jour' => '2026-11-18']));
     }
 
-    // Trois défis distincts par tirage.
     public function testUnDefiNeFigurePasDeuxFoisDansLeMemeTirage(): void
     {
         $jeu = $this->creerJourneeDeJeu('lou', 'mia');
@@ -92,7 +101,7 @@ class SchemaTest extends TestCase
         $this->assertDoublonRefuse(fn() => $this->inserer('tirage_proposition', ['tirage_id' => $jeu['tirage'], 'defi_id' => $jeu['defis'][0]]));
     }
 
-    // Un seul choix par tirage : le second est refusé, même portant sur une autre proposition.
+    // Le second choix porte sur une autre proposition : seule l'unicité du tirage dans mission peut le refuser.
     public function testUnSecondChoixDansLeMemeTirageEstRefuse(): void
     {
         $jeu = $this->creerJourneeDeJeu('lou', 'mia');
@@ -100,7 +109,7 @@ class SchemaTest extends TestCase
         $this->assertDoublonRefuse(fn() => $this->insererMission($jeu, $jeu['defis'][1]));
     }
 
-    // Clé composite (ADR-0003) : le défi d'une mission est forcément l'une des propositions de son tirage.
+    // ADR-0003 : la clé étrangère composite (tirage_id, defi_id) vers tirage_proposition.
     public function testUneMissionDontLeDefiNEstPasProposeEstRefusee(): void
     {
         $jeu = $this->creerJourneeDeJeu('lou', 'mia');
@@ -116,7 +125,7 @@ class SchemaTest extends TestCase
         }
     }
 
-    // Modèle de données § 6 : la dissolution supprime toutes les données de jeu du duo, et seulement les siennes.
+    // Modèle de données § 6 : suppressions en cascade depuis duo (dissolution, F2).
     public function testSupprimerUnDuoSupprimeSesDonneesDeJeuEtRienDAutre(): void
     {
         $dissous = $this->creerJourneeDeJeu('lou', 'mia');
@@ -132,6 +141,21 @@ class SchemaTest extends TestCase
             $propositions->execute([$jeu['tirage']]);
             $this->assertSame($attendu, (int) $propositions->fetchColumn());
         }
+    }
+
+    // Le duo d'abord : sa suppression emporte les données de jeu, qui bloqueraient celle des joueurs.
+    private function viderLaBase(): void
+    {
+        $this->pdo->exec('DELETE FROM duo');
+        $this->pdo->exec('DELETE FROM joueur');
+        $this->pdo->exec('DELETE FROM defi');
+        $this->pdo->exec('DELETE FROM categorie');
+    }
+
+    private function reinitialiser(): void
+    {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/../sql/reinitialiser.php') . ' 2>&1', $sortie, $code);
+        $this->assertSame(0, $code, implode("\n", $sortie));
     }
 
     // Un duo complet un jour donné : participation de l'émetteur, tirage de trois défis, mission sur le premier.

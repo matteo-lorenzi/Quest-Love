@@ -9,6 +9,6 @@ final readonly class Defi
         public string $description,
         public int $categorieId,
         // Jointe à la lecture : les écrans l'affichent sur la carte du défi.
-        public string $categorie,
+        public string $libelleCategorie,
     ) {}
 }

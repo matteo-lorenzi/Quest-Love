@@ -9,8 +9,7 @@ final readonly class Tirage
         public int $emetteurId,
         public int $destinataireId,
         public DateTimeImmutable $dateJour,
-        // Numéros des trois défis proposés (table tirage_proposition, ADR-0003).
-        /** @var int[] */
+        /** @var int[] Numéros des trois défis proposés (table tirage_proposition, ADR-0003). */
         public array $defiIds,
     ) {}
 }

@@ -311,7 +311,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Socle** _(commun)_
 
-- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur`, `duo` et `tentative` ; les autres tables arrivent avec leurs écrans)_
+- [x] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(toutes les tables du lot 1, celles de la journée de jeu comprises ; la table `gage` arrive avec le lot 2)_
 - [ ] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4 _(en cours : jeu provisoire de quinze défis en quatre catégories)_
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
