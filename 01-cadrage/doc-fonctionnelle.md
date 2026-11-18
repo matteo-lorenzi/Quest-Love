@@ -138,7 +138,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 ### Bibliothèque et tirage
 
 - **Volume et catégories** : environ 50 défis pour la V1, répartis en 4 à 5 catégories. `⚠ Catégories encore provisoires — à figer en S5, une fois les 15 premiers défis rédigés et regroupés ; section à mettre à jour à cette échéance.`
-- **Règles de tirage** : les 3 propositions du jour sont tirées parmi les défis jamais reçus par le destinataire, sans doublon entre elles ; seul le défi effectivement révélé est exclu par la suite (une mission annulée ne compte pas), et une proposition non choisie n'est pas reproposée pendant 3 jours. Quand le réservoir d'un destinataire descend sous 3 défis, son cycle repart à zéro.
+- **Règles de tirage** : les 3 propositions du jour sont tirées parmi les défis jamais reçus par le destinataire, sans doublon entre elles ; seul le défi effectivement révélé est exclu par la suite (une mission annulée ne compte pas), et une proposition non choisie n'est pas reproposée pendant 3 jours ; le défi d'une mission annulée peut, lui, revenir dès le lendemain. Quand le réservoir d'un destinataire descend sous 3 défis, son cycle repart à zéro.
 - **Tirage persistant** : les 3 propositions du jour sont enregistrées dès leur première apparition et ne changent plus ensuite — un rechargement de page ne permet pas de « retirer » pour obtenir un défi plus facile.
 - **Contrainte de point de vue et registre des défis** : chaque défi est écrit du point de vue de celui qui le reçoit, jamais de celui qui le choisit — un défi tiré est toujours attribué à l'autre. Registre : drôle, original, ancré dans le quotidien du couple, réalisable en une journée, sans dépense ni contenu intime.
 

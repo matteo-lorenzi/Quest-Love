@@ -111,7 +111,7 @@ Passage d'une mission en cours à expirée quand minuit est passé sans validati
 _Éviter_ : échec, péremption
 
 **Annulation** :
-Passage à 12 h d'une mission non révélée à annulée, parce que l'autre joueur n'a pas choisi : la journée est blanche. Sans effet sur les PV ; le défi n'est pas compté comme reçu pour les tirages suivants.
+Passage à 12 h d'une mission non révélée à annulée, parce que l'autre joueur n'a pas choisi : la journée est blanche. Sans effet sur les PV ; le défi n'est pas compté comme reçu et peut être reproposé dès le lendemain.
 _Éviter_ : abandon, suppression
 
 **Point de vie (PV)** :
