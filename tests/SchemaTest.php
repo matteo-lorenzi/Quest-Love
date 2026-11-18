@@ -56,6 +56,18 @@ class SchemaTest extends TestCase
         $this->assertSame(['attribue_non_revele', 'en_cours', 'valide', 'expire', 'annule'], $valeurs);
     }
 
+    // Doc technique § 6.3 : la commande de réinitialisation recharge schéma et défis sur une base existante, puis le jeu provisoire est en place (§ 5.1).
+    public function testLaReinitialisationChargeLeJeuProvisoireDeDefis(): void
+    {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/../sql/reinitialiser.php') . ' 2>&1', $sortie, $code);
+        $this->assertSame(0, $code, implode("\n", $sortie));
+
+        $this->assertSame(4, (int) $this->pdo->query('SELECT COUNT(*) FROM categorie')->fetchColumn());
+        $defis = (int) $this->pdo->query('SELECT COUNT(*) FROM defi')->fetchColumn();
+        $this->assertGreaterThanOrEqual(12, $defis);
+        $this->assertLessThanOrEqual(18, $defis);
+    }
+
     // Modèle de données § 4 : une réponse par joueur et par journée, même sur un double clic.
     public function testUneSecondeParticipationDuMemeJourEstRefusee(): void
     {

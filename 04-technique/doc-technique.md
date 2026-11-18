@@ -312,7 +312,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 **Socle** _(commun)_
 
 - [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur`, `duo` et `tentative` ; les autres tables arrivent avec leurs écrans)_
-- [ ] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4
+- [ ] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4 _(en cours : jeu provisoire de quinze défis en quatre catégories)_
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
 - [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
@@ -340,8 +340,8 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Journée de jeu** _(B)_
 
-- [ ] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `Reponse`
-- [ ] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
+- [x] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `Reponse`
+- [x] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
 - [ ] `JourneeService` — bornes, participation
 - [ ] `TirageService` — tirage persistant, choix
 - [ ] `MissionService` — révélation, annulation, découverte, validation, expiration
