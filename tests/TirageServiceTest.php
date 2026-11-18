@@ -1,5 +1,5 @@
 <?php
-// Tests de TirageService — C2 Tirage, étape « éventail », et C1 état 3 — parcours 2 (journée de jeu) — lot 1 — B. Base locale, $maintenant injecté.
+// Tests de TirageService — C2 Tirage, étapes « éventail » et « carte piochée », et C1 états 3 et 4 — parcours 2 (journée de jeu) — lot 1 — B. Base locale, $maintenant injecté.
 
 use PHPUnit\Framework\TestCase;
 
@@ -39,8 +39,8 @@ class TirageServiceTest extends TestCase
 
     private function construire(TirageDepot $tirages): TirageService
     {
-        $journee = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo));
-        return new TirageService($this->pdo, $journee, $tirages, new DefiDepot($this->pdo), new JoueurDepot($this->pdo));
+        $journee = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo), new MissionDepot($this->pdo));
+        return new TirageService($this->pdo, $journee, $tirages, new DefiDepot($this->pdo), new JoueurDepot($this->pdo), new MissionDepot($this->pdo));
     }
 
     // Un duo activé la veille, onboarding fini par les deux ; chaque nom de $ouis a déjà répondu oui ce matin.
@@ -58,7 +58,7 @@ class TirageServiceTest extends TestCase
             $joueurs->marquerOnboardingVu($id);
             $formes[] = $joueurs->trouverParId($id);
         }
-        $journee = new JourneeService(new ParticipationDepot($this->pdo), $duos);
+        $journee = new JourneeService(new ParticipationDepot($this->pdo), $duos, new MissionDepot($this->pdo));
         foreach ($formes as $joueur) {
             if (in_array($joueur->pseudo, $ouis, true)) {
                 $journee->repondre($joueur, Reponse::Oui, $this->matin);
@@ -212,5 +212,71 @@ class TirageServiceTest extends TestCase
         $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
 
         $this->assertEqualsCanonicalizing([$a, $b, $d], $tirage->defiIds);
+    }
+
+    // C2 carte piochée, puis C1 état 4 : le choix crée la mission de Mia, non révélée ; Lou lit « défi envoyé », Mia doit encore piocher.
+    public function testLeChoixDUneDesTroisPropositionsCreeLaMissionDuPartenaire(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertTrue($this->service->choisir($lou, $tirage->defiIds[1], $this->matin->modify('+10 minutes')));
+
+        $mission = (new MissionDepot($this->pdo))->trouverParTirage($tirage->id);
+        $this->assertSame(StatutMission::AttribueNonRevele, $mission->statut);
+        $this->assertSame($tirage->defiIds[1], $mission->defiId);
+        $this->assertSame($lou->id, $mission->emetteurId);
+        $this->assertSame($mia->id, $mission->destinataireId);
+        $this->assertSame('2026-10-15 09:10:00', $mission->dateAttribution->format('Y-m-d H:i:s'));
+        $journee = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo), new MissionDepot($this->pdo));
+        $this->assertSame(EtatAccueil::DefiEnvoye, $journee->etatAccueil($lou, $this->matin->modify('+11 minutes')));
+        $this->assertSame(EtatAccueil::APiocher, $journee->etatAccueil($mia, $this->matin->modify('+11 minutes')));
+    }
+
+    // Un défi de la bibliothèque absent des trois propositions (formulaire falsifié) est refusé : aucune mission.
+    public function testUnDefiHorsDesTroisPropositionsEstRefuse(): void
+    {
+        [$lou] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        // Défi ajouté après le tirage : il ne peut pas en faire partie, même quand la bibliothèque n'en compte que trois.
+        $this->pdo->exec("INSERT INTO defi (titre, description, categorie_id) SELECT 'Défi hors tirage', 'Pour le test.', MIN(id) FROM categorie");
+        $horsTirage = (int) $this->pdo->lastInsertId();
+
+        $this->assertFalse($this->service->choisir($lou, $horsTirage, $this->matin->modify('+10 minutes')));
+        $this->assertNull((new MissionDepot($this->pdo))->trouverParTirage($tirage->id));
+    }
+
+    // Choix arrivé à 12 h pile (horodatage serveur) : refusé, rien n'est écrit. Le contrôleur affiche le message.
+    public function testUnChoixApresMidiEstRefuseSansEcriture(): void
+    {
+        [$lou] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertFalse($this->service->choisir($lou, $tirage->defiIds[0], new DateTimeImmutable('2026-10-15 12:00:00')));
+        $this->assertNull((new MissionDepot($this->pdo))->trouverParTirage($tirage->id));
+    }
+
+    // Celui qui avait choisi avant 12 h et renvoie le formulaire après (page restée ouverte) n'est pas refusé : son choix tient.
+    public function testUnRenvoiApresMidiDUnJoueurQuiAvaitChoisiNEstPasRefuse(): void
+    {
+        [$lou] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        $this->service->choisir($lou, $tirage->defiIds[0], $this->matin->modify('+10 minutes'));
+
+        $this->assertTrue($this->service->choisir($lou, $tirage->defiIds[0], new DateTimeImmutable('2026-10-15 12:05:00')));
+    }
+
+    // Second choix (double clic, second appareil, ou deux envois simultanés) : le service écrit sans relire, la clé unique tirage_id tranche.
+    // Le premier choix reste, sans erreur ni seconde mission.
+    public function testUnSecondChoixNeCreeQuUneMission(): void
+    {
+        [$lou] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        $this->service->choisir($lou, $tirage->defiIds[0], $this->matin->modify('+10 minutes'));
+
+        $this->assertTrue($this->service->choisir($lou, $tirage->defiIds[2], $this->matin->modify('+10 minutes')));
+
+        $this->assertSame($tirage->defiIds[0], (new MissionDepot($this->pdo))->trouverParTirage($tirage->id)->defiId);
+        $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM mission')->fetchColumn());
     }
 }

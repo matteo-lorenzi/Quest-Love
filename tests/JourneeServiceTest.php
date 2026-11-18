@@ -18,7 +18,7 @@ class JourneeServiceTest extends TestCase
         $this->pdo->exec('DELETE FROM duo');
         $this->pdo->exec('DELETE FROM joueur');
 
-        $this->service = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo));
+        $this->service = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo), new MissionDepot($this->pdo));
         $this->matin = new DateTimeImmutable('2026-10-15 09:00:00');
     }
 

@@ -17,8 +17,7 @@ class Routeur
         'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', NiveauAcces::Duo],
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
         'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
-        // TODO(simplif): GET seulement, le choix en POST arrive avec la #71.
-        'tirage' => ['TirageControleur', 'afficher', null, NiveauAcces::Jeu],
+        'tirage' => ['TirageControleur', 'afficher', 'choisir', NiveauAcces::Jeu],
         'erreur' => ['ErreurControleur', 'afficher', null, NiveauAcces::Public],
     ];
 

@@ -110,6 +110,12 @@
     text-decoration: none;
 }
 
+/* Ajoutée par eventail.js au toucher : la carte sort du lot avant de se retourner. */
+.carte-defi--sortie {
+    transform: translateY(-0.5rem) scale(1.05);
+    transition: transform 0.2s ease-out;
+}
+
 .eventail {
     display: flex;
     flex-direction: column;
