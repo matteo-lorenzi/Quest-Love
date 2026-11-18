@@ -1,6 +1,7 @@
-# Quest & Love — Inventaire des écrans (v2.2)
+# Quest & Love — Inventaire des écrans (v2.3)
 
-> 18 septembre 2026. Remplace l'inventaire v2.1. Répercute la reprise du zonage (retour enseignant sur la lisibilité). Référence : cadrage unifié V2.9.
+> 18 novembre 2026 (v2.3) : D2 « le hasard a choisi pour toi » retiré avec le défi aléatoire ; variante « un des deux n'a pas choisi » ajoutée à C1 « aucun jeu ». Référence : cadrage unifié V2.18.
+> v2.2 du 18 septembre 2026 : remplace l'inventaire v2.1. Répercute la reprise du zonage (retour enseignant sur la lisibilité). Référence : cadrage unifié V2.9.
 > Organisation identique au fichier Figma de zonage : **une page unique, une bande par parcours** (sections 00 à 05).
 > Statut : ✅ zoné · ⬜ à zoner. Lot 2 : zones en pointillés sur les cadres du lot 1, écrans dédiés en bande 05.
 > Nommage des cadres : `ID · Écran — état` ; cas particuliers « cas : … » ; précisions en pastille sous le titre.
@@ -31,11 +32,10 @@
 | C2 | Tirage · éventail de 3 cartes | 1 | ✅ |
 | C2 | Tirage · carte piochée (sans action « reposer ») | 1 | ✅ |
 | C1 | État 4 : défi envoyé, en attente de révélation | 1 | ✅ |
-| D2 | Événement : le hasard a choisi pour toi | 1 | ✅ |
 | C1 | État 5 : révélation | 1 | ✅ |
 | C1 | État 6 : défi reçu en cours (porte en variante l'ancien état 7 : défi réalisé, statut du défi envoyé) | 1 | ✅ |
 | C3 | Défi reçu · en cours / confirmation « réalisé » / réalisé (sans navigation, sans mention de contestabilité) | 1 | ✅ |
-| C1 | Cas : aucun jeu aujourd'hui (journée blanche en 3 variantes de texte, ou premier jour de jeu demain en variante) | 1 | ✅ |
+| C1 | Cas : aucun jeu aujourd'hui (journée blanche en 4 variantes de texte, dont « un des deux n'a pas choisi », ou premier jour de jeu demain en variante) | 1 | ✅ |
 
 ## Bande 03 — Fin de défi et événements
 
@@ -76,4 +76,4 @@ F4 Statistiques du couple · F5 Changement de mot de passe / pseudo · avatars g
 
 ## Avancement lot 1
 
-28 cadres zonés sur 28 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste ; un cadre ajouté le 06/11 pour la variante d'attente de B2). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).
+27 cadres zonés sur 27 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste ; un cadre ajouté le 06/11 pour la variante d'attente de B2 ; cadre D2 retiré le 18/11 avec le défi aléatoire). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).
