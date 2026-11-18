@@ -12,7 +12,6 @@ class QuitterDuoControleur
         $joueur = Routeur::joueurConnecte($this->pdo);
         $service = AppairageService::construire($this->pdo);
         // Origine absente ou inconnue : l'écran de l'étape d'accès du joueur (relue en base).
-        // TODO(simplif): pour un joueur en accès au jeu l'origine vaut « accueil », absent de la table du routeur : Annuler et ← mènent à G1, à corriger quand C1 existe.
         $origine = self::origine($_GET['origine'] ?? null);
         $retour = $origine !== null ? self::parametre($origine) : Routeur::ecranDeLEtape($service->etapeAcces($joueur));
         Vue::rendre('f2-quitter-duo', 'Quitter mon duo', [
@@ -39,6 +38,7 @@ class QuitterDuoControleur
         return match ($origine) {
             OrigineQuitterDuo::SalleAttente => 'salle-attente',
             OrigineQuitterDuo::Onboarding => 'onboarding',
+            OrigineQuitterDuo::Accueil => 'accueil',
         };
     }
 

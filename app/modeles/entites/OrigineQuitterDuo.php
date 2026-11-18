@@ -6,4 +6,5 @@ enum OrigineQuitterDuo
 {
     case SalleAttente;
     case Onboarding;
+    case Accueil;
 }

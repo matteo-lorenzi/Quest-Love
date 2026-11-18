@@ -6,7 +6,7 @@ class Routeur
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : un NiveauAcces (Public, Connecte, Duo, ou Jeu : en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
-    // Accueil, tirage et défi reçu y entreront avec l'accès Jeu (§ 3.6) ; le verrou est déjà en place à l'étape 5.
+    // Tirage et défi reçu y entreront avec l'accès Jeu (§ 3.6), comme l'accueil ; le verrou est en place à l'étape 5.
     private const ECRANS = [
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
@@ -16,6 +16,7 @@ class Routeur
         // Accès Duo, donc sans le verrou du jeu : un joueur dont le partenaire n'a pas fini l'onboarding doit pouvoir sortir (cadrage § 8.5).
         'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', NiveauAcces::Duo],
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
+        'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
         'erreur' => ['ErreurControleur', 'afficher', null, NiveauAcces::Public],
     ];
 
