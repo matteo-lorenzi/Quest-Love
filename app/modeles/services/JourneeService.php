@@ -4,7 +4,7 @@
 class JourneeService
 {
     // Les dépôts sont construits par l'appelant, contrôleur ou test (ADR-0001).
-    public function __construct(private ParticipationDepot $participations, private DuoDepot $duos) {}
+    public function __construct(private ParticipationDepot $participations, private DuoDepot $duos, private MissionDepot $missions) {}
 
     // Identifiant de journée AAAA-MM-JJ, clé de participation et de tirage.
     public function journee(DateTimeImmutable $maintenant): string
@@ -73,6 +73,12 @@ class JourneeService
             return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
+            // Le joueur a choisi le défi de son partenaire dès qu'une mission du jour l'a pour émetteur.
+            foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, self::enHeureDeParis($maintenant)) as $mission) {
+                if ($mission->emetteurId === $joueur->id) {
+                    return EtatAccueil::DefiEnvoye;
+                }
+            }
             return EtatAccueil::APiocher;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.

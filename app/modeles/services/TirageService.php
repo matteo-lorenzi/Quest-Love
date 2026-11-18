@@ -1,5 +1,5 @@
 <?php
-// Service du tirage — C2 Tirage, étape « éventail » — parcours 2 (journée de jeu) — lot 1 — B. Trois propositions par émetteur et par journée (doc technique § 3.3).
+// Service du tirage — C2 Tirage, étapes « éventail » et « carte piochée » — parcours 2 (journée de jeu) — lot 1 — B. Trois propositions par émetteur et par journée, puis le choix définitif (doc technique § 3.3).
 
 class TirageService
 {
@@ -10,6 +10,7 @@ class TirageService
         private TirageDepot $tirages,
         private DefiDepot $defis,
         private JoueurDepot $joueurs,
+        private MissionDepot $missions,
     ) {}
 
     // Tirage du jour de l'émetteur : créé à sa première demande, relu ensuite, pour qu'un rechargement ne redonne pas d'autres défis.
@@ -37,5 +38,23 @@ class TirageService
             throw $erreur;
         }
         return $this->tirages->trouverParEmetteurEtJour($emetteur->id, $jour);
+    }
+
+    // Choix du défi du partenaire parmi les trois propositions du tirage du jour : crée sa mission, non révélée (statut attribue_non_revele).
+    // Faux si le choix est refusé, rien n'étant écrit : défi hors des propositions (formulaire falsifié), ou choix arrivé à 12 h ou après (horodatage serveur).
+    // Un second choix (double clic, second appareil, envois simultanés) n'est pas relu avant l'écriture : la clé unique tirage_id le rejette, le premier reste définitif.
+    public function choisir(Joueur $emetteur, int $defiId, DateTimeImmutable $maintenant): bool
+    {
+        $aParis = JourneeService::enHeureDeParis($maintenant);
+        $tirage = $this->tirages->trouverParEmetteurEtJour($emetteur->id, $aParis);
+        if ($tirage === null || !in_array($defiId, $tirage->defiIds, true)) {
+            return false;
+        }
+        if (!$this->journee->avantBascule($maintenant)) {
+            // Celui qui avait déjà choisi (page restée ouverte) n'est pas refusé : son choix a été pris en compte.
+            return $this->missions->trouverParTirage($tirage->id) !== null;
+        }
+        $this->missions->ajouter($tirage, $defiId, $aParis, $this->journee->minuitSuivant($maintenant));
+        return true;
     }
 }
