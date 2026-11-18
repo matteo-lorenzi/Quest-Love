@@ -155,7 +155,7 @@ class JourneeServiceTest extends TestCase
         $this->service->repondre($lou, Reponse::Oui, $this->matin);
         $this->service->repondre($mia, Reponse::Oui, $this->matin);
 
-        $this->assertSame(EtatAccueil::APiocher, $this->service->etatAccueil($lou, $this->matin->modify('+1 minute')));
+        $this->assertSame(EtatAccueil::ATirer, $this->service->etatAccueil($lou, $this->matin->modify('+1 minute')));
     }
 
     // Ticket #69 : un seul non donne la journée blanche aux deux, à celui qui a dit non comme à l'autre.
@@ -189,7 +189,7 @@ class JourneeServiceTest extends TestCase
         $this->service->repondre($lou, Reponse::Oui, $this->matin);
         $this->service->repondre($mia, Reponse::Oui, $this->matin);
 
-        $this->assertSame(EtatAccueil::APiocher, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 15:00:00')));
+        $this->assertSame(EtatAccueil::ATirer, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 15:00:00')));
     }
 
     // Ticket #69 : un duo activé avant 12 h joue le jour même, état 1.

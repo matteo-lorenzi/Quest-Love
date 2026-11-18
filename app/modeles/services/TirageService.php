@@ -14,16 +14,17 @@ class TirageService
     ) {}
 
     // Tirage du jour de l'émetteur : créé à sa première demande, relu ensuite, pour qu'un rechargement ne redonne pas d'autres défis.
-    public function tirer(Joueur $emetteur, DateTimeImmutable $maintenant): ?Tirage
+    // Sans éventail à montrer, l'état de l'accueil : hors état 3 (pas encore les deux oui, défi déjà envoyé), ou état 3 passé 12 h, quand le choix n'est plus possible.
+    public function tirer(Joueur $emetteur, DateTimeImmutable $maintenant): Tirage|EtatAccueil
     {
-        $jour = JourneeService::enHeureDeParis($maintenant);
+        $etat = $this->journee->etatAccueil($emetteur, $maintenant);
+        if ($etat !== EtatAccueil::ATirer || !$this->journee->avantBascule($maintenant)) {
+            return $etat;
+        }
+        $jour = $this->journee->enHeureDeParis($maintenant);
         $existant = $this->tirages->trouverParEmetteurEtJour($emetteur->id, $jour);
         if ($existant !== null) {
             return $existant;
-        }
-        // Jamais avant les deux oui (état 3) ; jamais après 12 h non plus, quand aucun choix ne serait plus accepté.
-        if ($this->journee->etatAccueil($emetteur, $maintenant) !== EtatAccueil::APiocher || !$this->journee->avantBascule($maintenant)) {
-            return null;
         }
         $destinataire = $this->joueurs->trouverPartenaire($emetteur);
         // Sous transaction : un tirage n'existe jamais sans ses trois propositions. Une demande concurrente déjà passée fait renvoyer null à creer :
@@ -44,12 +45,12 @@ class TirageService
     private function proposer(int $destinataireId, DateTimeImmutable $jour): array
     {
         $bibliotheque = $this->defis->tous();
-        $recents = array_flip($this->defis->nonRetenusApres($destinataireId, $jour->modify('-3 days')));
+        $recents = array_flip($this->tirages->nonRetenusApres($destinataireId, $jour->modify('-3 days')));
         // Le cycle n'est pas stocké (modèle de données, sans debut_cycle) : il se rejoue sur les défis reçus, dans l'ordre, en repartant de zéro
         // chaque fois qu'il ne laissait plus trois défis. Sans ce rejeu, chaque tirage après le premier épuisement repartirait de zéro.
         // TODO(simplif): le rejeu ignore la fenêtre de trois jours et suppose la bibliothèque inchangée, à revoir si une remise à zéro tombe à contretemps.
         $cycle = [];
-        foreach ($this->defis->recusPar($destinataireId) as $defiId) {
+        foreach ($this->missions->recusPar($destinataireId) as $defiId) {
             if (count(array_diff_key($bibliotheque, $cycle)) < 3) {
                 $cycle = [];
             }
@@ -64,7 +65,10 @@ class TirageService
         if (count($disponibles) < 3) {
             $disponibles = $bibliotheque;
         }
-        return array_rand($disponibles, 3);
+        // array_rand rend les numéros dans l'ordre de la bibliothèque : mélangés, la place d'une carte ne dit rien de son défi.
+        $tires = array_rand($disponibles, 3);
+        shuffle($tires);
+        return $tires;
     }
 
     // Choix du défi du partenaire parmi les trois propositions du tirage du jour : crée sa mission, non révélée (statut attribue_non_revele).
@@ -72,7 +76,7 @@ class TirageService
     // Un second choix (double clic, second appareil, envois simultanés) n'est pas relu avant l'écriture : la clé unique tirage_id le rejette, le premier reste définitif.
     public function choisir(Joueur $emetteur, int $defiId, DateTimeImmutable $maintenant): bool
     {
-        $aParis = JourneeService::enHeureDeParis($maintenant);
+        $aParis = $this->journee->enHeureDeParis($maintenant);
         $tirage = $this->tirages->trouverParEmetteurEtJour($emetteur->id, $aParis);
         if ($tirage === null || !in_array($defiId, $tirage->defiIds, true)) {
             return false;

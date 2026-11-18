@@ -9,19 +9,19 @@ class JourneeService
     // Identifiant de journée AAAA-MM-JJ, clé de participation et de tirage.
     public function journee(DateTimeImmutable $maintenant): string
     {
-        return self::enHeureDeParis($maintenant)->format('Y-m-d');
+        return $this->enHeureDeParis($maintenant)->format('Y-m-d');
     }
 
     // Bascule de 12 h du jour : fin des réponses et des choix (cadrage § 4.2).
     public function bascule(DateTimeImmutable $maintenant): DateTimeImmutable
     {
-        return self::enHeureDeParis($maintenant)->modify('today 12:00');
+        return $this->enHeureDeParis($maintenant)->modify('today 12:00');
     }
 
     // Expiration des défis du jour (cadrage § 4.1). « tomorrow » suit le calendrier : 23 h ou 25 h après l'ouverture un jour de changement d'heure.
     public function minuitSuivant(DateTimeImmutable $maintenant): DateTimeImmutable
     {
-        return self::enHeureDeParis($maintenant)->modify('tomorrow');
+        return $this->enHeureDeParis($maintenant)->modify('tomorrow');
     }
 
     public function avantBascule(DateTimeImmutable $maintenant): bool
@@ -34,7 +34,7 @@ class JourneeService
     // Faux seulement quand une réponse jamais donnée arrive à 12 h ou après (horodatage serveur) : rien n'est écrit et le contrôleur l'explique.
     public function repondre(Joueur $joueur, Reponse $reponse, DateTimeImmutable $maintenant): bool
     {
-        $aParis = self::enHeureDeParis($maintenant);
+        $aParis = $this->enHeureDeParis($maintenant);
         if (!$this->avantBascule($maintenant)) {
             // Celui qui avait déjà répondu (page restée ouverte) n'est pas refusé : sa réponse a été prise en compte.
             return $this->participations->trouverParJoueurEtJour($joueur->id, $aParis) !== null;
@@ -61,7 +61,7 @@ class JourneeService
         }
         $sienne = null;
         $celleDuPartenaire = null;
-        foreach ($this->participations->trouverParDuoEtJour($joueur->duoId, self::enHeureDeParis($maintenant)) as $participation) {
+        foreach ($this->participations->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $participation) {
             if ($participation->joueurId === $joueur->id) {
                 $sienne = $participation->reponse;
             } else {
@@ -74,12 +74,13 @@ class JourneeService
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
             // Le joueur a choisi le défi de son partenaire dès qu'une mission du jour l'a pour émetteur.
-            foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, self::enHeureDeParis($maintenant)) as $mission) {
+            foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $mission) {
                 if ($mission->emetteurId === $joueur->id) {
                     return EtatAccueil::DefiEnvoye;
                 }
             }
-            return EtatAccueil::APiocher;
+            // TODO(simplif): passé 12 h sans choix, l'état 3 reste (C2 dit que la journée est passée) au lieu de la journée blanche « l'un de vous n'a pas choisi », texte à rédiger avec la révélation (#59).
+            return EtatAccueil::ATirer;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.
         if (!$this->avantBascule($maintenant)) {
@@ -92,8 +93,8 @@ class JourneeService
     }
 
     // La journée se lit à Paris quel que soit le fuseau de l'instant reçu : le service ne dépend pas du fuseau par défaut posé par l'amorce.
-    // Publique : TirageService date ses tirages de la même journée.
-    public static function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
+    // Publique : TirageService date ses tirages et ses missions de la même journée, par l'instance qu'il reçoit.
+    public function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
     {
         return $maintenant->setTimezone(new DateTimeZone('Europe/Paris'));
     }

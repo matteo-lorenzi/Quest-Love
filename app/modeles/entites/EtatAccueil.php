@@ -7,8 +7,8 @@ enum EtatAccueil
     case Question;
     // État 2 : il a dit oui, son partenaire n'a pas encore répondu.
     case AttentePartenaire;
-    // État 3 : les deux ont dit oui, à toi de piocher le défi de ton partenaire (C2).
-    case APiocher;
+    // État 3 (« À toi de piocher ») : les deux ont dit oui, le joueur choisit le défi de son partenaire (C2).
+    case ATirer;
     // État 4 : défi envoyé, en attente de révélation ; dure jusqu'à la révélation (#59).
     case DefiEnvoye;
     // Journée blanche : l'un des deux a dit non, ou n'avait pas répondu à 12 h. Déduite, jamais écrite.

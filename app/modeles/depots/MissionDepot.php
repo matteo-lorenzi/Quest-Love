@@ -46,6 +46,15 @@ class MissionDepot
         return array_map(fn (array $ligne) => $this->hydrater($ligne), $requete->fetchAll());
     }
 
+    // Défis des missions révélées d'un destinataire, dans l'ordre de réception. Une mission annulée, jamais révélée, ne compte pas (cadrage § 4.6).
+    /** @return int[] */
+    public function recusPar(int $destinataireId): array
+    {
+        $requete = $this->pdo->prepare('SELECT defi_id FROM mission WHERE destinataire_id = ? AND date_revelation IS NOT NULL ORDER BY date_revelation, id');
+        $requete->execute([$destinataireId]);
+        return array_map('intval', $requete->fetchAll(PDO::FETCH_COLUMN));
+    }
+
     // Missions d'un destinataire encore dans un statut donné : le rattrapage y cherche celles à expirer ou à annuler (index ix_mission_rattrapage).
     /** @return Mission[] */
     public function trouverParDestinataireEtStatut(int $destinataireId, StatutMission $statut): array

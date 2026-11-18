@@ -3,26 +3,28 @@
 
 class TirageControleur
 {
+    // Refus du choix, et C2 ouvert passé 12 h dans l'état 3 : la journée est passée.
+    private const MIDI_PASSE = 'Il est midi passé : le défi de ton partenaire se choisit avant 12 h, ce n\'est plus possible aujourd\'hui.';
+
     private DefiDepot $defis;
-    private JourneeService $journee;
     private TirageService $tirage;
 
     // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant)
     {
         $this->defis = new DefiDepot($pdo);
-        $this->journee = new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo), new MissionDepot($pdo));
-        $this->tirage = new TirageService($pdo, $this->journee, new TirageDepot($pdo), $this->defis, new JoueurDepot($pdo), new MissionDepot($pdo));
+        $journee = new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo), new MissionDepot($pdo));
+        $this->tirage = new TirageService($pdo, $journee, new TirageDepot($pdo), $this->defis, new JoueurDepot($pdo), new MissionDepot($pdo));
     }
 
-    // GET : le tirage du jour, créé à la première visite puis relu. Sans tirage possible (pas encore les deux oui, ou 12 h passée), ou choix déjà fait, retour à l'accueil, qui dit où en est la journée.
+    // GET : le tirage du jour, créé à la première visite puis relu. Hors état 3 (pas encore les deux oui, choix déjà fait), retour à l'accueil, qui dit où en est la journée.
     // ?carte=1 à 3 : la carte touchée se retourne ; en toucher une autre la remplace, sans action « reposer » (cadrage § 8.5). Lire une carte n'écrit rien : un lien suffit.
     public function afficher(): void
     {
         $joueur = Routeur::joueurConnecte($this->pdo);
-        $tirage = $this->tirage->tirer($joueur, $this->maintenant);
-        if ($tirage === null || $this->journee->etatAccueil($joueur, $this->maintenant) === EtatAccueil::DefiEnvoye) {
-            Routeur::rediriger('accueil');
+        $tirage = $this->tirageOuSortie($joueur);
+        if ($tirage === null) {
+            return;
         }
         $carte = filter_var($_GET['carte'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 3]]);
         $this->rendre($tirage, $carte === false ? null : $carte, null);
@@ -33,27 +35,42 @@ class TirageControleur
     public function choisir(): void
     {
         $joueur = Routeur::joueurConnecte($this->pdo);
-        $tirage = $this->tirage->tirer($joueur, $this->maintenant);
+        $tirage = $this->tirageOuSortie($joueur);
         if ($tirage === null) {
-            Routeur::rediriger('accueil');
+            return;
         }
         $carte = filter_var($_POST['carte'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 3]]);
         if ($carte === false) {
             Routeur::rediriger('tirage');
         }
         if (!$this->tirage->choisir($joueur, $tirage->defiIds[$carte - 1], $this->maintenant)) {
-            $this->rendre($tirage, $carte, 'Il est midi passé : ton choix n\'a pas été pris en compte. Le défi se choisit avant 12 h.');
+            $this->rendre(null, null, self::MIDI_PASSE);
             return;
         }
         Routeur::rediriger('accueil');
     }
 
-    // $piochee : rang de la carte retournée, ou null ; $message (ou null) explique un choix refusé.
-    private function rendre(Tirage $tirage, ?int $piochee, ?string $message): void
+    // Le tirage à montrer, ou null quand la réponse est déjà partie : état 3 passé 12 h, C2 dit en texte que le choix n'est plus possible
+    // (sans renvoi vers l'accueil, qui ramènerait ici) ; hors état 3, retour à l'accueil.
+    private function tirageOuSortie(Joueur $joueur): ?Tirage
+    {
+        $tirage = $this->tirage->tirer($joueur, $this->maintenant);
+        if ($tirage === EtatAccueil::ATirer) {
+            $this->rendre(null, null, self::MIDI_PASSE);
+            return null;
+        }
+        if ($tirage instanceof EtatAccueil) {
+            Routeur::rediriger('accueil');
+        }
+        return $tirage;
+    }
+
+    // $tirage : null quand le choix n'est plus possible, seul $message est alors montré ; $retournee : rang de la carte retournée, ou null.
+    private function rendre(?Tirage $tirage, ?int $retournee, ?string $message): void
     {
         Vue::rendre('c2-tirage', 'Tirage', [
-            'defis' => array_map(fn (int $id) => $this->defis->trouverParId($id), $tirage->defiIds),
-            'piochee' => $piochee,
+            'defis' => $tirage === null ? [] : array_map(fn (int $id) => $this->defis->trouverParId($id), $tirage->defiIds),
+            'retournee' => $retournee,
             'message' => $message,
         ]);
     }

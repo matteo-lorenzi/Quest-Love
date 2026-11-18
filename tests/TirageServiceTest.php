@@ -9,15 +9,25 @@ class TirageServiceTest extends TestCase
     private TirageService $service;
     private DateTimeImmutable $matin;
 
+    private static int $categorie;
+
     // Le test du schéma vide la bibliothèque : trois défis de plus, une fois pour la classe, garantissent de quoi tirer quel que soit l'ordre des tests.
     public static function setUpBeforeClass(): void
     {
         $pdo = Bdd::connexion();
         $pdo->exec("INSERT INTO categorie (libelle) VALUES ('Catégorie du test de tirage')");
-        $categorie = (int) $pdo->lastInsertId();
+        $categorie = self::$categorie = (int) $pdo->lastInsertId();
         foreach ([1, 2, 3] as $n) {
             $pdo->prepare('INSERT INTO defi (titre, description, categorie_id) VALUES (?, ?, ?)')->execute(["Défi de test $n", 'Pour le test.', $categorie]);
         }
+    }
+
+    // Le libellé de catégorie est unique : sans ce ménage, relancer la classe sur la même base échouerait à l'insertion.
+    public static function tearDownAfterClass(): void
+    {
+        $pdo = Bdd::connexion();
+        $pdo->prepare('DELETE FROM defi WHERE categorie_id = ?')->execute([self::$categorie]);
+        $pdo->prepare('DELETE FROM categorie WHERE id = ?')->execute([self::$categorie]);
     }
 
     protected function setUp(): void
@@ -101,9 +111,31 @@ class TirageServiceTest extends TestCase
     {
         [$lou, $mia] = $this->formerDuo(['Lou']);
 
-        $this->assertNull($this->service->tirer($lou, $this->matin->modify('+5 minutes')));
-        $this->assertNull($this->service->tirer($mia, $this->matin->modify('+5 minutes')));
+        $this->assertSame(EtatAccueil::AttentePartenaire, $this->service->tirer($lou, $this->matin->modify('+5 minutes')));
+        $this->assertSame(EtatAccueil::Question, $this->service->tirer($mia, $this->matin->modify('+5 minutes')));
         $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
+    }
+
+    // C2 passé 12 h, état 3 sans choix : plus d'éventail, qu'un tirage existe déjà ou non. L'état 3 rendu permet à C2 de dire que la journée est passée.
+    public function testApresMidiSansChoixLEventailNEstPlusMontre(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        $midi = new DateTimeImmutable('2026-10-15 12:00:00');
+
+        $this->assertSame(EtatAccueil::ATirer, $this->service->tirer($lou, $midi));
+        $this->assertSame(EtatAccueil::ATirer, $this->service->tirer($mia, $midi));
+        $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
+    }
+
+    // C1 état 4 : une fois le choix fait, l'éventail n'est plus montré, même avant 12 h ; C2 renvoie à l'accueil.
+    public function testApresLeChoixLEventailNEstPlusMontre(): void
+    {
+        [$lou] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        $this->service->choisir($lou, $tirage->defiIds[0], $this->matin->modify('+10 minutes'));
+
+        $this->assertSame(EtatAccueil::DefiEnvoye, $this->service->tirer($lou, $this->matin->modify('+15 minutes')));
     }
 
     // Course : deux demandes simultanées (double clic, deux appareils) lisent toutes deux « pas de tirage ». La seconde bute sur la clé unique
@@ -230,7 +262,7 @@ class TirageServiceTest extends TestCase
         $this->assertSame('2026-10-15 09:10:00', $mission->dateAttribution->format('Y-m-d H:i:s'));
         $journee = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo), new MissionDepot($this->pdo));
         $this->assertSame(EtatAccueil::DefiEnvoye, $journee->etatAccueil($lou, $this->matin->modify('+11 minutes')));
-        $this->assertSame(EtatAccueil::APiocher, $journee->etatAccueil($mia, $this->matin->modify('+11 minutes')));
+        $this->assertSame(EtatAccueil::ATirer, $journee->etatAccueil($mia, $this->matin->modify('+11 minutes')));
     }
 
     // Un défi de la bibliothèque absent des trois propositions (formulaire falsifié) est refusé : aucune mission.
