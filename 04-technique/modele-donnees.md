@@ -1,11 +1,12 @@
 # Quest & Love — Modèle de données
 
 > **Statut : à valider en S8**, avec un enseignant, avant toute implémentation. Annexe de [`doc-technique.md`](doc-technique.md).
-> Référence : cadrage unifié V2.15, § 7. **En cas d'écart, le cadrage fait foi.**
+> Référence : cadrage unifié V2.18, § 7. **En cas d'écart, le cadrage fait foi.**
 > Ce document décrit ; le SQL exécutable vit dans `sql/schema.sql`.
 > Conventions : moteur InnoDB, jeu de caractères `utf8mb4`, clés primaires entières auto-incrémentées, noms en français sans accent, dates en `Europe/Paris`.
 >
-> **Version 1.7 — 14 novembre 2026.** Le défi d'une `mission` doit être l'une des trois propositions de son tirage : clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (MLD, MPD, § 2) ; règle du « exactement trois » consignée au § 2 ; copies voulues marquées `TODO(simplif)` ([ADR-0003](../docs/adr/0003-tirage-proposition-table-de-liaison.md)).
+> **Version 1.8 — 18 novembre 2026.** Journée blanche quand un choix manque à 12 h (cadrage V2.18) : statut terminal `annule` de `mission` (§ 3) ; colonne `origine` retirée de `mission` (MCD, MLD, MPD, § 2) ; plus d'attribution aléatoire (§ 1, § 4).
+> Version 1.7 du 14 novembre 2026 : le défi d'une `mission` doit être l'une des trois propositions de son tirage : clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (MLD, MPD, § 2) ; règle du « exactement trois » consignée au § 2 ; copies voulues marquées `TODO(simplif)` ([ADR-0003](../docs/adr/0003-tirage-proposition-table-de-liaison.md)).
 > Version 1.6 du 12 novembre 2026 : diagramme et § 2 alignés sur `sql/schema.sql` : retrait de `evenement` et de `joueur.debut_cycle` (sans source dans le cadrage), ajout de `joueur.dissolution_a_signaler`, du type `inscription` de `tentative`, et des `duo_id` portant la cascade (§ 6) ; index `tirage` fusionné dans son unicité (§ 5). Normalisation : retrait de `tirage.date_choix` et de `tirage_proposition.choisi`, que `mission.tirage_id` rend redondants (cadrage V2.16). Ajout du MCD et du MLD (§ 1).
 > Version 1.5 du 6 novembre 2026 : ajout de `joueur.onboarding_vu` et de `duo.date_activation` pour l'onboarding de B2 (cadrage § 8.5) : l'accès à C1 exige les deux colonnes `onboarding_vu` à 1, et « duo formé après 12 h » se calcule sur `date_activation` (cadrage § 4.2).
 > Version 1.4 du 6 novembre 2026 : le code d'invitation et son échéance passent de `duo` à `joueur` ; la ligne `duo` n'est créée qu'à la formation et porte toujours deux joueurs ([ADR-0002](../docs/adr/0002-code-invitation-dans-joueur.md)). Longueur et alphabet du code tranchés (§ 7).
@@ -25,7 +26,7 @@ Relations :
 
 - un `duo` porte exactement deux `joueur` ; un `joueur` appartient à zéro ou un `duo` ;
 - un `tirage` porte exactement trois `tirage_proposition` ;
-- une `mission` naît d'un `tirage` choisi ou d'une attribution aléatoire, et pointe un `defi`.
+- une `mission` naît du choix de l'émetteur dans son `tirage`, et pointe un `defi`.
 
 Trois niveaux, du métier au SQL : MCD (règles de gestion, Merise), MLD (tables et clés, forme textuelle), MPD (types et règles MySQL, diagramme).
 
@@ -40,7 +41,7 @@ flowchart TB
     PARTICIPATION["<b>PARTICIPATION</b><br><u>id</u><br>date_jour<br>reponse<br>date_reponse"]
     TIRAGE["<b>TIRAGE</b><br><u>id</u><br>date_jour"]
     GAGE["<b>GAGE</b> (lot 2)<br><u>id</u><br>texte<br>date_creation<br>statut<br>nb_contestations"]
-    MISSION["<b>MISSION</b><br><u>id</u><br>origine<br>date_attribution<br>date_revelation<br>date_decouverte<br>date_limite<br>statut<br>date_validation"]
+    MISSION["<b>MISSION</b><br><u>id</u><br>date_attribution<br>date_revelation<br>date_decouverte<br>date_limite<br>statut<br>date_validation"]
     DEFI["<b>DEFI</b><br><u>id</u><br>titre<br>description"]
     CATEGORIE["<b>CATEGORIE</b><br><u>id</u><br>libelle"]
     TENTATIVE["<b>TENTATIVE</b><br><u>id</u><br>cle<br>type<br>date"]
@@ -88,13 +89,13 @@ Clé primaire soulignée, clé étrangère précédée de `#`.
 - DEFI (<ins>id</ins>, titre, description, #categorie_id)
 - TIRAGE (<ins>id</ins>, date_jour, #duo_id, #emetteur_id, #destinataire_id)
 - TIRAGE_PROPOSITION (<ins>#tirage_id, #defi_id</ins>)
-- MISSION (<ins>id</ins>, origine, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation, #tirage_id, #defi_id) — clé étrangère composite `(#tirage_id, #defi_id)` vers `TIRAGE_PROPOSITION`
+- MISSION (<ins>id</ins>, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation, #tirage_id, #defi_id) — clé étrangère composite `(#tirage_id, #defi_id)` vers `TIRAGE_PROPOSITION`
 - GAGE (<ins>id</ins>, texte, date_creation, statut, nb_contestations, #duo_id, #auteur_id, #destinataire_id)
 - TENTATIVE (<ins>id</ins>, cle, type, date)
 
 `#emetteur_id`, `#destinataire_id` et `#auteur_id` pointent `JOUEUR` ; un même `JOUEUR` est ainsi relié deux fois à `TIRAGE` et à `GAGE`, une fois par rôle.
 
-`MISSION (tirage_id, defi_id)` référence `TIRAGE_PROPOSITION (tirage_id, defi_id)` : le défi d'une mission est forcément l'une des trois propositions de son tirage (cadrage § 4.2 : le défi aléatoire est tiré parmi elles).
+`MISSION (tirage_id, defi_id)` référence `TIRAGE_PROPOSITION (tirage_id, defi_id)` : le défi d'une mission est forcément l'une des trois propositions de son tirage (cadrage § 4.2 : l'émetteur choisit parmi elles).
 
 Écarts voulus du MPD par rapport au MLD :
 
@@ -125,7 +126,7 @@ erDiagram
         tinyint(1) dissolution_a_signaler "défaut 0"
         datetime date_creation "non nul"
     }
-    participation["participation (prévue)"] {
+    participation {
         int id PK
         int duo_id FK "non nul"
         int joueur_id FK "UK (joueur_id, date_jour)"
@@ -133,36 +134,35 @@ erDiagram
         enum reponse "oui | non"
         datetime date_reponse "non nul"
     }
-    categorie["categorie (prévue)"] {
+    categorie {
         int id PK
         varchar(40) libelle UK
     }
-    defi["defi (prévue)"] {
+    defi {
         int id PK
         varchar(120) titre "non nul"
         text description "non nul"
         int categorie_id FK
     }
-    tirage["tirage (prévue)"] {
+    tirage {
         int id PK
         int duo_id FK "non nul"
         int emetteur_id FK
         int destinataire_id FK
         date date_jour "UK (emetteur_id, date_jour)"
     }
-    tirage_proposition["tirage_proposition (prévue)"] {
+    tirage_proposition {
         int id PK
         int tirage_id FK "UK (tirage_id, defi_id)"
         int defi_id FK
     }
-    mission["mission (prévue)"] {
+    mission {
         int id PK
         int duo_id FK "non nul"
         int tirage_id FK, UK "non nul ; FK composite avec defi_id"
         int defi_id FK "FK composite avec tirage_id"
         int emetteur_id FK
         int destinataire_id FK
-        enum origine "choix | aleatoire"
         datetime date_attribution "non nul"
         datetime date_revelation "nullable"
         datetime date_decouverte "nullable"
@@ -277,7 +277,7 @@ erDiagram
 
 - Le choix n'est pas stocké ici : c'est la `mission` qui pointe ce `tirage` (`mission.tirage_id`). Proposition retenue : celle dont le `defi_id` est celui de la mission ; instant du choix : `mission.date_attribution`. Une seule source, aucune copie à tenir d'accord.
 - Exactement trois propositions par tirage : règle tenue par l'application, pas par la base. Les trois lignes sont insérées dans la transaction qui crée le tirage ; un test le vérifie (cadrage § 6.2).
-- Tirage sans mission : choix pas encore fait. Mission d'origine `aleatoire` : joueur passif à la bascule de midi.
+- Tirage sans mission : choix pas encore fait, ou jamais fait (journée blanche à midi).
 - Propositions non choisies (exclues 3 jours, cadrage § 4.6) : celles du tirage dont le `defi_id` diffère de celui de sa mission.
 
 ### `mission`
@@ -290,7 +290,6 @@ erDiagram
 | `defi_id` | entier non signé | non nul ; second membre de la clé étrangère composite : le défi est l'une des trois propositions du tirage |
 | `emetteur_id` | entier non signé | clé étrangère vers `joueur` ; `TODO(simplif)` : copie de `tirage.emetteur_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
 | `destinataire_id` | entier non signé | clé étrangère vers `joueur` ; `TODO(simplif)` : copie de `tirage.destinataire_id`, divergence possible entre copie et source, à revoir si un bug apparaît |
-| `origine` | énumération `choix` / `aleatoire` | non nul |
 | `date_attribution` | date-heure | non nul |
 | `date_revelation` | date-heure | nullable |
 | `date_decouverte` | date-heure | nullable |
@@ -299,6 +298,7 @@ erDiagram
 | `date_validation` | date-heure | nullable |
 
 - `date_decouverte` nulle à l'expiration déclenche la variante « jamais découvert » de D1.
+- Défi reçu (exclu des tirages suivants, cadrage § 4.6) : celui d'une mission révélée. Une mission `annule` ne compte pas : son défi peut être reproposé dès le lendemain, hors règle des 3 jours.
 
 ### `gage` _(lot 2)_
 
@@ -328,15 +328,16 @@ erDiagram
 
 ```
 attribue_non_revele → en_cours → valide → acquis
-                         │          │
-                         ▼          ▼
-                      expire     conteste
+         │               │          │
+         ▼               ▼          ▼
+      annule          expire     conteste
 ```
 
 | Départ | Arrivée | Déclencheur | Effet |
 |---|---|---|---|
-| — | `attribue_non_revele` | choix de l'émetteur, ou attribution aléatoire à midi | création de la mission |
-| `attribue_non_revele` | `en_cours` | les deux ont choisi, ou il est midi | `date_revelation` renseignée |
+| — | `attribue_non_revele` | choix de l'émetteur, avant midi | création de la mission |
+| `attribue_non_revele` | `en_cours` | les deux ont choisi | `date_revelation` renseignée |
+| `attribue_non_revele` | `annule` | midi passé sans le choix de l'autre joueur, au rattrapage | aucun : journée blanche, état terminal, sans effet sur les PV ; défi non compté comme reçu |
 | `en_cours` | `valide` | déclaration du destinataire, après confirmation | `date_validation` renseignée |
 | `en_cours` | `expire` | minuit passé, au rattrapage | perte de point de vie |
 | `valide` | `acquis` | 24 h après validation _(lot 2)_ | définitif |
@@ -352,7 +353,7 @@ Posées **en base**, pas seulement vérifiées en PHP. Ce sont elles qui rendent
 | Contrainte | Table | Ce qu'elle empêche |
 |---|---|---|
 | Unicité `(joueur_id, date_jour)` | `participation` | Deux réponses contradictoires, et le double clic |
-| Unicité `(emetteur_id, date_jour)` | `tirage` | Un second tirage obtenu par rechargement, et la double attribution aléatoire |
+| Unicité `(emetteur_id, date_jour)` | `tirage` | Un second tirage obtenu par rechargement |
 | Unicité `(tirage_id, defi_id)` | `tirage_proposition` | Un doublon parmi les trois propositions |
 
 ## 5. Index
@@ -380,9 +381,9 @@ Règles : cadrage § 10. Aucune corbeille, aucune conservation différée.
 
 F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule transaction, sous verrou des deux lignes `joueur` : les deux joueurs repassent à `pv = 5`, `onboarding_vu = 0` et `duo_id` nul ; le partenaire reçoit `dissolution_a_signaler = 1` (lu par D3, qui remet la colonne à 0) ; puis `DELETE FROM duo`. Aucune ligne de jeu n'existe encore, la cascade n'a donc rien à supprimer. Décisions closes, à ne pas rouvrir. À faire quand les tables de jeu sont créées :
 
-- [ ] **Cascade** : `mission`, `tirage`, `participation` et `gage` portent un `duo_id` avec `ON DELETE CASCADE` vers `duo`. `tirage_proposition` suit `tirage` par la même cascade. Aucune clé étrangère vers `joueur` ne doit bloquer le `DELETE FROM duo` : les joueurs ne sont pas supprimés à la dissolution. Un oubli de cascade échoue franchement (erreur de clé étrangère à la suppression), il ne laisse pas de données orphelines en silence. `DuoDepot::supprimer` reste une seule instruction et ne change pas.
-- [ ] **`sql/schema.sql`** : les tables de jeu sont supprimées avant `joueur` et `duo` (ordre des `DROP`).
-- [ ] **Test** : ajouter à `tests/AppairageServiceTest.php` un cas qui crée des lignes de chaque table de jeu pour deux duos, dissout l'un et vérifie que seules les lignes du duo dissous disparaissent.
+- [x] **Cascade** : `mission`, `tirage`, `participation` et `gage` portent un `duo_id` avec `ON DELETE CASCADE` vers `duo`. `tirage_proposition` suit `tirage` par la même cascade. Aucune clé étrangère vers `joueur` ne doit bloquer le `DELETE FROM duo` : les joueurs ne sont pas supprimés à la dissolution. Un oubli de cascade échoue franchement (erreur de clé étrangère à la suppression), il ne laisse pas de données orphelines en silence. `DuoDepot::supprimer` reste une seule instruction et ne change pas.
+- [x] **`sql/schema.sql`** : les tables de jeu sont supprimées avant `joueur` et `duo` (ordre des `DROP`).
+- [x] **Test** : `tests/SchemaTest.php` crée des lignes de chaque table de jeu (hors `gage`, lot 2) pour deux duos, supprime l'un par `DuoDepot::supprimer` et vérifie que seules les lignes du duo dissous disparaissent (#65).
 - [ ] **F3** : `SupprimerCompteControleur` appelle `dissoudre` avant de supprimer la ligne `joueur` (cadrage § 10), sans réécrire la suppression des données de jeu.
 - Code d'invitation : rien à faire. `code_invitation` est déjà nul depuis la formation du duo ; B1 en génère un nouveau à son prochain affichage (cadrage § 7).
 - `tentative` n'est pas une donnée de jeu : la dissolution n'y touche pas.

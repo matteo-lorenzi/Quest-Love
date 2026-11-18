@@ -1,11 +1,12 @@
 # Quest & Love — Description technique
 
 > **Statut : spécification.** Décrit ce qui doit être construit, avant écriture du code. Sert de brief d'implémentation pour les lots 1 et 2, et de support à la validation du schéma de données en S8.
-> Référence : cadrage unifié V2.9 (18/09/2026) · inventaire des écrans v2.2. **En cas d'écart, le cadrage fait foi.**
+> Référence : cadrage unifié V2.18 (18/11/2026) · inventaire des écrans v2.3. **En cas d'écart, le cadrage fait foi.**
 > Les règles du jeu ne sont pas recopiées ici : ce document y renvoie (« cadrage § 4.2 »). Une règle recopiée est une règle qui divergera.
 > Modèle de données : annexe [`modele-donnees.md`](modele-donnees.md).
 >
-> **Version 1.2 — 14 octobre 2026.** Suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7) ; courriel retiré du lot 3 (§ 5.3, § 7, arbitrage A3) ; phpMyAdmin sur Azrael et accès de l'enseignant au dépôt confirmés (§ 6.3, § 6.4).
+> **Version 1.3 — 18 novembre 2026.** Journée blanche quand un choix manque à 12 h (cadrage V2.18) : le rattrapage annule les missions non révélées au lieu d'attribuer un défi aléatoire (§ 3.2 à 3.4), D2 et l'origine de mission retirés (§ 2.1, § 2.3, § 4.2, § 5.1, § 6) ; barre basse réduite à l'onglet Accueil au lot 1 (§ 4.1) ; jeu de défis provisoire (§ 5.1).
+> Version 1.2 du 14 octobre 2026 : suite au courriel de l'enseignant du 12/10 : horloge et simulation du temps (§ 3.8, remarque n° 5 du 07/10), déconnexion en `POST` (§ 3.6), méthode des bases de données (§ 6.3), tests avec PHPUnit (§ 6.4), politique de commentaires (§ 2.4), contraintes d'hébergement précisées (§ 1.1, § 6.1) ; règles des comptes renvoyées au cadrage § 6.6 (§ 3.6, § 3.7) ; courriel retiré du lot 3 (§ 5.3, § 7, arbitrage A3) ; phpMyAdmin sur Azrael et accès de l'enseignant au dépôt confirmés (§ 6.3, § 6.4).
 > Version 1.1 du 9 octobre 2026 : passage à un MVC à contrôleur frontal après le retour de l'enseignant ([ADR-0001](../docs/adr/0001-controleur-frontal-mvc.md)) ; noms du code alignés sur le glossaire (`joueur`, `duo`, `tirage`). Version 1.0 du 18 septembre 2026.
 
 ## Sommaire
@@ -45,7 +46,7 @@ Code source : `https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php`
 | Serveur Azrael, HTTPS obligatoire | Sessions PHP natives, cookie `Secure` et `HttpOnly` |
 | PHP 8.2 | `password_hash()`, PDO, types de retour, énumérations |
 | MariaDB 10, moteur InnoDB | Transactions et verrous disponibles ; schéma validé avant implémentation (S8) |
-| Aucune tâche planifiée | Expiration, révélation et défi aléatoire calculés au chargement de page (§ 3.2) |
+| Aucune tâche planifiée | Expiration, révélation et annulation à 12 h calculées au chargement de page (§ 3.2) |
 | Pas de gestionnaire de dépendances | Aucune bibliothèque tierce, ni côté serveur ni côté client ; l'outil de test reste hors de `app/` et hors du dépôt (§ 6.4) |
 | `.htaccess` pris en compte (courriel du 12/10) | Racine servie non modifiable : dossiers internes fermés par `.htaccess`, application jointe par `quest-love/public/` (§ 6.1) |
 | Pas d'accès SSH, seulement SFTP (courriel du 12/10) | Déploiement par SFTP ; tests et réinitialisation des bases exécutés en local (§ 6.3, § 6.4) |
@@ -85,7 +86,7 @@ Le code vit dans `app/`, seul dossier copié sur Azrael (`~mlorenzi/quest-love/`
   - `Vue.php` — rendu d'une vue dans le gabarit, fonction d'échappement unique
 - **`app/controleurs/`** — un contrôleur par écran de l'inventaire (table § 2.3)
 - **`app/modeles/`** — le M du MVC, en trois rôles
-  - `entites/` — les objets du domaine et leurs états : `Joueur`, `Duo`, `Participation`, `Defi`, `Tirage`, `Mission` ; énumérations `StatutMission`, `OrigineMission`, `Reponse`
+  - `entites/` — les objets du domaine et leurs états : `Joueur`, `Duo`, `Participation`, `Defi`, `Tirage`, `Mission` ; énumérations `StatutMission`, `Reponse`
   - `depots/` — le seul endroit où s'écrit du SQL : `JoueurDepot`, `DuoDepot`, `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`, `TentativeDepot`
   - `services/` — les règles du jeu et les transactions : `CompteService`, `AppairageService`, `JourneeService`, `TirageService`, `MissionService`, `PointsDeVieService`, `RattrapageService` ; textes des règles `Regles` (source unique de B2 et B3)
 - **`app/vues/`** — le V du MVC
@@ -124,7 +125,7 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 | `accueil` | C1 | `AccueilControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
 | `tirage` | C2 | `TirageControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
 | `defi-recu` | C3 | `DefiRecuControleur` | en duo, étape « accès au jeu » (sinon renvoi vers B2) |
-| `evenement` | D1, D2, D3, D5 | `EvenementControleur` | connecté |
+| `evenement` | D1, D3, D5 | `EvenementControleur` | connecté |
 | `profil` | F1 | `ProfilControleur` | connecté |
 | `quitter-duo` | F2 | `QuitterDuoControleur` | en duo |
 | `supprimer-compte` | F3 | `SupprimerCompteControleur` | connecté |
@@ -140,10 +141,10 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 - **Échappement à la sortie** — une seule fonction d'échappement, appelée dans les vues ; aucun texte libre n'est écrit sans elle.
 - **Redirection après écriture** — tout `POST` se termine par un en-tête `Location` puis `exit`.
 - **Un écran, un contrôleur, une vue** — un écran de l'inventaire ne se rend jamais depuis deux vues différentes.
-- **États en énumérations PHP** — statuts de mission, origines de défi, réponses de participation ; jamais de chaînes libres.
+- **États en énumérations PHP** — statuts de mission, réponses de participation ; jamais de chaînes libres.
 - **Français sans accent partout** — classes, méthodes, cas d'énumération, tables et colonnes : `MissionDepot::trouverEnCoursParDestinataire()`, `StatutMission::EnCours`. Suffixes de rôle en français : `Controleur`, `Depot`, `Service`.
 - **Vocabulaire du glossaire** — les noms du code suivent `GLOSSARY.md` : `Joueur`, `Duo`, `Tirage`, `Mission`, jamais « utilisateur », « couple » ou « pioche ».
-- **HTML sémantique** — `header`, `main`, `nav`, `section`, `article`, `form`, `button` avant tout `div` ; classes CSS en BEM français : `carte-defi`, `carte-defi__titre`, `carte-defi--aleatoire`.
+- **HTML sémantique** — `header`, `main`, `nav`, `section`, `article`, `form`, `button` avant tout `div` ; classes CSS en BEM français : `carte-defi`, `carte-defi__titre`, `carte-defi--realise`.
 - **Simplicité vérifiable** — pas de classe mère, pas de conteneur d'injection, pas d'abstraction « au cas où » : chaque fichier doit pouvoir être expliqué ligne par ligne par l'un ou l'autre membre du binôme. Ce qui ne passe pas ce test est simplifié (ADR-0001).
 - **Commentaires** — chaque fichier commence par une ligne qui donne son rôle, son code d'écran, son lot et son périmètre. Ensuite, on commente le *pourquoi* d'une décision non évidente, jamais le *quoi* que le code dit déjà : objectif, qu'une personne extérieure puisse reprendre le code. Exception assumée : `public/index.php`, `noyau/Routeur.php` et l'écran de référence A3 (`ConnexionControleur`, sa vue, `CompteService`), écrits en premier, sont annotés étape par étape, avec les numéros du § 2.2, pour servir de support d'apprentissage du MVC.
 
@@ -173,38 +174,39 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
   1. expiration des missions échues au statut « en cours », avec perte de points de vie ;
   2. évaluation de la participation du jour et détermination de la journée blanche ;
   3. révélation des missions dont la condition est remplie ;
-  4. après la bascule de 12 h, attribution des défis aléatoires manquants.
+  4. après la bascule de 12 h, annulation des missions non révélées (journée blanche, § 3.4) ; aucun défi n'est attribué à la place d'un joueur.
 - **Verrou** : les lignes `joueur` des deux joueurs sont verrouillées en écriture pour la durée de la transaction. C'est la protection contre la double pénalité quand deux appareils chargent une page en même temps.
 - **Trois protections, toutes posées en base** — unicité sur `participation`, unicité sur `tirage`, vérification du statut avant transition sur `mission`. Détail : annexe § 4.
-- **File d'événements** : le rattrapage dépose les événements produits dans une file en session ; tant qu'elle n'est pas vide, le routeur redirige vers l'écran `evenement`, qui en dépile un par affichage. Ordre : duo dissous, expiration, passage à zéro, défi aléatoire.
+- **File d'événements** : le rattrapage dépose les événements produits dans une file en session ; tant qu'elle n'est pas vide, le routeur redirige vers l'écran `evenement`, qui en dépile un par affichage. Ordre : duo dissous, expiration, passage à zéro. L'annulation n'empile rien : la journée blanche s'affiche sur C1 « aucun jeu ».
 - **Limite connue** : deux onglets peuvent afficher deux états différents du même écran ; la dernière écriture reste cohérente, l'affichage se corrige au rechargement.
 - **Coût** : quatre requêtes indexées par chargement de page. À surveiller si l'accueil devient lent.
 - **Règle** : cadrage § 6.1, § 6.7, § 8.3.
 
-### 3.3 Tirage persistant et défi aléatoire
+### 3.3 Tirage persistant et choix
 
 - **Service** : `TirageService`.
 - **Génération** : à la première demande du joueur dans la journée, jamais avant. Les trois défis sont écrits immédiatement dans `tirage_proposition` ; toute lecture ultérieure relit ces lignes. Sans cette persistance, un rechargement permettrait de retirer jusqu'à obtenir un défi facile.
-- **Réservoir** : défis jamais reçus par le destinataire, sans doublon entre les trois, en excluant ceux proposés et non choisis depuis moins de trois jours. Sous trois défis disponibles, le cycle du destinataire repart à zéro.
+- **Réservoir** : défis jamais reçus par le destinataire (seule une mission révélée compte comme reçue), sans doublon entre les trois, en excluant ceux proposés et non choisis depuis moins de trois jours. Sous trois défis disponibles, le cycle du destinataire repart à zéro.
 - **Choix** : crée la mission, qui pointe le tirage (`mission.tirage_id`) : c'est elle qui porte le défi retenu et l'instant du choix. Accepté seulement avant la bascule ; l'unicité de `mission.tirage_id` empêche un second choix.
-- **Défi aléatoire** : tiré parmi les propositions **déjà persistées** du joueur passif — donc aucun nouveau tirage. Marqué d'une origine `aleatoire`, qui déclenche l'écran D2.
-- **Idempotence** : l'unicité `(emetteur_id, date_jour)` empêche le double jeu de propositions et la double attribution aléatoire.
+- **Choix manquant à 12 h** : aucun défi n'est tiré à la place du joueur qui n'a pas choisi ; la mission de l'autre, jamais révélée, est annulée par le rattrapage (§ 3.4). Son défi n'est pas compté comme reçu ni soumis aux trois jours : il peut revenir dès le lendemain. Remplace le défi aléatoire (cadrage V2.18).
+- **Idempotence** : l'unicité `(emetteur_id, date_jour)` empêche le double jeu de propositions.
 - **Règle** : cadrage § 4.2, § 4.6, § 6.2.
 
 ### 3.4 Cycle de vie d'une mission
 
 - **Service** : `MissionService` ; statuts dans l'énumération `StatutMission`. Transitions : annexe § 3.
-- **Révélation** : calculée au rattrapage, jamais à l'affichage.
-- **Découverte** : horodatée à la première consultation par le destinataire. Sa nullité à l'expiration déclenche la variante « jamais découvert » de D1.
+- **Révélation** : calculée au rattrapage, jamais à l'affichage, dès que les deux joueurs ont choisi ; aucun repli à 12 h.
+- **Annulation** : à partir de 12 h, le rattrapage passe une mission encore `attribue_non_revele` à `annule`, statut terminal. Aucun appel aux points de vie.
+- **Découverte** : horodatée au premier affichage de C3 par le destinataire ; l'état 5 de C1 annonce seulement un défi en attente. Sa nullité à l'expiration déclenche la variante « jamais découvert » de D1.
 - **Validation** : vérifier que la mission n'est pas déjà validée avant d'écrire — cas de la double validation depuis deux appareils.
 - **Expiration** : à minuit, par le rattrapage, avec perte de points de vie.
-- **Règle** : cadrage § 4.1, § 4.3.
+- **Règle** : cadrage § 4.1, § 4.2, § 4.3, § 7.
 
 ### 3.5 Points de vie
 
 - **Service** : `PointsDeVieService`, seul autorisé à faire écrire la colonne `pv` (via `JoueurDepot`).
 - **Barème** : tableau du cadrage § 4.4. Une seule constante de pénalité vit dans le module, tenue à jour depuis ce tableau.
-- **Appel** : depuis l'expiration d'une mission, jamais ailleurs. La journée blanche n'appelle rien.
+- **Appel** : depuis l'expiration d'une mission, jamais ailleurs. La journée blanche et l'annulation n'appellent rien.
 - **Passage à zéro** : au lot 1, le compteur remonte immédiatement à 5 et l'événement D5 est empilé ; au lot 2, le gage se déclenche en plus.
 - **Écriture** : dans la transaction déjà ouverte par le rattrapage, sur une ligne verrouillée (§ 3.2).
 - **Règle** : cadrage § 4.4, § 4.5.
@@ -259,7 +261,7 @@ Réponse à la remarque n° 5 de l'enseignant (07/10/2026) : comment effectuer o
 
 - **Une vue d'écran = un gabarit d'en-tête, un contenu, un gabarit de pied.** Aucun HTML dupliqué entre deux écrans.
 - **`entete.php`** — ouverture du document, `lang="fr"`, méta `viewport`, feuilles de style, titre passé en variable.
-- **`navigation.php`** — barre basse à quatre onglets ; incluse seulement par les écrans qui la portent, jamais sur les sous-écrans focalisés ni sur les événements.
+- **`navigation.php`** — barre basse, créée avec le seul onglet Accueil : Profil arrive avec F1, Gages et Historique avec le lot 2 (liste finale des onglets : cadrage § 8.5) ; incluse seulement par les écrans qui la portent, jamais sur les sous-écrans focalisés ni sur les événements.
 - **`pied.php`** — fermeture du document, scripts en fin de corps, mention d'horloge décalée quand elle est active (§ 3.8).
 - Les textes d'interface sont rédigés en S6 et remplacent les textes d'attente ; ils ne sont pas improvisés dans le code. Cadrage § 8.3.
 
@@ -268,9 +270,9 @@ Réponse à la remarque n° 5 de l'enseignant (07/10/2026) : comment effectuer o
 Les quatre composants isolés au zonage Figma ont chacun une vue unique dans `vues/composants/`. Modifier le composant, jamais une copie.
 
 - **`socle-c1.php`** — deux colonnes symétriques, élément commun au centre, zone d'action pleine largeur. Reçoit l'état en paramètre : les six états de l'accueil et le cas « aucun jeu » sont des variantes du même socle.
-- **`carte-defi.php`** — titre, description, catégorie, statut, mention « choisi par le hasard » si l'origine est aléatoire. Utilisé par C1, C2 et C3.
+- **`carte-defi.php`** — titre, description, catégorie, statut. Utilisé par C1, C2 et C3.
 - **`panneau-confirmation.php`** — panneau bas générique : question, confirmation, annulation. Porte « pas aujourd'hui », « défi réalisé », et au lot 2 la contestation. Exceptions F2 et F3, écrans dédiés exigés par le cadrage § 10.
-- **`bloc-evenement.php`** — gabarit de D1, D2, D3, D5 : illustration, titre, texte, action unique.
+- **`bloc-evenement.php`** — gabarit de D1, D3, D5 : illustration, titre, texte, action unique.
 
 ### 4.3 JavaScript du lot 1
 
@@ -309,14 +311,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Socle** _(commun)_
 
-- [ ] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(en cours : `joueur`, `duo` et `tentative` ; les autres tables arrivent avec leurs écrans)_
-- [ ] `sql/defis.sql` — bibliothèque des 50 défis et leurs catégories
+- [x] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(toutes les tables du lot 1, celles de la journée de jeu comprises ; la table `gage` arrive avec le lot 2)_
+- [ ] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4 _(en cours : jeu provisoire de quinze défis en quatre catégories)_
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(appel du rattrapage vide jusqu'à `RattrapageService`)_
 - [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
 - [x] `noyau/Securite.php` — jeton CSRF
 - [x] `noyau/Vue.php` — rendu et échappement de sortie
-- [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(en cours : `entete.php` et `pied.php` faits)_
+- [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(en cours : `entete.php` et `pied.php` faits ; `navigation.php` avec le seul onglet Accueil)_
 - [ ] `public/styles/base.css`, `composants.css`, `ecrans.css`
 - [x] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
 - [x] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
@@ -338,23 +340,23 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 **Journée de jeu** _(B)_
 
-- [ ] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `OrigineMission`, `Reponse`
-- [ ] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
+- [x] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `Reponse`
+- [x] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
 - [ ] `JourneeService` — bornes, participation
-- [ ] `TirageService` — tirage persistant, choix, défi aléatoire
-- [ ] `MissionService` — révélation, découverte, validation, expiration
+- [ ] `TirageService` — tirage persistant, choix
+- [ ] `MissionService` — révélation, annulation, découverte, validation, expiration
 - [ ] `PointsDeVieService` — pertes et plancher
 - [ ] `RattrapageService` — calculs paresseux et file d'événements
 - [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_
 - [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php`
-- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui »
+- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi »)
 - [ ] C2 `TirageControleur` · C3 `DefiRecuControleur`
 - [ ] `public/scripts/eventail.js`, `echeance.js`
 
 **Événements et erreurs** _(B, sauf D3)_
 
 - [ ] `vues/composants/bloc-evenement.php`
-- [ ] D1, D2, D3, D5 `EvenementControleur`
+- [ ] D1, D3, D5 `EvenementControleur`
 - [ ] G1 `ErreurControleur` — page introuvable et erreur serveur _(en cours : version minimale pour le routeur)_
 
 **Exploitation** _(commun)_
@@ -466,7 +468,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 - **État de départ** : le fichier d'amorce des tests réinitialise la base (mêmes fichiers, mêmes garde-fous qu'au § 6.3), puis chaque classe de test repart d'une base réinitialisée.
 - **L'heure** : chaque test passe aux services le `$maintenant` de son choix (§ 3.8).
 - **Nommage** : un test cite l'écran et le parcours couverts (`AGENTS.md`).
-- **Tests prioritaires** — ceux de la recette technique (§ 6.6) : double pénalité depuis deux sessions, refus d'un choix après 12 h, expiration après minuit, passage à zéro, défi aléatoire sans nouveau tirage.
+- **Tests prioritaires** — ceux de la recette technique (§ 6.6) : double pénalité depuis deux sessions, refus d'un choix après 12 h, expiration après minuit, passage à zéro, annulation à 12 h d'une mission non révélée sans perte de PV.
 
 ### 6.5 Jeu de données de démonstration
 
@@ -474,8 +476,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 
 - un duo formé, avec quelques jours d'historique ;
 - une mission expirée, `date_decouverte` nulle, pour la variante « jamais découvert » ;
-- une mission d'origine aléatoire ;
-- une journée blanche ;
+- une journée blanche par refus et une par choix manquant (mission annulée) ;
 - un joueur à 1 point de vie, pour atteindre D5 en une action ;
 - _(lot 2)_ un gage en attente.
 
@@ -488,6 +489,7 @@ Complète les critères de succès du cadrage § 14, qui restent la référence.
 - [ ] _(test)_ Deux sessions du même compte ne produisent ni double pénalité ni double attribution.
 - [ ] _(test)_ Une réponse envoyée après la bascule est refusée avec un message en texte.
 - [ ] _(test)_ Un chargement de page après minuit applique l'expiration et produit l'événement D1.
+- [ ] _(test)_ Un chargement de page après 12 h annule la mission non révélée quand l'autre joueur n'a pas choisi, sans perte de PV ni événement.
 - [ ] La démonstration avec décalage d'horloge (§ 3.8) montre la bascule de 12 h et l'expiration de minuit sur deux téléphones.
 - [ ] La dissolution supprime les données de jeu et affiche D3 au partenaire.
 - [ ] Le parcours complet se fait au clavier, avec focus visible.

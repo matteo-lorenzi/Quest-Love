@@ -62,7 +62,7 @@ _Éviter_ : mot de passe faible, liste noire
 Période de jeu identifiée par une date, de 00 h à minuit, bornée par la bascule de 12 h.
 
 **Journée blanche** :
-Journée de jeu sans mission ni perte de PV, parce qu'un joueur a répondu non ou n'a pas répondu avant 12 h.
+Journée de jeu sans mission ni perte de PV, pour les deux joueurs : l'un a répondu non ou n'a pas répondu avant 12 h, ou les deux ont dit oui mais l'un n'a pas choisi avant 12 h.
 _Éviter_ : jour off, pause
 
 **Participation** :
@@ -91,11 +91,11 @@ Défi attribué à un destinataire pour une journée de jeu donnée. Terme inter
 _Éviter_ : défi du jour, quête
 
 **Attribution** :
-Création de la mission : l'émetteur retient l'une des trois propositions de son tirage, ou l'application en choisit une au hasard à 12 h quand il n'a rien choisi. Fixe l'origine de la mission (`choix` ou `aleatoire`).
+Création de la mission : l'émetteur retient, avant 12 h, l'une des trois propositions de son tirage. L'application n'attribue jamais de défi à sa place.
 _Éviter_ : affectation, envoi
 
 **Révélation** :
-Moment où une mission devient visible pour son destinataire : dès que les deux joueurs ont choisi, ou à 12 h au plus tard.
+Moment où une mission devient visible pour son destinataire : dès que les deux joueurs ont choisi. Sans les deux choix à 12 h, il n'y a pas de révélation : la mission est annulée.
 _Éviter_ : notification, annonce
 
 **Découverte** :
@@ -109,6 +109,10 @@ _Éviter_ : réussite, preuve
 **Expiration** :
 Passage d'une mission en cours à expirée quand minuit est passé sans validation, constaté au rattrapage ; le destinataire perd 1 PV. Une mission peut expirer sans avoir été découverte.
 _Éviter_ : échec, péremption
+
+**Annulation** :
+Passage à 12 h d'une mission non révélée à annulée, parce que l'autre joueur n'a pas choisi : la journée est blanche. Sans effet sur les PV ; le défi n'est pas compté comme reçu et peut être reproposé dès le lendemain.
+_Éviter_ : abandon, suppression
 
 **Point de vie (PV)** :
 Unité du capital de chaque joueur, 5 au départ, perdue quand une mission n'est pas réalisée à temps.

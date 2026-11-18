@@ -37,7 +37,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
   - Accueil face-à-face : les deux joueurs côte à côte, points de vie et état du jour
   - Participation quotidienne (« On joue aujourd'hui ? »)
   - Tirage de 3 défis en éventail, choix et attribution au partenaire
-  - Révélation, défi aléatoire à 12 h
+  - Révélation dès les deux choix ; choix manquant à 12 h : journée blanche
   - Déclaration « défi réalisé »
 - Conséquences
   - Expiration à minuit, perte d'1 PV
@@ -84,13 +84,13 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
   - Duo formé après 12 h (les deux joueurs ayant fini l'onboarding après 12 h) : premier jour de jeu le lendemain
 - **La participation quotidienne** : à la première connexion du jour, chaque joueur répond à « On joue aujourd'hui ? » ; la journée n'est jouée que si les deux répondent oui.
   - Question posée entre 00 h et 12 h, réponse définitive
-  - Journée blanche : « non », absence de réponse, partenaire ayant déjà dit non
+  - Journée blanche : « non », absence de réponse, partenaire ayant déjà dit non, choix manquant à 12 h
 - **Le tirage et le choix** : chaque joueur pioche 3 défis et en attribue un seul à son partenaire, avant midi.
   - 3 défis, un seul attribué, choix définitif avant 12 h
-  - Défi aléatoire : joueur passif privé de son choix
-- **La révélation** : le défi attribué devient visible pour son destinataire dès que les deux joueurs ont choisi, ou à midi au plus tard.
+  - Choix manquant à 12 h : journée blanche pour les deux, même pour celui qui a choisi
+- **La révélation** : le défi attribué devient visible pour son destinataire dès que les deux joueurs ont choisi ; sans les deux choix à midi, la journée est blanche.
 - **La réalisation du défi** : le destinataire déclare son défi réalisé sur l'honneur, sans preuve à fournir.
-  - Déclaration sur l'honneur, sans preuve, sans annulation
+  - Déclaration sur l'honneur, sans preuve, définitive
   - Échéance : minuit, heure de Paris
 - **Les points de vie** : chaque joueur démarre à 5 points de vie ; un défi non réalisé avant minuit en coûte 1 (2 en lot 2 si un gage est déjà en attente) ; à 0 point de vie, le compteur remonte immédiatement à 5 (lot 1) ou déclenche un gage (lot 2).
 - **Les gages** _(lot 2)_ : à 0 point de vie, le partenaire est invité à rédiger un gage libre ; tant qu'un gage est en attente, la perte de points de vie double (plafonnée à 2) ; pas d'échéance sur un gage.
@@ -108,13 +108,12 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
   | Réponses | Choix à 12 h | Résultat |
   |---|---|---|
   | Oui / Oui | Les deux | Journée normale |
-  | Oui / Oui | Un seul | Le joueur diligent reçoit un défi aléatoire |
-  | Oui / Oui | Aucun | Deux défis aléatoires |
+  | Oui / Oui | Un seul ou aucun | Journée blanche |
   | Oui / Non | — | Journée blanche |
   | Absence de réponse | — | Journée blanche |
 
 - **Choix assumé de la bascule à 12 h** : la persona principale ouvre l'application en tout début ou toute fin de journée. Un couple qui ne se connecte que le soir ne peut pas jouer : la journée est blanche. Ce choix délibéré garantit une demi-journée pour réaliser le défi et une révélation commune, sans tâche planifiée ; il sera observé avec le couple témoin et analysé en recul réflexif.
-- **Calculs paresseux au chargement de page** : en l'absence de tâche planifiée sur l'hébergement, l'expiration, la révélation et l'attribution des défis aléatoires ne sont pas calculées à heure fixe mais à chaque chargement de page, en rattrapant tout ce qui aurait dû se produire depuis la dernière visite. Détail du mécanisme : description technique (`04-technique/doc-technique.md`) § 3.2.
+- **Calculs paresseux au chargement de page** : en l'absence de tâche planifiée sur l'hébergement, l'expiration, la révélation et l'annulation des missions non révélées à midi ne sont pas calculées à heure fixe mais à chaque chargement de page, en rattrapant tout ce qui aurait dû se produire depuis la dernière visite. Détail du mécanisme : description technique (`04-technique/doc-technique.md`) § 3.2.
 
 ### Points de vie
 
@@ -127,7 +126,7 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 | Journée blanche | Aucun effet | 1 |
 | 0 PV | Lot 1 : retour à 5 · lot 2 : gage | 1 / 2 |
 
-- **Explications et exemples** : chaque joueur démarre avec 5 points de vie, affichés en continu sur l'accueil face-à-face. Une journée blanche (aucune réponse ou réponse négative d'un des deux joueurs) n'a aucun effet sur les points de vie : seul un défi effectivement attribué et non réalisé en coûte un. En lot 2, tant qu'un gage est en attente, chaque défi non réalisé ou contesté coûte 2 points de vie au lieu d'1, jusqu'à ce que la liste des gages en attente soit vide.
+- **Explications et exemples** : chaque joueur démarre avec 5 points de vie, affichés en continu sur l'accueil face-à-face. Une journée blanche (aucune réponse ou réponse négative d'un des deux joueurs, ou choix manquant à midi) n'a aucun effet sur les points de vie : seul un défi effectivement attribué et non réalisé en coûte un. En lot 2, tant qu'un gage est en attente, chaque défi non réalisé ou contesté coûte 2 points de vie au lieu d'1, jusqu'à ce que la liste des gages en attente soit vide.
 
 ### Gages _(lot 2)_
 
@@ -139,15 +138,15 @@ Code source : <https://azrael.sha.univ-poitiers.fr/~mlorenzi/debug.php>
 ### Bibliothèque et tirage
 
 - **Volume et catégories** : environ 50 défis pour la V1, répartis en 4 à 5 catégories. `⚠ Catégories encore provisoires — à figer en S5, une fois les 15 premiers défis rédigés et regroupés ; section à mettre à jour à cette échéance.`
-- **Règles de tirage** : les 3 propositions du jour sont tirées parmi les défis jamais reçus par le destinataire, sans doublon entre elles ; seul le défi effectivement attribué (choisi ou aléatoire) est exclu par la suite, et une proposition non choisie n'est pas reproposée pendant 3 jours. Quand le réservoir d'un destinataire descend sous 3 défis, son cycle repart à zéro.
+- **Règles de tirage** : les 3 propositions du jour sont tirées parmi les défis jamais reçus par le destinataire, sans doublon entre elles ; seul le défi effectivement révélé est exclu par la suite (une mission annulée ne compte pas), et une proposition non choisie n'est pas reproposée pendant 3 jours ; le défi d'une mission annulée peut, lui, revenir dès le lendemain. Quand le réservoir d'un destinataire descend sous 3 défis, son cycle repart à zéro.
 - **Tirage persistant** : les 3 propositions du jour sont enregistrées dès leur première apparition et ne changent plus ensuite — un rechargement de page ne permet pas de « retirer » pour obtenir un défi plus facile.
 - **Contrainte de point de vue et registre des défis** : chaque défi est écrit du point de vue de celui qui le reçoit, jamais de celui qui le choisit — un défi tiré est toujours attribué à l'autre. Registre : drôle, original, ancré dans le quotidien du couple, réalisable en une journée, sans dépense ni contenu intime.
 
 ### Cycle de vie d'une mission
 
-- **Statuts** : un défi attribué (appelé « mission ») passe par les états `attribue_non_revele`, `en_cours`, `valide`, puis `acquis` une fois la fenêtre de contestation passée ; il peut aussi passer à `expire` (non réalisé à minuit) ou, en lot 2, à `conteste`.
+- **Statuts** : un défi attribué (appelé « mission ») passe par les états `attribue_non_revele`, `en_cours`, `valide`, puis `acquis` une fois la fenêtre de contestation passée ; il peut aussi passer à `annule` (non révélé à midi faute du second choix), à `expire` (non réalisé à minuit) ou, en lot 2, à `conteste`.
 - **Diagramme des transitions et détail des déclencheurs** : annexe technique « Modèle de données » (`04-technique/modele-donnees.md`) § 3, pour éviter de recopier un schéma qui divergerait sinon de sa source.
-- **Origine** : une mission naît soit d'un **choix** du joueur (`choix`), soit d'une **attribution aléatoire** à midi si le joueur passif n'a pas choisi (`aleatoire`) — dans les deux cas, le défi reçu est un défi normal, seul son origine diffère.
+- **Annulation** : à midi, la mission d'un joueur qui a choisi alors que son partenaire ne l'a pas fait n'est jamais révélée ; elle passe à `annule`, sans effet sur les points de vie, et son défi n'est pas compté comme reçu.
 
 ### Code d'invitation
 
@@ -235,7 +234,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   - État 6 : défi reçu en cours — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=8-118)
     - Variante : défi réalisé, statut du défi envoyé (ex-état 7, même cadre que l'état 6)
   - Cas : aucun jeu aujourd'hui — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-30)
-    - Journée blanche (3 variantes de texte)
+    - Journée blanche (4 variantes de texte), dont « un des deux n'a pas choisi avant midi » : texte `[TEXTE À RÉDIGER]`
     - Variante : premier jour de jeu demain
 - **C2 · Tirage** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=9-2)
   Présente les 3 défis piochés en éventail, face cachée.
@@ -245,8 +244,6 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   Affiche le défi reçu et son état.
   - En cours · confirmation « réalisé » · réalisé (un seul cadre, les deux derniers états en variantes ; confirmation par le panneau bas partagé)
   - Sans navigation, sans mention de contestabilité
-- **D2 · Événement : le hasard a choisi pour toi** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=18-2)
-  Écran d'événement annonçant qu'un défi a été attribué au hasard, faute de choix avant midi.
 
 #### Bande 03 — Fin de défi et événements
 
@@ -257,7 +254,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
   Écran d'événement affiché quand les points de vie atteignent 0 : annonce le retour immédiat à 5 (lot 1) ou le déclenchement d'un gage (lot 2).
 - **D3 · Duo dissous** (vu par le partenaire) — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-163)
   Écran d'événement informant le partenaire que l'autre joueur a dissous le duo ; redirige ensuite vers la salle d'attente.
-- **Ordre d'enchaînement des écrans d'événement** : quand plusieurs événements se sont produits depuis la dernière visite, ils s'affichent un par un, dans cet ordre : duo dissous, expiration, passage à zéro, défi aléatoire (cadrage § 6.1, détail : description technique (`04-technique/doc-technique.md`) § 3.2).
+- **Ordre d'enchaînement des écrans d'événement** : quand plusieurs événements se sont produits depuis la dernière visite, ils s'affichent un par un, dans cet ordre : duo dissous, expiration, passage à zéro (cadrage § 6.1, détail : description technique (`04-technique/doc-technique.md`) § 3.2).
 
 #### Bande 04 — Profil, duo et système
 
@@ -305,12 +302,12 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 #### Lot 1 : duo et défi du jour
 
-18 codes d'écran, 27 cadres zonés.
+17 codes d'écran, 27 cadres zonés.
 
 - Accueil public, inscription, connexion — **A1, A2, A3**
 - Appairage par code, duo formé et onboarding, règles — **B1, B2, B3**
 - Participation quotidienne, tirage en éventail, choix et attribution — **C1** (états 1 à 3), **C2**
-- Révélation, défi aléatoire, validation — **C1** (états 4 à 6), **D2**, **C3**
+- Révélation, validation — **C1** (états 4 à 6), **C3**
 - Expiration automatique, compteur de PV, perte d'1 PV, retour à 5 — **D1, D5**
 - Accueil face-à-face, journée sans jeu — **C1** (socle, cas « aucun jeu aujourd'hui »)
 - Profil, dissolution du duo, suppression de compte — **F1, F2, F3**, et **D3** pour le partenaire
@@ -339,12 +336,12 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 - Notification par courriel (suppose une adresse électronique, exclue par le cadrage § 10)
 - Web push (PWA)
 - Récupération de compte
-- Punition alternative du joueur passif
+- Punition du joueur passif (aucune au lot 1 : son choix manquant rend la journée blanche pour les deux)
 
 ## Idées pour la suite
 
-- **Notifications** : arbitrage A3 tranché le 14/10 (cadrage § 6.5). Au lot 1, aucune notification : la révélation s'affiche à l'ouverture de l'accueil (C1 état 5, précédé de D2 si le hasard a choisi). Le courriel et le web push restent des pistes documentées du lot 4 ; le courriel supposerait de collecter une adresse électronique, ce que la minimisation des données exclut.
-- **Risques acceptés à observer** : un joueur en dette de gage peut répondre « non » chaque jour pour éviter la pénalité doublée ; un gage n'a pas d'échéance ; un couple qui ne se connecte que le soir subit des journées blanches répétées (conséquence assumée de la bascule à 12 h). Les trois sont des risques acceptés, à observer avec le couple témoin et à analyser en recul réflexif plutôt qu'à corriger maintenant.
+- **Notifications** : arbitrage A3 tranché le 14/10 (cadrage § 6.5). Au lot 1, aucune notification : la révélation s'affiche à l'ouverture de l'accueil (C1 état 5). Le courriel et le web push restent des pistes documentées du lot 4 ; le courriel supposerait de collecter une adresse électronique, ce que la minimisation des données exclut.
+- **Risques acceptés à observer** : un joueur en dette de gage peut répondre « non », ou dire oui sans choisir, chaque jour pour éviter la pénalité doublée ; un gage n'a pas d'échéance ; un couple qui ne se connecte que le soir subit des journées blanches répétées (conséquence assumée de la bascule à 12 h). Les trois sont des risques acceptés, à observer avec le couple témoin et à analyser en recul réflexif plutôt qu'à corriger maintenant.
 - **Hypothèses à valider avec le couple témoin** (recruté en S9, testé en S11 ou S12) :
   - 3 défis : choix sans paralysie
   - Perte de PV et gage perçus comme ludiques, non punitifs
