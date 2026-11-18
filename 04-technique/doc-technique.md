@@ -342,14 +342,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 - [x] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `Reponse`
 - [x] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
-- [ ] `JourneeService` — bornes, participation _(en cours : bornes, réponse, états 1 et 2 ; journée blanche et premier jour demain avec #69)_
+- [x] `JourneeService` — bornes, participation
 - [ ] `TirageService` — tirage persistant, choix
 - [ ] `MissionService` — révélation, annulation, découverte, validation, expiration
 - [ ] `PointsDeVieService` — pertes et plancher
 - [ ] `RattrapageService` — calculs paresseux et file d'événements
-- [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_ _(en cours : états 1 et 2)_
+- [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_ _(états 1 et 2, journée blanche et premier jour demain livrés ; états 3 à 6 avec #58 et #59)_
 - [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php` _(en cours : `panneau-confirmation.php`)_
-- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(en cours : états 1 et 2)_
+- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(états 1 et 2, journée blanche et premier jour demain livrés ; états 3 à 6 avec #58 et #59)_
 - [ ] C2 `TirageControleur` · C3 `DefiRecuControleur`
 - [ ] `public/scripts/eventail.js`, `echeance.js`
 

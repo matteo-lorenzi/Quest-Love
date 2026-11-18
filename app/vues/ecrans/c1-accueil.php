@@ -1,6 +1,6 @@
 <?php
 // Vue de l'accueil — C1 — parcours 2 (journée de jeu) — lot 1 — B.
-// Reçoit d'AccueilControleur : $etat (EtatAccueil), $pseudo, $partenaire (pseudo ou null) et $confirmerNon (panneau « pas aujourd'hui » ouvert) et $message (réponse refusée, ou null).
+// Reçoit d'AccueilControleur : $etat (EtatAccueil), $pseudo, $partenaire (pseudo ou null), $jeton (jeton CSRF, posé par Vue::rendre), $confirmerNon (panneau « pas aujourd'hui » ouvert) et $message (réponse refusée, ou null).
 // Les textes sont des textes d'attente, à relire en S6.
 ?>
 <header class="entete-ecran">

@@ -29,16 +29,19 @@ class JourneeService
         return $maintenant < $this->bascule($maintenant);
     }
 
-    // Réponse à « On joue aujourd'hui ? ». Une seconde réponse (double clic, second appareil) est ignorée sans erreur : la clé unique la refuse, la première reste définitive.
-    // Faux seulement quand la réponse arrive à 12 h ou après (horodatage serveur) : rien n'est écrit et le contrôleur l'explique.
+    // Réponse à « On joue aujourd'hui ? », écrite seulement quand la question se pose encore (état 1) : ni après le non du partenaire (spec #57, récit 4), ni sans duo.
+    // Une seconde réponse (double clic, second appareil) est ignorée sans erreur ; la clé unique tranche une course entre deux envois, la première reste définitive.
+    // Faux seulement quand une réponse jamais donnée arrive à 12 h ou après (horodatage serveur) : rien n'est écrit et le contrôleur l'explique.
     public function repondre(Joueur $joueur, Reponse $reponse, DateTimeImmutable $maintenant): bool
     {
+        $aParis = self::enHeureDeParis($maintenant);
         if (!$this->avantBascule($maintenant)) {
-            return false;
+            // Celui qui avait déjà répondu (page restée ouverte) n'est pas refusé : sa réponse a été prise en compte.
+            return $this->participations->trouverParJoueurEtJour($joueur->id, $aParis) !== null;
         }
-        // Un joueur relu sans duo (dissolution entre-temps) n'a pas de journée à laquelle répondre.
-        if ($joueur->duoId !== null) {
-            $this->participations->ajouter($joueur->duoId, $joueur->id, self::enHeureDeParis($maintenant), $reponse, $maintenant);
+        if ($this->etatAccueil($joueur, $maintenant) === EtatAccueil::Question) {
+            // L'heure de réponse s'écrit en heure de Paris, comme la journée.
+            $this->participations->ajouter($joueur->duoId, $joueur->id, $aParis, $reponse, $aParis);
         }
         return true;
     }
@@ -46,6 +49,10 @@ class JourneeService
     // État de C1 pour ce joueur, déduit de l'activation du duo, des participations du jour et de l'heure ; rien n'est écrit (la journée blanche non plus).
     public function etatAccueil(Joueur $joueur, DateTimeImmutable $maintenant): EtatAccueil
     {
+        // Un joueur relu sans duo (dissolution entre-temps) n'a pas de journée : pas de jeu, et la question n'est pas posée.
+        if ($joueur->duoId === null) {
+            return EtatAccueil::JourneeBlanche;
+        }
         // Duo activé à 12 h ou après : la bascule du jour est déjà passée, le premier jour de jeu est le lendemain (cadrage § 4.2).
         // L'activation n'est jamais dans le futur : passé minuit, elle tombe avant la bascule du jour et la question revient.
         $activation = $this->duos->trouverParId($joueur->duoId)?->dateActivation;

@@ -48,6 +48,12 @@ class JourneeServiceTest extends TestCase
         // 10 h 30 UTC : 12 h 30 à Paris, la bascule est passée.
         $this->assertFalse($this->service->avantBascule(new DateTimeImmutable('2026-10-15T10:30:00Z')));
         $this->assertSame('2026-10-16T12:00:00+02:00', $this->service->bascule(new DateTimeImmutable('2026-10-15T22:30:00Z'))->format(DATE_ATOM));
+
+        // L'heure de réponse s'écrit en heure de Paris, comme la journée : 7 h 30 UTC, 9 h 30 à Paris.
+        [$lou] = $this->formerDuo();
+        $this->service->repondre($lou, Reponse::Oui, new DateTimeImmutable('2026-10-15T07:30:00Z'));
+        $participation = (new ParticipationDepot($this->pdo))->trouverParJoueurEtJour($lou->id, new DateTimeImmutable('2026-10-15'));
+        $this->assertSame('2026-10-15 09:30:00', $participation->dateReponse->format('Y-m-d H:i:s'));
     }
 
     // Une seconde avant minuit, on est encore dans la journée ; à minuit pile, la suivante commence.
@@ -119,6 +125,26 @@ class JourneeServiceTest extends TestCase
         $this->service->repondre($mia, Reponse::Non, $this->matin);
 
         $this->assertNotSame(EtatAccueil::Question, $this->service->etatAccueil($lou, $this->matin->modify('+1 minute')));
+    }
+
+    // Spec #57, récit 4 : une réponse envoyée quand même (page ouverte avant le non du partenaire) n'est pas écrite.
+    public function testUneReponseApresLeNonDuPartenaireNEstPasEcrite(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->repondre($mia, Reponse::Non, $this->matin);
+
+        $this->service->repondre($lou, Reponse::Oui, $this->matin->modify('+1 minute'));
+
+        $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
+    }
+
+    // Un joueur relu sans duo (dissolution entre-temps) n'a pas de journée : pas de jeu, et aucune erreur.
+    public function testUnJoueurSansDuoNAPasDeJeu(): void
+    {
+        $joueurs = new JoueurDepot($this->pdo);
+        $seul = $joueurs->trouverParId($joueurs->ajouter('Noe', 'Noe', 'empreinte', $this->matin->modify('-1 day')));
+
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($seul, $this->matin));
     }
 
     // Les deux ont dit oui : ni question ni attente, la journée est jouée.
@@ -193,5 +219,14 @@ class JourneeServiceTest extends TestCase
 
         $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
         $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 12:01:00')));
+    }
+
+    // Un joueur qui avait déjà répondu et renvoie après 12 h (page restée ouverte) : sa réponse a bien été prise en compte, pas de refus.
+    public function testUnRenvoiApresMidiDUnJoueurQuiAvaitReponduNEstPasRefuse(): void
+    {
+        [$lou] = $this->formerDuo();
+        $this->service->repondre($lou, Reponse::Oui, $this->matin);
+
+        $this->assertTrue($this->service->repondre($lou, Reponse::Oui, new DateTimeImmutable('2026-10-15 12:05:00')));
     }
 }
