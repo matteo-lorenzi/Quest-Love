@@ -94,7 +94,7 @@ Repli sans diagramme (même contenu) :
 |---|---|---|
 | Validation de la conception fonctionnelle | 07/10 | Fait |
 | Maquettes du lot 1 (Figma, 27 cadres) | S5 | Fait |
-| Feuille de style (`base.css`, `composants.css`, `ecrans.css`) | S6 | À confirmer : absente du dépôt |
+| Feuille de style (`base.css`, `composants.css`, `ecrans.css`) | S6 | En cours : `base.css` et `composants.css` de C1 |
 | Schéma de la base validé à l'oral | S8, 09–15/11 | À faire |
 | Couple témoin recruté | S9, 16–22/11 | À confirmer |
 | Lot 1 fonctionnel de bout en bout | S11, 30/11–06/12 | À faire |

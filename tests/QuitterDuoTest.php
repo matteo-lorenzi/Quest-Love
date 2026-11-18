@@ -13,6 +13,7 @@ class QuitterDuoTest extends TestCase
     {
         $this->assertSame(OrigineQuitterDuo::SalleAttente, QuitterDuoControleur::origine('salle-attente'));
         $this->assertSame(OrigineQuitterDuo::Onboarding, QuitterDuoControleur::origine('onboarding'));
+        $this->assertSame(OrigineQuitterDuo::Accueil, QuitterDuoControleur::origine('accueil'));
         $this->assertNull(QuitterDuoControleur::origine('evil'));
         $this->assertNull(QuitterDuoControleur::origine(null));
         $this->assertNull(QuitterDuoControleur::origine(['onboarding']));
@@ -23,5 +24,6 @@ class QuitterDuoTest extends TestCase
     {
         $this->assertSame('salle-attente', QuitterDuoControleur::parametre(OrigineQuitterDuo::SalleAttente));
         $this->assertSame('onboarding', QuitterDuoControleur::parametre(OrigineQuitterDuo::Onboarding));
+        $this->assertSame('accueil', QuitterDuoControleur::parametre(OrigineQuitterDuo::Accueil));
     }
 }

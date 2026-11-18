@@ -15,6 +15,8 @@ class AppairageServiceTest extends TestCase
         // Chaque test repart sans joueur, sans duo ni tentative. Les joueurs sont créés par chaque test, sans duo.
         $this->pdo = Bdd::connexion();
         $this->pdo->exec('DELETE FROM tentative');
+        // Les participations (jeu de démonstration, C1) retiennent leurs joueurs : elles partent d'abord.
+        $this->pdo->exec('DELETE FROM participation');
         $this->pdo->exec('DELETE FROM joueur');
         $this->pdo->exec('DELETE FROM duo');
 

@@ -1,0 +1,31 @@
+/* Styles de base — tous écrans — lot 1 — commun : réinitialisation, couleurs, typographie, espacements (doc technique § 4.5). */
+
+*, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, p { margin: 0; }
+
+:root {
+    --couleur-texte: #1d1d1f;
+    --couleur-fond: #ffffff;
+    --couleur-accent: #b3264a;
+    --couleur-discret: #5c5c66;
+    --couleur-trait: #d8d8de;
+    --police: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --espace-1: 0.25rem;
+    --espace-2: 0.5rem;
+    --espace-3: 1rem;
+    --espace-4: 1.5rem;
+    --espace-5: 2.5rem;
+}
+
+body {
+    font-family: var(--police);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--couleur-texte);
+    background: var(--couleur-fond);
+    padding: var(--espace-3);
+    /* Place de la barre basse fixe : le dernier contenu reste lisible au-dessus d'elle. */
+    padding-bottom: 5rem;
+}
+
+a { color: var(--couleur-accent); }

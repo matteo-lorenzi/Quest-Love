@@ -15,3 +15,14 @@ INSERT INTO duo (id, date_creation, date_activation) VALUES (1, '2026-10-02 18:0
 INSERT INTO joueur (identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
   ('lea', 'Léa', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:50:00'),
   ('tom', 'Tom', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:55:00');
+-- Léa et Tom n'ont pas répondu aujourd'hui : C1 état 1 (« On joue aujourd'hui ? »).
+
+-- Un second duo pour C1 état 2 : Inès a dit oui aujourd'hui, Hugo pas encore. Inès voit l'attente du partenaire, Hugo la question.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (2, '2026-10-03 18:00:00', '2026-10-03 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (100, 'ines', 'Inès', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 2, 1, '2026-10-03 17:50:00'),
+  (101, 'hugo', 'Hugo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 2, 1, '2026-10-03 17:55:00');
+-- La journée de jeu est celle du rechargement : CURDATE() est la seule date relative du jeu de démonstration, l'application n'écrit jamais ainsi (§ 3.8).
+-- TODO(simplif): l'état 2 ne vaut que le jour du rechargement et sans HORLOGE_DECALAGE qui change de jour, à revoir si la démonstration se prépare la veille.
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (2, 100, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00'));

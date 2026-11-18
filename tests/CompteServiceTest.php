@@ -19,6 +19,8 @@ class CompteServiceTest extends TestCase
         // Chaque test repart sans joueur ni tentative, avec un seul joueur connu : Lou, sans duo.
         $this->pdo = Bdd::connexion();
         $this->pdo->exec('DELETE FROM tentative');
+        // Les participations (jeu de démonstration, C1) retiennent leurs joueurs : elles partent d'abord.
+        $this->pdo->exec('DELETE FROM participation');
         $this->pdo->exec('DELETE FROM joueur');
         $this->pdo->prepare(
             'INSERT INTO joueur (identifiant, pseudo, mdp_hash, date_creation) VALUES (?, ?, ?, ?)'

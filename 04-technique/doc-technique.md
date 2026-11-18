@@ -318,8 +318,8 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
 - [x] `noyau/Securite.php` — jeton CSRF
 - [x] `noyau/Vue.php` — rendu et échappement de sortie
-- [ ] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(en cours : `entete.php` et `pied.php` faits ; `navigation.php` avec le seul onglet Accueil)_
-- [ ] `public/styles/base.css`, `composants.css`, `ecrans.css`
+- [x] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(`navigation.php` avec le seul onglet Accueil)_
+- [ ] `public/styles/base.css`, `composants.css`, `ecrans.css` _(en cours : `base.css` et `composants.css` de C1)_
 - [x] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
 - [x] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
 
@@ -342,14 +342,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 
 - [x] Entités `Participation`, `Defi`, `Tirage`, `Mission` · énumérations `StatutMission`, `Reponse`
 - [x] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
-- [ ] `JourneeService` — bornes, participation
+- [ ] `JourneeService` — bornes, participation _(en cours : bornes, réponse, états 1 et 2 ; journée blanche et premier jour demain avec #69)_
 - [ ] `TirageService` — tirage persistant, choix
 - [ ] `MissionService` — révélation, annulation, découverte, validation, expiration
 - [ ] `PointsDeVieService` — pertes et plancher
 - [ ] `RattrapageService` — calculs paresseux et file d'événements
-- [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_
-- [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php`
-- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi »)
+- [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_ _(en cours : états 1 et 2)_
+- [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php` _(en cours : `panneau-confirmation.php`)_
+- [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(en cours : états 1 et 2)_
 - [ ] C2 `TirageControleur` · C3 `DefiRecuControleur`
 - [ ] `public/scripts/eventail.js`, `echeance.js`
 
