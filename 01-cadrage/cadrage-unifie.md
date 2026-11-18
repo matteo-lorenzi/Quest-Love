@@ -3,7 +3,9 @@
 > Source unique de vérité du projet. Tient lieu de cahier des charges : il est daté, versionné et figurera en annexe du dossier.
 > Toute modification de règle est reportée ici **avant** d'être codée. Toute évolution après la validation du schéma (S8) part en lot 4.
 >
-> **Version 2.17 — 14 novembre 2026.** Précise le § 7 : le défi d'une `mission` est l'une des trois propositions de son tirage, d'où une clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (modèle de données v1.7).
+> **Version 2.18 — 18 novembre 2026.** Retire le défi aléatoire : si les deux joueurs ont dit oui mais que l'un n'a pas choisi avant 12 h, la journée est blanche pour les deux, sans mission ni perte de PV (§ 4.2) ; la révélation n'a lieu qu'aux deux choix (§ 4.2) ; la mission non révélée à 12 h passe au statut `annule` et la colonne `origine` disparaît de `mission` (§ 7) ; l'écran D2 est retiré (§ 6.5, § 8.3, § 8.5) ; le risque du joueur qui évite la pénalité doublée couvre le choix non fait (§ 4.2, § 13) ; consigne les décisions du 18/11 (§ 16).
+>
+> La V2.17 (14 novembre 2026) : précise le § 7 : le défi d'une `mission` est l'une des trois propositions de son tirage, d'où une clé étrangère composite `mission(tirage_id, defi_id)` vers `tirage_proposition(tirage_id, defi_id)` (modèle de données v1.7).
 >
 > La V2.16 (12 novembre 2026) : normalise le tirage avant la validation du schéma (§ 7) : `tirage.date_choix` et `tirage_proposition.choisi` disparaissent, la `mission` pointant son tirage porte seule le défi retenu et l'instant du choix ; `tirage` reçoit le `duo_id` de la suppression en cascade.
 >
@@ -150,33 +152,31 @@ Règle auto-appliquante, qui pousse structurellement vers la livraison.
 
 **Choix** : après deux oui, chaque joueur choisit entre 00 h et 12 h. Choix **définitif**, accepté uniquement si l'horodatage serveur est antérieur à 12 h.
 
-**Révélation** : le défi est visible par son destinataire au premier des deux événements : les deux ont choisi, ou il est 12 h.
+**Révélation** : le défi est visible par son destinataire dès que les deux joueurs ont choisi. Sans les deux choix à 12 h, aucune révélation : la journée est blanche (ci-dessous). Remplace le 18/11 « au premier des deux événements : les deux ont choisi, ou il est 12 h ».
 
-**Défi aléatoire**
-- À 12 h, si un joueur ayant dit oui n'a pas choisi, son partenaire reçoit un défi tiré **parmi les 3 propositions du joueur passif**.
-- Si aucun n'a choisi, chacun reçoit un défi tiré parmi les propositions de l'autre.
-- Punition du joueur passif : **privation de son choix** (alternative étudiée en lot 4).
-- Un défi aléatoire est un défi normal, signalé « choisi par le hasard ».
+**Choix manquant à 12 h** (tranché le 18/11)
+- Si les deux joueurs ont dit oui mais que l'un au moins n'a pas choisi à 12 h, la journée est **blanche pour les deux** : aucune mission, aucune perte de PV, y compris pour le joueur qui a choisi.
+- La mission qu'il avait attribuée, jamais révélée, est **annulée** à 12 h (§ 7) ; son défi n'est pas compté comme reçu (§ 4.6).
+
+**Défi aléatoire** (15/09, remplacé le 18/11 par la règle ci-dessus) : à 12 h, le partenaire d'un joueur passif recevait un défi tiré parmi les 3 propositions de ce dernier, privé de son choix ; si aucun n'avait choisi, chacun recevait un défi tiré parmi les propositions de l'autre, signalé « choisi par le hasard ».
 
 | Réponses | Choix à 12 h | Résultat |
 |---|---|---|
 | Oui / Oui | Les deux | Journée normale |
-| Oui / Oui | Un seul | Le joueur diligent reçoit un défi aléatoire |
-| Oui / Oui | Aucun | Deux défis aléatoires |
+| Oui / Oui | Un seul ou aucun | Journée blanche |
 | Oui / Non | — | Journée blanche |
 | Absence de réponse | — | Journée blanche |
 
 **Duo formé après 12 h** : premier jour de jeu le lendemain. L'instant de référence est `duo.date_activation`, posée quand les deux joueurs ont terminé ou passé l'onboarding (§ 8.5), et non la saisie du code : un duo activé après 12 h joue le lendemain, et l'accueil affiche « premier jour de jeu demain ».
 
-**Risque accepté** : un joueur en dette de gage peut répondre non chaque jour pour éviter la pénalité doublée. À analyser en recul réflexif.
+**Risque accepté** : un joueur en dette de gage peut répondre non, ou dire oui sans choisir, chaque jour pour éviter la pénalité doublée ; ne pas choisir prive aussi son partenaire de sa journée. À analyser en recul réflexif.
 
 **Choix assumé : bascule à 12 h.** La persona principale ouvre l'application en tout début ou toute fin de journée. Un couple qui ne se connecte que le soir ne peut pas jouer : la journée est blanche. Ce choix est délibéré : il garantit une demi-journée pour réaliser le défi et une révélation commune, sans tâche planifiée. Il est justifié dans le dossier, observé avec le couple témoin et analysé en recul réflexif.
 
 ### 4.3 Validation
 
-- Le destinataire déclare le défi **réalisé**, après confirmation. **Aucune annulation**.
+- Le destinataire déclare le défi **réalisé**, après confirmation. Déclaration **définitive**.
 - L'émetteur dispose d'une **fenêtre de contestation de 24 h** (lot 2). Principe de confiance : la contestation est un lien discret, jamais mise en avant, **visible du seul émetteur**. L'écran du défi reçu (C3) n'affiche aucune mention de contestabilité, ni pendant le défi ni après sa réalisation.
-- Un défi aléatoire est contestable par le partenaire dans les mêmes conditions.
 - Passé ce délai, le défi est définitivement acquis.
 - Preuve photo ou vidéo hors périmètre.
 
@@ -204,7 +204,7 @@ Règle auto-appliquante, qui pousse structurellement vers la livraison.
 
 - Environ **50 défis** pour la V1, répartis en 4 à 5 catégories.
 - Les 3 propositions sont tirées parmi les défis **jamais reçus par le destinataire**, sans doublon entre elles.
-- Seul le défi **attribué** (choisi ou aléatoire) est exclu, **par destinataire** : 50 jours de jeu avant répétition.
+- Seul le défi **révélé** est exclu (une mission annulée ne compte pas), **par destinataire** : 50 jours de jeu avant répétition.
 - Une proposition non choisie n'est **pas reproposée pendant 3 jours**.
 - Quand le réservoir d'un destinataire compte moins de 3 défis, son cycle repart à zéro.
 - Registre : drôle, original, ancré dans le quotidien du couple, réalisable en une journée, sans dépense ni contenu intime.
@@ -233,7 +233,7 @@ Aucun testeur identifié à ce jour. Recruter **un couple extérieur au binôme 
 
 ### 6.1 Calculs paresseux
 
-À chaque chargement de page, un script, dans une transaction avec verrou : repère les missions échues au statut `en_cours` et applique les pénalités ; évalue la participation et la révélation ; à partir de 12 h, attribue les défis aléatoires manquants. Puis il rend la page. Solution retenue faute de cron, à justifier dans le dossier technique.
+À chaque chargement de page, un script, dans une transaction avec verrou : repère les missions échues au statut `en_cours` et applique les pénalités ; évalue la participation et la révélation ; à partir de 12 h, annule les missions non révélées (journée blanche, § 4.2). Puis il rend la page. Solution retenue faute de cron, à justifier dans le dossier technique.
 
 ### 6.2 Tirage persistant
 
@@ -248,7 +248,7 @@ Les 3 propositions du jour sont enregistrées en base dès leur première géné
 
 ### 6.4 Jeu de données
 
-- **Jeu de données de démonstration reproductible**, rechargeable en une commande : un duo, quelques jours d'historique, un défi aléatoire, une journée blanche, un gage en attente (lot 2).
+- **Jeu de données de démonstration reproductible**, rechargeable en une commande : un duo, quelques jours d'historique, une journée blanche par refus et une par choix manquant, un gage en attente (lot 2).
 
 ### 6.5 Notifications — [A3]
 
@@ -265,7 +265,7 @@ Nuance à écrire dans le dossier technique : **l'événement déclencheur est s
 **Tranché le 14/10** :
 
 - **Aucune notification au lot 1.** Le joueur découvre sa mission en ouvrant l'application. Prix accepté : un joueur qui ne revient que le soir dispose de moins de temps pour la réaliser ; risque déjà documenté, observé avec le couple témoin.
-- **L'indicateur non ambigu est l'état 5 de C1 (révélation)**, précédé de l'événement D2 quand le hasard a choisi. Il est porté par du texte et une forme, jamais par la couleur seule (§ 9). Rien d'autre : ni pastille sur la navigation, ni compteur dans le titre de l'onglet.
+- **L'indicateur non ambigu est l'état 5 de C1 (révélation)**. Il est porté par du texte et une forme, jamais par la couleur seule (§ 9). Rien d'autre : ni pastille sur la navigation, ni compteur dans le titre de l'onglet. L'événement D2 « le hasard a choisi », qui le précédait, est retiré le 18/11 avec le défi aléatoire (§ 4.2).
 - **Le courriel passe en lot 4.** L'envoyer supposerait de collecter une adresse électronique, ce que le § 10 exclut au nom de la minimisation des données. Il reste une piste documentée, avec cette contradiction écrite.
 
 ### 6.6 Sécurité
@@ -340,7 +340,7 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 | `defi` | id, titre, description, categorie_id | — |
 | `tirage` | id, duo_id, date_jour, emetteur_id, destinataire_id | Unicité (`emetteur_id`, `date_jour`) |
 | `tirage_proposition` | id, tirage_id, defi_id | Unicité (`tirage_id`, `defi_id`) ; le choix n'est pas stocké ici : la `mission` pointe son tirage |
-| `mission` | id, duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, origine (`choix` / `aleatoire`), date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | Unicité (`tirage_id`) : un seul choix par tirage ; clé étrangère composite (`tirage_id`, `defi_id`) vers `tirage_proposition` : le défi retenu est l'une des trois propositions du tirage |
+| `mission` | id, duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation | Unicité (`tirage_id`) : un seul choix par tirage ; clé étrangère composite (`tirage_id`, `defi_id`) vers `tirage_proposition` : le défi retenu est l'une des trois propositions du tirage |
 | `gage` | id, duo_id, auteur_id, destinataire_id, texte, date_creation, statut, nb_contestations | Une contestation maximum |
 | `tentative` | id, cle (identifiant, joueur, session ou IP), type (`connexion` / `code` / `inscription`), date | Limitation des essais |
 
@@ -348,11 +348,12 @@ Préliminaire, à affiner puis faire valider en S8. Détail : [`modele-donnees.m
 
 ```
 attribue_non_revele → en_cours → valide → acquis
-                         │          │
-                         ▼          ▼
-                      expire     conteste
+         │               │          │
+         ▼               ▼          ▼
+      annule          expire     conteste
 ```
 
+- `attribue_non_revele → annule` : à 12 h, quand l'autre joueur n'a pas choisi (journée blanche, § 4.2). État terminal, sans effet sur les PV ; le défi n'est pas compté comme reçu (§ 4.6).
 - `valide → acquis` : après la fenêtre de contestation de 24 h.
 - `date_decouverte` distingue « défi découvert » et « défi jamais découvert » à l'expiration.
 
@@ -376,11 +377,10 @@ Les textes d'interface sont des fonctionnalités du projet : rédigés, versionn
 
 Écrans concernés (inventaire complet : fichier d'inventaire des écrans) :
 
-- accueil face-à-face selon ses états, dont défi réalisé, journée blanche (trois variantes) et premier jour demain ;
+- accueil face-à-face selon ses états, dont défi réalisé, journée blanche (quatre variantes, dont « un des deux n'a pas choisi ») et premier jour demain ;
 - « On joue aujourd'hui ? » et attente de la réponse du partenaire ;
 - salle d'attente, erreurs d'appairage, onboarding des règles ;
 - tirage en éventail et carte piochée ;
-- défi « choisi par le hasard » et message « le hasard a choisi pour toi » ;
 - confirmation de validation ;
 - écrans d'événement enchaînés : expiration (dont « jamais découvert »), perte de PV, duo dissous ; contestation au lot 2 ;
 - déclenchement, rédaction et liste des gages (lot 2) ;
@@ -435,7 +435,7 @@ Minimalisme retenu, référence Duolingo. Hypothèse à valider : **structure mi
 
 Seuil de lisibilité : au-delà de huit annotations sur un cadre, regrouper avant d'en ajouter une de plus.
 
-**Composants annotés une seule fois.** Le socle C1, la carte de défi, le panneau bas de confirmation et le gabarit d'écran d'événement (D1, D2, D3, D5) sont des composants Figma isolés, annotés une seule fois. Toute modification se fait sur le composant, jamais sur une instance.
+**Composants annotés une seule fois.** Le socle C1, la carte de défi, le panneau bas de confirmation et le gabarit d'écran d'événement (D1, D3, D5) sont des composants Figma isolés, annotés une seule fois. Toute modification se fait sur le composant, jamais sur une instance.
 
 
 ## 9. Accessibilité
@@ -499,10 +499,10 @@ Les gages sont rédigés librement, sans modération ni signalement. Acceptable 
 
 | Lot | Contenu | Statut |
 |---|---|---|
-| **1 — Duo et défi du jour** | Inscription, connexion, appairage par code, participation quotidienne, tirage en éventail, choix et attribution, révélation, défi aléatoire, validation, expiration automatique, **compteur de PV et perte d'1 PV à l'expiration**, accueil face-à-face, dissolution et suppression de compte, pages légales | Obligatoire, complet |
+| **1 — Duo et défi du jour** | Inscription, connexion, appairage par code, participation quotidienne, tirage en éventail, choix et attribution, révélation, validation, expiration automatique, **compteur de PV et perte d'1 PV à l'expiration**, accueil face-à-face, dissolution et suppression de compte, pages légales | Obligatoire, complet |
 | **2 — Gamification** | Contestation, gages (déclenchement, rédaction, liste, contestation), pénalité doublée, historique | Fortement souhaité |
 | **3 — Confort** | Catégories et filtres, statistiques du couple, changement de mot de passe et de pseudo, avatars graphiques, finition graphique | Optionnel |
-| **4 — Perspectives** | Défis personnalisés (humain ou IA), preuve photo/vidéo, notification par courriel (suppose une adresse électronique, exclue par le § 10), web push, récupération de compte, punition alternative du joueur passif | Non développé, documenté en recul réflexif |
+| **4 — Perspectives** | Défis personnalisés (humain ou IA), preuve photo/vidéo, notification par courriel (suppose une adresse électronique, exclue par le § 10), web push, récupération de compte, punition du joueur passif (aucune au lot 1 : son choix manquant rend la journée blanche pour les deux) | Non développé, documenté en recul réflexif |
 
 **Élargissement du lot 1 (15/09).** Le compteur de PV et la perte à l'expiration passent au lot 1 : implémentation isolée (une colonne, quelques lignes dans le calcul d'expiration déjà prévu), sans les conséquences associées. Le lot 1 gagne un enjeu démontrable. Décision révisant Q1 de l'inventaire, à consigner au journal de bord.
 
@@ -566,16 +566,16 @@ Tout retard sur la validation du schéma décale mécaniquement la fin : point d
 | Sous-estimation du temps de rédaction du dossier | Élevée | Gel du code en S12, 5 jours pleins pour l'écrit |
 | Retard sur la validation du schéma | Moyenne | Schéma préparé dès S7 |
 | Contrainte de point de vue découverte après les 50 défis | Moyenne | 5 prototypes en S3 |
-| Démo impossible sans attendre minuit | Moyenne | Jeu de données reproductible montrant expiration, journée blanche et défi aléatoire ; vidéo du parcours complet en S12 |
+| Démo impossible sans attendre minuit | Moyenne | Jeu de données reproductible montrant expiration et journée blanche (refus et choix manquant) ; vidéo du parcours complet en S12 |
 | Conflits Git et travail en double | Moyenne | Répartition par écran, branches séparées |
 | Plantage en soutenance | Moyenne | Répétition complète sur deux téléphones réels en S13 |
 | Aucun test hors binôme | Moyenne | Couple témoin recruté en S9, testé en S11 ou S12 |
 | Accessibilité annoncée mais non vérifiée | Moyenne | Contrastes en S5, audit en S12 |
 | Mot de passe oublié rendant un compte inutilisable | Moyenne | Avertissement explicite à l'inscription |
-| Concurrence entre un choix et l'attribution aléatoire à 12 h | Moyenne | Transaction avec verrou, horodatage serveur |
+| Concurrence entre un choix et l'annulation à 12 h | Moyenne | Transaction avec verrou, horodatage serveur |
 | Lot 1 élargi (PV, éventail) au détriment de la livraison | Moyenne | PV isolés sans conséquences ; animation dégradable ; lot 2 variable d'ajustement |
 | Couple jouant uniquement le soir, journées blanches répétées | Moyenne | Choix assumé (§ 4.2), observé avec le couple témoin, analysé en recul réflexif |
-| Esquive de la pénalité doublée par le « non » répété | Faible | Risque accepté, analysé en recul réflexif |
+| Esquive de la pénalité doublée par le « non » répété ou le choix non fait | Faible | Risque accepté, analysé en recul réflexif |
 | Gage sans échéance | Faible | Risque accepté, analysé en recul réflexif |
 | Perte de l'hébergement après la soutenance | Faible | Captures, vidéo et sauvegarde en S12 |
 
@@ -635,6 +635,8 @@ L'application entrera au portfolio, indépendamment de sa survie fonctionnelle. 
 
 **Tranchées le 06/11** (préparation de B2, #15) : onboarding obligatoire pour les deux joueurs avant l'accueil, recommencé à chaque appairage ; trois règles (défi attribué au partenaire, bascule à 12 h et journée blanche, points de vie et expiration à minuit), « Passer » équivalent au dernier bouton ; colonnes `joueur.onboarding_vu` et `duo.date_activation` (§ 7), la ligne `duo` naissant toujours à la saisie du code (ADR-0002 inchangé) ; verrou d'accès à C1, C2 et C3 tant que les deux n'ont pas fini, variante d'attente vérifiée au chargement avec « Règles complètes » et « Quitter mon duo », barre basse masquée (§ 8.5) ; après un code valide, vers B2 (complète « inscription avec code valide vers B2 » du 16/09, déjà remplacée par la saisie manuelle du code) ; « duo formé après 12 h » calculé sur `date_activation` (§ 4.2) ; retour de B3 vers l'écran d'origine. Écarté : reprise de l'onboarding à l'étape, relance du partenaire (lot 4), gages dans l'onboarding (lot 2).
 
+**Tranchées le 18/11** (préparation de la journée de jeu, #55) : les deux joueurs ont dit oui mais pas les deux choisi avant 12 h, journée blanche pour les deux, sans mission ni perte de PV, même si l'un a choisi (§ 4.2) ; révélation aux deux choix seulement, sans repli à 12 h (§ 4.2) ; statut `annule` de `mission`, terminal, posé à 12 h sur une mission non révélée, sans effet sur les PV ni sur l'exclusion des tirages (§ 4.6, § 7) ; colonne `origine` retirée de `mission` (§ 7) ; écran D2 retiré, variante « un des deux n'a pas choisi » ajoutée à C1 « aucun jeu » (§ 6.5, § 8.3) ; le risque d'esquive de la pénalité doublée couvre le choix non fait (§ 4.2, § 13). Remplace le défi aléatoire, la privation de son choix et l'origine de mission du 15/09.
+
 ## 17. Note de fusion
 
 Traçabilité de la version 2.0, utile pour le journal de bord.
@@ -649,7 +651,7 @@ Traçabilité de la version 2.0, utile pour le journal de bord.
 
 ### Version 2.1 — 15 septembre 2026
 
-Report des décisions de la séance de conception : modèle temporel et défi aléatoire (§ 4.2), validation et gages (§ 4.3, 4.5), règles de tirage (§ 4.6), calcul du temps et sécurité (§ 6), modèle de données (§ 7), adresse et voix (§ 8.1, 8.2), principes d'interface (§ 8.5), adresse électronique, CGU et suppression (§ 10), lot 1 élargi (§ 11), risques (§ 13), décisions ouvertes (§ 16). Source détaillée : fiche de décisions de l'étape 1 et inventaire des écrans.
+Report des décisions de la séance de conception : modèle temporel et défi aléatoire (§ 4.2, défi aléatoire remplacé en V2.18 par la journée blanche), validation et gages (§ 4.3, 4.5), règles de tirage (§ 4.6), calcul du temps et sécurité (§ 6), modèle de données (§ 7), adresse et voix (§ 8.1, 8.2), principes d'interface (§ 8.5), adresse électronique, CGU et suppression (§ 10), lot 1 élargi (§ 11), risques (§ 13), décisions ouvertes (§ 16). Source détaillée : fiche de décisions de l'étape 1 et inventaire des écrans.
 
 ### Version 2.2 — 15 septembre 2026
 
