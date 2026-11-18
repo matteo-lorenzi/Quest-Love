@@ -18,15 +18,17 @@ class JourneeServiceTest extends TestCase
         $this->pdo->exec('DELETE FROM duo');
         $this->pdo->exec('DELETE FROM joueur');
 
-        $this->service = new JourneeService(new ParticipationDepot($this->pdo));
+        $this->service = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo));
         $this->matin = new DateTimeImmutable('2026-10-15 09:00:00');
     }
 
-    // Un duo dont les deux joueurs ont fini l'onboarding : l'accès au jeu, condition d'arrivée sur C1.
+    // Un duo dont les deux joueurs ont fini l'onboarding : l'accès au jeu, condition d'arrivée sur C1. Activé la veille, sauf instant donné.
     /** @return Joueur[] */
-    private function formerDuo(): array
+    private function formerDuo(?DateTimeImmutable $activation = null): array
     {
-        $duo = (new DuoDepot($this->pdo))->creer($this->matin->modify('-1 day'));
+        $duos = new DuoDepot($this->pdo);
+        $duo = $duos->creer($this->matin->modify('-1 day'));
+        $duos->activer($duo, $activation ?? $this->matin->modify('-1 day'));
         $joueurs = new JoueurDepot($this->pdo);
         $formes = [];
         foreach (['Lou', 'Mia'] as $identifiant) {
@@ -128,5 +130,68 @@ class JourneeServiceTest extends TestCase
         $this->service->repondre($mia, Reponse::Oui, $this->matin);
 
         $this->assertSame(EtatAccueil::LesDeuxOntDitOui, $this->service->etatAccueil($lou, $this->matin->modify('+1 minute')));
+    }
+
+    // Ticket #69 : un seul non donne la journée blanche aux deux, à celui qui a dit non comme à l'autre.
+    public function testUnNonDonneLaJourneeBlancheAuxDeux(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->repondre($lou, Reponse::Oui, $this->matin);
+
+        $this->service->repondre($mia, Reponse::Non, $this->matin);
+
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($lou, $this->matin->modify('+1 minute')));
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($mia, $this->matin->modify('+1 minute')));
+    }
+
+    // Ticket #69 : à 12 h, un joueur qui n'a pas répondu donne la journée blanche, même si l'autre a dit oui ; rien n'est écrit pour elle.
+    public function testAucuneReponseAMidiDonneLaJourneeBlanche(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->repondre($lou, Reponse::Oui, $this->matin);
+        $midi = new DateTimeImmutable('2026-10-15 12:00:00');
+
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($lou, $midi));
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($mia, $midi));
+        $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
+    }
+
+    // Ticket #69 : les deux oui avant 12 h, la journée reste jouée après la bascule.
+    public function testLesDeuxOuiRestentJouesApresMidi(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->repondre($lou, Reponse::Oui, $this->matin);
+        $this->service->repondre($mia, Reponse::Oui, $this->matin);
+
+        $this->assertSame(EtatAccueil::LesDeuxOntDitOui, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 15:00:00')));
+    }
+
+    // Ticket #69 : un duo activé avant 12 h joue le jour même, état 1.
+    public function testUnDuoActiveAvantMidiVoitLaQuestion(): void
+    {
+        [$lou] = $this->formerDuo(new DateTimeImmutable('2026-10-15 08:00:00'));
+
+        $this->assertSame(EtatAccueil::Question, $this->service->etatAccueil($lou, $this->matin));
+    }
+
+    // Ticket #69 : un duo activé après 12 h lit « premier jour demain » jusqu'à minuit, puis la question le lendemain.
+    public function testUnDuoActiveApresMidiAttendLeLendemainJusquAMinuit(): void
+    {
+        [$lou] = $this->formerDuo(new DateTimeImmutable('2026-10-15 14:00:00'));
+
+        $this->assertSame(EtatAccueil::PremierJourDemain, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 14:00:00')));
+        $this->assertSame(EtatAccueil::PremierJourDemain, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 23:59:59')));
+        $this->assertSame(EtatAccueil::Question, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-16 09:00:00')));
+    }
+
+    // Ticket #69 : une réponse envoyée à 12 h ou après est refusée par l'horodatage serveur, et rien n'est écrit.
+    public function testUneReponseApresMidiEstRefuseeSansEcriture(): void
+    {
+        [$lou] = $this->formerDuo();
+
+        $this->assertFalse($this->service->repondre($lou, Reponse::Oui, new DateTimeImmutable('2026-10-15 12:00:00')));
+
+        $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
+        $this->assertSame(EtatAccueil::JourneeBlanche, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 12:01:00')));
     }
 }

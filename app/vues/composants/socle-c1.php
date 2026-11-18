@@ -9,8 +9,8 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
     EtatAccueil::AttentePartenaire => ['Oui', 'Pas encore répondu', 'En attente de ' . $nomPartenaire],
     // TODO(simplif): textes d'attente, remplacés par les états 3 et 4 (#58).
     EtatAccueil::LesDeuxOntDitOui => ['Oui', 'Oui', '[TEXTE À RÉDIGER : vous jouez aujourd\'hui, tirage à venir]'],
-    // TODO(simplif): un seul texte pour tous les jours sans jeu, détaillé par #69 (journée blanche, premier jour demain).
-    EtatAccueil::AucunJeu => ['', '', '[TEXTE À RÉDIGER : pas de jeu aujourd\'hui]'],
+    EtatAccueil::JourneeBlanche => ['', '', 'Journée blanche'],
+    EtatAccueil::PremierJourDemain => ['', '', 'Premier jour de jeu demain'],
 };
 ?>
 <section class="socle-c1" aria-label="Aujourd'hui">
@@ -33,6 +33,11 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
             <a class="bouton bouton--secondaire" href="index.php?ecran=accueil&amp;confirmer=non">Pas aujourd'hui</a>
         <?php elseif ($etat === EtatAccueil::AttentePartenaire): ?>
             <p>Recharge la page pour savoir si <?= e($nomPartenaire) ?> a répondu.</p>
+        <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
+            <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
+        <?php elseif ($etat === EtatAccueil::PremierJourDemain): ?>
+            <p>Votre duo est prêt, mais il est midi passé : votre premier jour de jeu commence demain. Reviens avant 12 h pour répondre à « On joue aujourd'hui ? ».</p>
+            <a class="bouton bouton--secondaire" href="index.php?ecran=regles&amp;origine=<?= ReglesControleur::parametre(OrigineRegles::Accueil) ?>">Règles complètes</a>
         <?php endif ?>
     </div>
 </section>

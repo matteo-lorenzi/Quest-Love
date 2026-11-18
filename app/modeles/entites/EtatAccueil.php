@@ -9,7 +9,8 @@ enum EtatAccueil
     case AttentePartenaire;
     // Les deux ont dit oui : la journée est jouée. Les états 3 et 4 (tirage, #58) la détailleront.
     case LesDeuxOntDitOui;
-    // Cas « aucun jeu » : l'un des deux a dit non.
-    // TODO(simplif): ni bascule de 12 h ni activation du duo prises en compte, à compléter par #69 (journée blanche, premier jour demain).
-    case AucunJeu;
+    // Journée blanche : l'un des deux a dit non, ou n'avait pas répondu à 12 h. Déduite, jamais écrite.
+    case JourneeBlanche;
+    // Duo activé à 12 h ou après : pas de jeu aujourd'hui, le premier jour de jeu est demain (jusqu'à minuit).
+    case PremierJourDemain;
 }

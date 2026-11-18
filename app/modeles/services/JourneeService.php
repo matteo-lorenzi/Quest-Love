@@ -3,8 +3,8 @@
 
 class JourneeService
 {
-    // Le dépôt est construit par l'appelant, contrôleur ou test (ADR-0001).
-    public function __construct(private ParticipationDepot $participations) {}
+    // Les dépôts sont construits par l'appelant, contrôleur ou test (ADR-0001).
+    public function __construct(private ParticipationDepot $participations, private DuoDepot $duos) {}
 
     // Identifiant de journée AAAA-MM-JJ, clé de participation et de tirage.
     public function journee(DateTimeImmutable $maintenant): string
@@ -30,18 +30,28 @@ class JourneeService
     }
 
     // Réponse à « On joue aujourd'hui ? ». Une seconde réponse (double clic, second appareil) est ignorée sans erreur : la clé unique la refuse, la première reste définitive.
-    public function repondre(Joueur $joueur, Reponse $reponse, DateTimeImmutable $maintenant): void
+    // Faux seulement quand la réponse arrive à 12 h ou après (horodatage serveur) : rien n'est écrit et le contrôleur l'explique.
+    public function repondre(Joueur $joueur, Reponse $reponse, DateTimeImmutable $maintenant): bool
     {
-        // Un joueur relu sans duo (dissolution entre-temps) n'a pas de journée à laquelle répondre.
-        if ($joueur->duoId === null) {
-            return;
+        if (!$this->avantBascule($maintenant)) {
+            return false;
         }
-        $this->participations->ajouter($joueur->duoId, $joueur->id, self::enHeureDeParis($maintenant), $reponse, $maintenant);
+        // Un joueur relu sans duo (dissolution entre-temps) n'a pas de journée à laquelle répondre.
+        if ($joueur->duoId !== null) {
+            $this->participations->ajouter($joueur->duoId, $joueur->id, self::enHeureDeParis($maintenant), $reponse, $maintenant);
+        }
+        return true;
     }
 
-    // État de C1 pour ce joueur, déduit des participations du jour ; rien n'est écrit (la journée blanche non plus).
+    // État de C1 pour ce joueur, déduit de l'activation du duo, des participations du jour et de l'heure ; rien n'est écrit (la journée blanche non plus).
     public function etatAccueil(Joueur $joueur, DateTimeImmutable $maintenant): EtatAccueil
     {
+        // Duo activé à 12 h ou après : la bascule du jour est déjà passée, le premier jour de jeu est le lendemain (cadrage § 4.2).
+        // L'activation n'est jamais dans le futur : passé minuit, elle tombe avant la bascule du jour et la question revient.
+        $activation = $this->duos->trouverParId($joueur->duoId)?->dateActivation;
+        if ($activation !== null && $activation >= $this->bascule($maintenant)) {
+            return EtatAccueil::PremierJourDemain;
+        }
         $sienne = null;
         $celleDuPartenaire = null;
         foreach ($this->participations->trouverParDuoEtJour($joueur->duoId, self::enHeureDeParis($maintenant)) as $participation) {
@@ -53,12 +63,19 @@ class JourneeService
         }
         // Un seul non suffit : la question n'est plus posée à l'autre (spec #57, récit 4).
         if ($sienne === Reponse::Non || $celleDuPartenaire === Reponse::Non) {
-            return EtatAccueil::AucunJeu;
+            return EtatAccueil::JourneeBlanche;
+        }
+        if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
+            return EtatAccueil::LesDeuxOntDitOui;
+        }
+        // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.
+        if (!$this->avantBascule($maintenant)) {
+            return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === null) {
             return EtatAccueil::Question;
         }
-        return $celleDuPartenaire === null ? EtatAccueil::AttentePartenaire : EtatAccueil::LesDeuxOntDitOui;
+        return EtatAccueil::AttentePartenaire;
     }
 
     // La journée se lit à Paris quel que soit le fuseau de l'instant reçu : le service ne dépend pas du fuseau par défaut posé par l'amorce.
