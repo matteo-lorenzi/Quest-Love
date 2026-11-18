@@ -8,11 +8,10 @@ class AccueilControleur
     // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
     public function __construct(private PDO $pdo, private DateTimeImmutable $maintenant)
     {
-        $this->journee = new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo));
+        $this->journee = new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo), new MissionDepot($pdo));
     }
 
     // GET : l'état vient du service ; le contrôleur n'ajoute que le panneau de confirmation demandé par l'adresse.
-    // TODO(simplif): quand les deux ont dit oui, aucun état de tirage n'est affiché, à remplacer par les états 3 et 4 avec #58.
     public function afficher(): void
     {
         $this->rendre(Routeur::joueurConnecte($this->pdo), null);

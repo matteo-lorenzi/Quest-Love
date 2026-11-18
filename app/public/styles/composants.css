@@ -1,4 +1,4 @@
-/* Styles des composants partagés — C1 et écrans du lot 1 — lot 1 — commun : boutons, socle C1, panneau de confirmation, barre basse. */
+/* Styles des composants partagés — C1 et écrans du lot 1 — lot 1 — commun : boutons, socle C1, carte de défi, panneau de confirmation, barre basse. */
 
 /* 44 × 44 px minimum pour toute zone interactive (cadrage § 9). */
 .bouton {
@@ -85,4 +85,41 @@
     color: var(--couleur-accent);
     font-weight: 700;
     text-decoration: underline;
+}
+
+/* Carte de défi (C1, C2, C3). Cachée dans l'éventail de C2 : un lien de 44 px de haut au moins (cadrage § 9). */
+.carte-defi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espace-2);
+    min-height: 44px;
+    padding: var(--espace-3);
+    border: 2px solid var(--couleur-accent);
+    border-radius: 0.75rem;
+}
+
+.carte-defi__categorie { color: var(--couleur-discret); }
+.carte-defi__titre { font-size: 1.25rem; }
+
+.carte-defi--cachee {
+    align-items: center;
+    justify-content: center;
+    min-height: 6rem;
+    color: var(--couleur-accent);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* Ajoutée par eventail.js au toucher : la carte sort du lot avant de se retourner. */
+.carte-defi--sortie {
+    transform: translateY(-0.5rem) scale(1.05);
+    transition: transform 0.2s ease-out;
+}
+
+.eventail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espace-3);
+    padding: 0;
+    list-style: none;
 }
