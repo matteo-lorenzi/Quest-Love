@@ -1,6 +1,6 @@
 # Quest & Love
 
-Jeu quotidien à deux : chaque jour, chaque joueur attribue un défi à son partenaire. Ce glossaire fixe un mot par concept pour la documentation et le code. Le cadrage unifié fait foi sur les règles.
+Jeu quotidien à deux : chaque jour, chaque joueur attribue un défi à son partenaire. Ce glossaire fixe un mot par concept pour la documentation et le code. Le cadrage unifié fait foi sur les règles. Les libellés affichés à l'écran suivent `03-conception/inventaire-ecrans.md` et peuvent employer un mot à éviter (« À toi de piocher ») ; les noms du code suivent toujours le glossaire (`EtatAccueil::ATirer`).
 
 ## Joueurs
 
