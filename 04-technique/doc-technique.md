@@ -139,7 +139,7 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 - **Contrôleurs fins** — un contrôleur lit la requête, appelle un service, puis redirige ou rend sa vue. Aucune règle du jeu ni aucun SQL dans un contrôleur ou une vue.
 - **SQL dans les dépôts seulement**, en requêtes préparées sans exception, y compris pour les entiers issus de l'URL.
 - **Échappement à la sortie** — une seule fonction d'échappement, appelée dans les vues ; aucun texte libre n'est écrit sans elle.
-- **Redirection après écriture** — tout `POST` se termine par un en-tête `Location` puis `exit`.
+- **Redirection après écriture** — tout `POST` se termine par un en-tête `Location` puis `exit`, refus compris : le message à montrer passe par la session et le GET qui suit le lit une seule fois (modèle : `ConnexionControleur`). Contrôlé par `scripts/verifier.sh` et, à l'exécution, par le routeur.
 - **Un écran, un contrôleur, une vue** — un écran de l'inventaire ne se rend jamais depuis deux vues différentes.
 - **États en énumérations PHP** — statuts de mission, réponses de participation ; jamais de chaînes libres.
 - **Français sans accent partout** — classes, méthodes, cas d'énumération, tables et colonnes : `MissionDepot::trouverEnCoursParDestinataire()`, `StatutMission::EnCours`. Suffixes de rôle en français : `Controleur`, `Depot`, `Service`.

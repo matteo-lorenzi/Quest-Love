@@ -3,6 +3,9 @@
 
 class AccueilControleur
 {
+    // Clé de session qui transporte le refus du POST vers le GET qui suit la redirection.
+    private const RETOUR = 'retour_accueil';
+
     private JourneeService $journee;
 
     // Le routeur passe la connexion et l'heure ; le contrôleur construit lui-même ses dépôts et services (ADR-0001).
@@ -12,21 +15,23 @@ class AccueilControleur
     }
 
     // GET : l'état vient du service ; le contrôleur n'ajoute que le panneau de confirmation demandé par l'adresse.
+    // Après une réponse refusée, le POST a redirigé ici : on reprend son message une seule fois, puis on l'efface.
     public function afficher(): void
     {
-        $this->rendre(Routeur::joueurConnecte($this->pdo), null);
+        $message = $_SESSION[self::RETOUR] ?? null;
+        unset($_SESSION[self::RETOUR]);
+        $this->rendre(Routeur::joueurConnecte($this->pdo), $message);
     }
 
     // POST : le jeton CSRF a déjà été vérifié par le routeur. Réponse inconnue ou seconde réponse : rien n'est écrit, l'accueil se recharge sans erreur.
-    // Réponse jamais donnée arrivée à 12 h ou après : refusée, l'accueil s'affiche dans son état réel avec le message, sans redirection qui le perdrait.
+    // Réponse jamais donnée arrivée à 12 h ou après : refusée, le message passe par la session et l'accueil s'affiche dans son état réel (redirection après écriture, § 2.4).
     // Celui qui avait déjà répondu et renvoie après 12 h n'est pas refusé : simple retour à l'accueil.
     public function repondre(): void
     {
         $joueur = Routeur::joueurConnecte($this->pdo);
         $reponse = is_string($_POST['reponse'] ?? null) ? Reponse::tryFrom($_POST['reponse']) : null;
         if ($reponse !== null && !$this->journee->repondre($joueur, $reponse, $this->maintenant)) {
-            $this->rendre($joueur, 'Il est midi passé : ta réponse n\'a pas été prise en compte. Les réponses se donnent avant 12 h.');
-            return;
+            $_SESSION[self::RETOUR] = 'Il est midi passé : ta réponse n\'a pas été prise en compte. Les réponses se donnent avant 12 h.';
         }
         Routeur::rediriger('accueil');
     }

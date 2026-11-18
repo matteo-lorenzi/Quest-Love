@@ -246,6 +246,24 @@ class TirageServiceTest extends TestCase
         $this->assertEqualsCanonicalizing([$a, $b, $d], $tirage->defiIds);
     }
 
+    // C2 éventail, mission annulée (cadrage § 4.6, tranché le 18/11) : son défi n'est ni reçu ni soumis aux trois jours, il revient dès le lendemain.
+    // Cinq défis : b et c, non retenus hier, restent écartés ; il reste exactement a, d et e, sans que le repli de la petite bibliothèque intervienne.
+    public function testLeDefiDUneMissionAnnuleeRevientDesLeLendemain(): void
+    {
+        [$a, $b, $c, $d, $e] = $this->bibliotheque(5);
+        [$lou, $mia] = $this->formerDuo();
+        $hier = $this->matin->modify('-1 day');
+        $tirages = new TirageDepot($this->pdo);
+        $tirages->creer($lou->duoId, $lou->id, $mia->id, $hier, [$a, $b, $c]);
+        $missions = new MissionDepot($this->pdo);
+        $mission = $missions->ajouter($tirages->trouverParEmetteurEtJour($lou->id, $hier), $a, $hier, $hier->modify('tomorrow'));
+        $missions->changerStatut($mission, StatutMission::Annule);
+
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+
+        $this->assertEqualsCanonicalizing([$a, $d, $e], $tirage->defiIds);
+    }
+
     // C2 carte piochée, puis C1 état 4 : le choix crée la mission de Mia, non révélée ; Lou lit « défi envoyé », Mia doit encore piocher.
     public function testLeChoixDUneDesTroisPropositionsCreeLaMissionDuPartenaire(): void
     {

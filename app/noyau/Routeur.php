@@ -74,6 +74,11 @@ class Routeur
         }
         // Le routeur ne passe que la connexion et l'heure : le contrôleur construit lui-même ses dépôts et services (ADR-0001).
         (new $classe($pdo, $maintenant))->$methode();
+        // Étape 6 (suite) — redirection après écriture (§ 2.4) : une méthode POST finit par rediriger(), qui ne rend pas la main.
+        // Arriver ici est un bogue : il part au journal et G1 (500) s'affiche ; scripts/verifier.sh le cherche aussi avant la CI.
+        if ($methodeHttp === 'POST') {
+            throw new LogicException("$classe::$methode n'a pas redirigé après un POST (doc technique § 2.4).");
+        }
     }
 
     public static function rediriger(string $ecran): never
