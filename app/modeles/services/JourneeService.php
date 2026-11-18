@@ -73,7 +73,7 @@ class JourneeService
             return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
-            return EtatAccueil::LesDeuxOntDitOui;
+            return EtatAccueil::APiocher;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.
         if (!$this->avantBascule($maintenant)) {
@@ -86,7 +86,8 @@ class JourneeService
     }
 
     // La journée se lit à Paris quel que soit le fuseau de l'instant reçu : le service ne dépend pas du fuseau par défaut posé par l'amorce.
-    private static function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
+    // Publique : TirageService date ses tirages de la même journée.
+    public static function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
     {
         return $maintenant->setTimezone(new DateTimeZone('Europe/Paris'));
     }

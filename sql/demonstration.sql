@@ -42,3 +42,13 @@ INSERT INTO duo (id, date_creation, date_activation) VALUES (4, CONCAT(CURDATE()
 INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
   (104, 'zoe', 'Zoé', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 4, 1, CONCAT(CURDATE(), ' 13:40:00')),
   (105, 'max', 'Max', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 4, 1, CONCAT(CURDATE(), ' 13:45:00'));
+
+-- Un cinquième duo pour C1 état 3 : Eva et Léo ont dit oui aujourd'hui, chacun lit « à toi de piocher » et ouvre C2.
+-- Aucun tirage écrit ici : le premier passage sur C2 le crée. Même limite que l'état 2 : ne vaut que le jour du rechargement (CURDATE()), avant 12 h.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (5, '2026-10-05 18:00:00', '2026-10-05 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (106, 'eva', 'Eva', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 5, 1, '2026-10-05 17:50:00'),
+  (107, 'leo', 'Léo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 5, 1, '2026-10-05 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (5, 106, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00')),
+  (5, 107, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:10:00'));

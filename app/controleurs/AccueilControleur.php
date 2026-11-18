@@ -12,7 +12,7 @@ class AccueilControleur
     }
 
     // GET : l'état vient du service ; le contrôleur n'ajoute que le panneau de confirmation demandé par l'adresse.
-    // TODO(simplif): quand les deux ont dit oui, aucun état de tirage n'est affiché, à remplacer par les états 3 et 4 avec #58.
+    // TODO(simplif): après le choix, l'accueil reste à l'état 3 (« à toi de piocher »), à remplacer par l'état 4 avec la #71.
     public function afficher(): void
     {
         $this->rendre(Routeur::joueurConnecte($this->pdo), null);
