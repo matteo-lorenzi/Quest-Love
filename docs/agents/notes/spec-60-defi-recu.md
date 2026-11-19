@@ -21,6 +21,13 @@ Notes des implémenteurs des tickets de la spec #60, sur la branche d'intégrati
 - Socle C1 : la colonne du partenaire porte ce statut dès l'état 5 (« Défi en cours », « Défi réalisé », « Défi expiré », sinon « Défi envoyé »). État 6 : lien « Voir mon défi » ; variante : lien secondaire « Revoir mon défi ». La carte du défi n'est pas affichée sur C1 : `carte-defi.php` reste sans statut.
 - Tests : `MissionServiceTest` (état 5 → 6 → variante à travers `decouvrir` et `valider` ; statut envoyé null, en cours, réalisé). `journeeDesDeuxOui()` y répond oui pour les deux.
 
+## Revue de la spec
+
+- Recherche par rôle à un seul endroit : `MissionDepot::trouverParJoueurEtJour(duoId, joueurId, jour)` rend `[reçue, envoyée]` (null si absente). `etatAccueil`, `statutDefiEnvoye` et `MissionService::recue` l'utilisent ; plus de boucle sur `trouverParDuoEtJour` dans les services.
+- `JourneeService::enHeureDeParis` est statique : `MissionService` l'appelle sans recevoir de `JourneeService` (constructeur à trois arguments).
+- `AccueilControleur` lit encore les missions du jour deux fois (`etatAccueil` puis `statutDefiEnvoye`) : requête indexée, laissée telle quelle.
+- Socle C1 : `StatutMission::Annule` → « Défi annulé » (en pratique jamais montré : une mission annulée n'a pas été révélée).
+
 ## Pour #61 (expiration)
 
 - `etatAccueil` porte un `TODO(simplif)` : une mission reçue expirée après découverte reste en état 6 (non découverte : état 5). L'état de C1 après expiration est à décider là.

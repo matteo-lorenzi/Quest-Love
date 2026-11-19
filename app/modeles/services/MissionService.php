@@ -3,14 +3,13 @@
 
 class MissionService
 {
-    // La connexion sert à la transaction de la validation ; les dépôts et la journée sont construits par l'appelant (ADR-0001).
-    public function __construct(private PDO $pdo, private JoueurDepot $joueurs, private MissionDepot $missions, private JourneeService $journee) {}
+    // La connexion sert à la transaction de la validation ; les dépôts sont construits par l'appelant (ADR-0001).
+    public function __construct(private PDO $pdo, private JoueurDepot $joueurs, private MissionDepot $missions) {}
 
     // Le contrôleur et les tests construisent le service de la même façon, comme RattrapageService.
     public static function construire(PDO $pdo): self
     {
-        $missions = new MissionDepot($pdo);
-        return new self($pdo, new JoueurDepot($pdo), $missions, new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo), $missions));
+        return new self($pdo, new JoueurDepot($pdo), new MissionDepot($pdo));
     }
 
     // Défi reçu du jour, révélé, en cours ou réalisé : null sinon (rien à montrer sur C3). Seul ce GET de C3 pose la découverte, jamais l'annonce de C1 (spec #60, récit 9).
@@ -32,10 +31,14 @@ class MissionService
     {
         $this->pdo->beginTransaction();
         try {
-            [$frais] = $this->joueurs->verrouillerAvecPartenaire($destinataire->id) ?? [null];
+            // Le joueur relu sous verrou (le partenaire n'est verrouillé que pour sérialiser le duo) ; null si son duo a changé entre-temps.
+            $frais = $this->joueurs->verrouillerAvecPartenaire($destinataire->id)[0] ?? null;
             $mission = $this->missions->trouverParId($missionId);
-            if ($frais !== null && $mission !== null && $mission->destinataireId === $frais->id && $mission->duoId === $frais->duoId
-                && $mission->statut === StatutMission::EnCours && $maintenant < $mission->dateLimite) {
+            $validable = $frais !== null && $mission !== null
+                && $mission->destinataireId === $frais->id && $mission->duoId === $frais->duoId
+                && $mission->statut === StatutMission::EnCours
+                && $maintenant < $mission->dateLimite;
+            if ($validable) {
                 $this->missions->valider($mission->id, $maintenant);
             }
             $this->pdo->commit();
@@ -51,11 +54,7 @@ class MissionService
         if ($destinataire->duoId === null) {
             return null;
         }
-        foreach ($this->missions->trouverParDuoEtJour($destinataire->duoId, $this->journee->enHeureDeParis($maintenant)) as $mission) {
-            if ($mission->destinataireId === $destinataire->id && in_array($mission->statut, [StatutMission::EnCours, StatutMission::Valide], true)) {
-                return $mission;
-            }
-        }
-        return null;
+        [$recue] = $this->missions->trouverParJoueurEtJour($destinataire->duoId, $destinataire->id, JourneeService::enHeureDeParis($maintenant));
+        return in_array($recue?->statut, [StatutMission::EnCours, StatutMission::Valide], true) ? $recue : null;
     }
 }

@@ -46,6 +46,22 @@ class MissionDepot
         return array_map(fn (array $ligne) => $this->hydrater($ligne), $requete->fetchAll());
     }
 
+    // Missions du jour d'un joueur, par rôle : la seule recherche par rôle, partagée par C1 (JourneeService) et C3 (MissionService).
+    /** @return array{0: ?Mission, 1: ?Mission} la mission qu'il reçoit et celle qu'il a envoyée, null si elle n'existe pas encore */
+    public function trouverParJoueurEtJour(int $duoId, int $joueurId, DateTimeImmutable $jour): array
+    {
+        $recue = null;
+        $envoyee = null;
+        foreach ($this->trouverParDuoEtJour($duoId, $jour) as $mission) {
+            if ($mission->destinataireId === $joueurId) {
+                $recue = $mission;
+            } elseif ($mission->emetteurId === $joueurId) {
+                $envoyee = $mission;
+            }
+        }
+        return [$recue, $envoyee];
+    }
+
     // Défis des missions révélées d'un destinataire, dans l'ordre de réception. Une mission annulée, jamais révélée, ne compte pas (cadrage § 4.6).
     /** @return int[] */
     public function recusPar(int $destinataireId): array

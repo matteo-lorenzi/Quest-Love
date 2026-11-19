@@ -74,27 +74,20 @@ class JourneeService
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
             // Mission reçue révélée (par le rattrapage) : état 5, puis 6 une fois découverte sur C3, puis sa variante une fois validée. Sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
-            $missions = $this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant));
-            foreach ($missions as $mission) {
-                if ($mission->destinataireId === $joueur->id && $mission->dateRevelation !== null) {
-                    // TODO(simplif): une mission expirée après découverte reste en état 6, à traiter avec l'expiration (#61).
-                    return match (true) {
-                        $mission->statut === StatutMission::Valide => EtatAccueil::DefiRealise,
-                        $mission->dateDecouverte !== null => EtatAccueil::DefiEnCours,
-                        default => EtatAccueil::DefiRevele,
-                    };
-                }
+            [$recue, $envoyee] = $this->missions->trouverParJoueurEtJour($joueur->duoId, $joueur->id, $this->enHeureDeParis($maintenant));
+            if ($recue?->dateRevelation !== null) {
+                // TODO(simplif): une mission expirée après découverte reste en état 6, à traiter avec l'expiration (#61).
+                return match (true) {
+                    $recue->statut === StatutMission::Valide => EtatAccueil::DefiRealise,
+                    $recue->dateDecouverte !== null => EtatAccueil::DefiEnCours,
+                    default => EtatAccueil::DefiRevele,
+                };
             }
             // Sans révélation à 12 h, l'un des deux n'a pas choisi : journée blanche pour les deux, même pour celui qui avait choisi.
             if (!$this->avantBascule($maintenant)) {
                 return EtatAccueil::JourneeBlancheSansChoix;
             }
-            foreach ($missions as $mission) {
-                if ($mission->emetteurId === $joueur->id) {
-                    return EtatAccueil::DefiEnvoye;
-                }
-            }
-            return EtatAccueil::ATirer;
+            return $envoyee !== null ? EtatAccueil::DefiEnvoye : EtatAccueil::ATirer;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.
         if (!$this->avantBascule($maintenant)) {
@@ -112,17 +105,13 @@ class JourneeService
         if ($joueur->duoId === null) {
             return null;
         }
-        foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $mission) {
-            if ($mission->emetteurId === $joueur->id && $mission->dateRevelation !== null) {
-                return $mission->statut;
-            }
-        }
-        return null;
+        [, $envoyee] = $this->missions->trouverParJoueurEtJour($joueur->duoId, $joueur->id, $this->enHeureDeParis($maintenant));
+        return $envoyee?->dateRevelation !== null ? $envoyee->statut : null;
     }
 
     // La journée se lit à Paris quel que soit le fuseau de l'instant reçu : le service ne dépend pas du fuseau par défaut posé par l'amorce.
-    // Publique : TirageService date ses tirages et ses missions de la même journée, par l'instance qu'il reçoit.
-    public function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
+    // Publique : TirageService date ses tirages et ses missions de la même journée, par l'instance qu'il reçoit ; statique pour MissionService, qui n'a besoin que d'elle.
+    public static function enHeureDeParis(DateTimeImmutable $maintenant): DateTimeImmutable
     {
         return $maintenant->setTimezone(new DateTimeZone('Europe/Paris'));
     }

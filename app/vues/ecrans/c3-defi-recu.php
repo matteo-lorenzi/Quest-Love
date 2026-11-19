@@ -17,11 +17,11 @@
     <?php endif ?>
     <p><a href="index.php?ecran=accueil">Retour à l'accueil</a></p>
     <?php if ($confirmerRealise) {
-    $question = 'Tu as réalisé ce défi ? Ta déclaration est définitive.';
-    $ecranAction = 'defi-recu';
-    $champs = ['mission' => $missionId];
-    $libelleConfirmer = 'Confirmer : défi réalisé';
-    $retour = 'defi-recu';
-    require __DIR__ . '/../composants/panneau-confirmation.php';
-} ?>
+        $question = 'Tu as réalisé ce défi ? Ta déclaration est définitive.';
+        $ecranAction = 'defi-recu';
+        $champs = ['mission' => $missionId];
+        $libelleConfirmer = 'Confirmer : défi réalisé';
+        $retour = 'defi-recu';
+        require __DIR__ . '/../composants/panneau-confirmation.php';
+    } ?>
 </main>

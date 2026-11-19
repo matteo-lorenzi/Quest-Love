@@ -148,6 +148,37 @@ class MissionServiceTest extends TestCase
         $this->assertSame(StatutMission::EnCours, $this->missions->trouverParId($id)->statut);
     }
 
+    // Spec #60 récit 9, C1 états 5 et 6 : l'accueil lit la mission révélée sans jamais poser la découverte, pour le destinataire comme pour l'émetteur.
+    public function testLAccueilNePosePasLaDecouverte(): void
+    {
+        $id = $this->missionPour($this->lou, $this->mia);
+        $journee = $this->journeeDesDeuxOui();
+        $instant = new DateTimeImmutable('2026-10-20 10:30:00');
+
+        $journee->etatAccueil($this->mia, $instant);
+        $journee->etatAccueil($this->lou, $instant);
+        $journee->statutDefiEnvoye($this->lou, $instant);
+
+        $this->assertNull($this->missions->trouverParId($id)->dateDecouverte);
+    }
+
+    // C3, parcours journée de jeu : le numéro de mission vient du formulaire ; celui d'une mission d'un autre duo est refusé sans rien écrire.
+    public function testLaValidationDUneMissionDUnAutreDuoEstRefusee(): void
+    {
+        $appairage = AppairageService::construire($this->pdo);
+        $depot = new JoueurDepot($this->pdo);
+        $noe = $appairage->code($depot->trouverParId($depot->ajouter('Noe', 'Noe', 'empreinte', $this->matin)), $this->matin);
+        $zoe = $depot->trouverParId($depot->ajouter('Zoe', 'Zoe', 'empreinte', $this->matin));
+        $appairage->rejoindre($zoe, $noe->codeInvitation, 'session-zoe', $this->matin);
+        $id = $this->missionPour($depot->trouverParId($noe->id), $depot->trouverParId($zoe->id));
+
+        $this->service->valider($this->mia, $id, new DateTimeImmutable('2026-10-20 18:00:00'));
+
+        $mission = $this->missions->trouverParId($id);
+        $this->assertSame(StatutMission::EnCours, $mission->statut);
+        $this->assertNull($mission->dateValidation);
+    }
+
     // C1 état 6, parcours journée de jeu : annoncé (état 5), puis en cours une fois découvert sur C3, puis sa variante « réalisé » après la validation.
     public function testLAccueilPasseALEtat6ALaDecouverteEtASaVarianteALaValidation(): void
     {

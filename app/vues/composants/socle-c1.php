@@ -8,7 +8,9 @@ $statutEnvoye = match ($defiEnvoye) {
     StatutMission::EnCours => 'Défi en cours',
     StatutMission::Valide => 'Défi réalisé',
     StatutMission::Expire => 'Défi expiré',
-    default => 'Défi envoyé',
+    StatutMission::Annule => 'Défi annulé',
+    // Null ou non révélé : la colonne garde l'état 4.
+    null, StatutMission::AttribueNonRevele => 'Défi envoyé',
 };
 // Statut sous chaque colonne et élément commun, par état. Le statut du partenaire n'est montré qu'une fois sa réponse utile au joueur.
 [$statutJoueur, $statutPartenaire, $centre] = match ($etat) {
