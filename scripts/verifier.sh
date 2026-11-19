@@ -45,5 +45,17 @@ dollars=$(grep -nE "$motif_dollar" -- $(printf '%s\n' "${fichiers[@]}" | grep '\
 adresses=$(grep -nE 'ecran=' -- $(printf '%s\n' "${fichiers[@]}" | grep '^app/modeles/.*\.php$') /dev/null)
 [ -n "$adresses" ] && signaler "adresse d'écran construite dans app/modeles/ (ADR-0001) :"$'\n'"$adresses"
 
+# 7. Redirection après écriture (§ 2.4) : la méthode POST de chaque écran de la table du routeur ne rend jamais de vue.
+#    Ne lit que le corps de la méthode : une fonction privée qui rend est attrapée à l'exécution par le routeur.
+rendus=$(grep -oE "\[\s*'[A-Za-z]+Controleur', ('[a-zA-Z]+'|null), '[a-zA-Z]+'" app/noyau/Routeur.php \
+    | sed -E "s/\[ *'([A-Za-z]+)', [^,]+, '([a-zA-Z]+)'/\1 \2/" | sort -u \
+    | while read -r classe methode; do
+        awk -v m="$methode" -v f="app/controleurs/$classe.php" '
+            $0 ~ "function " m "\\(" { dedans = 1; next }
+            dedans && /^    }/ { exit }
+            dedans && /rendre\(/ { print f ":" FNR ": " $0 }' "app/controleurs/$classe.php"
+    done)
+[ -n "$rendus" ] && signaler "vue rendue par une méthode POST au lieu de rediriger (§ 2.4) :"$'\n'"$rendus"
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"

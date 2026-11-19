@@ -3,7 +3,7 @@
 
 class TirageControleur
 {
-    // Refus du choix, et C2 ouvert passé 12 h dans l'état 3 : la journée est passée.
+    // C2 ouvert passé 12 h dans l'état 3, y compris après un choix refusé : la journée est passée.
     private const MIDI_PASSE = 'Il est midi passé : le défi de ton partenaire se choisit avant 12 h, ce n\'est plus possible aujourd\'hui.';
 
     private DefiDepot $defis;
@@ -31,21 +31,15 @@ class TirageControleur
     }
 
     // POST : le jeton CSRF a déjà été vérifié par le routeur. Le formulaire envoie le rang de la carte piochée, jamais un numéro de défi : seul un défi du tirage peut être choisi.
-    // Choix arrivé à 12 h ou après : refusé, C2 s'affiche avec le message, sans redirection qui le perdrait. Choix accepté ou déjà fait : l'accueil dit « défi envoyé ».
+    // Choix refusé (12 h passée), carte invalide ou plus d'éventail à montrer : retour à C2, dont le GET dit que la journée est passée ou renvoie à l'accueil
+    // (redirection après écriture, § 2.4). Choix accepté ou déjà fait : l'accueil dit « défi envoyé ».
     public function choisir(): void
     {
         $joueur = Routeur::joueurConnecte($this->pdo);
-        $tirage = $this->tirageOuSortie($joueur);
-        if ($tirage === null) {
-            return;
-        }
+        $tirage = $this->tirage->tirer($joueur, $this->maintenant);
         $carte = filter_var($_POST['carte'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 3]]);
-        if ($carte === false) {
+        if (!$tirage instanceof Tirage || $carte === false || !$this->tirage->choisir($joueur, $tirage->defiIds[$carte - 1], $this->maintenant)) {
             Routeur::rediriger('tirage');
-        }
-        if (!$this->tirage->choisir($joueur, $tirage->defiIds[$carte - 1], $this->maintenant)) {
-            $this->rendre(null, null, self::MIDI_PASSE);
-            return;
         }
         Routeur::rediriger('accueil');
     }
