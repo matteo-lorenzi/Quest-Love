@@ -65,5 +65,11 @@ rendus=$(grep -oE "\[\s*'[A-Za-z]+Controleur', ('[a-zA-Z]+'|null), '[a-zA-Z]+'" 
 seuls=$(grep -nE 'verrouiller\(\[[^],]*\]\)' -- $(printf '%s\n' "${fichiers[@]}" | grep '^app/modeles/services/.*\.php$') /dev/null)
 [ -n "$seuls" ] && signaler "joueur verrouillé seul dans un service (utiliser verrouillerAvecPartenaire) :"$'\n'"$seuls"
 
+# 9. Une valeur de PV dans un texte vient de sa constante (PointsDeVieService::PENALITE, Joueur::PV_DEPART) : écrite en dur, l'écran ment
+#    dès que la règle change (revue de la spec #61). « 0 PV », le plancher, reste littéral.
+pv_en_dur=$(grep -nE "'[^']*[^0-9][1-9][0-9]* PV" -- $(printf '%s
+' "${fichiers[@]}" | grep '^app/.*\.php$') /dev/null)
+[ -n "$pv_en_dur" ] && signaler "valeur de PV écrite en dur dans un texte (utiliser la constante) :"$'\n'"$pv_en_dur"
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"

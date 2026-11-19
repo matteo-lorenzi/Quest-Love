@@ -23,7 +23,7 @@ class EvenementControleur
         [$titre, $texte, $ecranAction, $libelleAction] = match ($evenement) {
             Evenement::DuoDissous => [
                 'Duo dissous',
-                '[TEXTE À RÉDIGER : ton partenaire a quitté le duo ; tu repars à 5 PV et peux former un nouveau duo]',
+                '[TEXTE À RÉDIGER : ton partenaire a quitté le duo ; tu repars à ' . Joueur::PV_DEPART . ' PV et peux former un nouveau duo]',
                 'salle-attente',
                 '[TEXTE À RÉDIGER : trouver un nouveau partenaire]',
             ],

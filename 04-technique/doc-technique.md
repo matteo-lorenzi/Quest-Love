@@ -421,7 +421,7 @@ Il y a trois bases, mais **une seule est précieuse**.
 Chaque base locale sert **à la fois au développement et aux tests** : il n'y a pas de base de test séparée. Seule exception, un worktree (dossier de travail d'un agent) teste sur sa propre base `quest_love_<dossier>`, créée par `scripts/tester.sh`, pour que deux worktrees testés en même temps ne se vident pas l'un l'autre.
 
 - **En développement**, on navigue dans l'application sur `localhost` (WAMP servant `app/public/`) ; la base contient le jeu de démonstration (§ 6.5) et ce qu'on y a ajouté en jouant.
-- **Quand on lance les tests**, ils commencent par réinitialiser cette base pour partir d'un état connu (§ 6.4). Après les tests, la base reste dans l'état où les tests l'ont laissée : on la réinitialise de nouveau pour reprendre le développement.
+- **Quand on lance les tests**, ils commencent par réinitialiser cette base pour partir d'un état connu (§ 6.4). Après les tests, `scripts/tester.sh` la réinitialise de nouveau : le jeu de démonstration est servi tel quel pour reprendre le développement.
 - Une base locale n'est donc jamais un endroit où l'on garde quelque chose : tout ce qui compte est dans les fichiers `sql/`.
 
 #### Source de vérité : le dossier `sql/`
@@ -465,7 +465,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 - **Outil** : PHPUnit, sous forme d'archive `phpunit.phar` téléchargée une fois et rangée **hors du dépôt**, sans Composer. Version 11, compatible avec PHP 8.2 (11.5.57 vérifiée le 15/10). `phpunit.xml`, à la racine, charge l'amorce des tests. Accord de l'enseignant : courriel du 12/10.
 - **Périmètre** : la couche modèle (entités, dépôts, services). Les contrôleurs et les vues ne sont pas testés automatiquement : leur vérification passe par la recette (§ 6.6).
 - **Où** : sur la base locale de chacun (§ 6.3), et en CI sur une base MySQL éphémère à chaque pull request (job `tests` de `.github/workflows/verifications.yml`). Le dossier `tests/` est versionné mais jamais déployé sur Azrael ; l'enseignant le consulte dans le dépôt GitHub, auquel il a accès (confirmé le 14/10).
-- **Lancement** : `bash scripts/tester.sh` depuis la racine du dépôt. Le script copie `config.php` depuis le dossier principal si un worktree n'en a pas, lit le chemin du phar dans la variable `PHPUNIT_PHAR` (ou une commande `phpunit` du PATH), démarre au besoin le service MySQL de WAMP, donne à un worktree sa propre base (§ 6.3), puis lance PHPUnit. Équivalent à la main : `php chemin/vers/phpunit.phar tests/`.
+- **Lancement** : `bash scripts/tester.sh` depuis la racine du dépôt. Le script copie `config.php` depuis le dossier principal si un worktree n'en a pas, lit le chemin du phar dans la variable `PHPUNIT_PHAR` (ou une commande `phpunit` du PATH), démarre au besoin le service MySQL de WAMP, donne à un worktree sa propre base (§ 6.3), lance PHPUnit, puis recharge la base (jeu de démonstration compris). Équivalent à la main : `php chemin/vers/phpunit.phar tests/`.
 - **État de départ** : le fichier d'amorce des tests réinitialise la base (mêmes fichiers, mêmes garde-fous qu'au § 6.3), puis chaque classe de test repart d'une base réinitialisée.
 - **L'heure** : chaque test passe aux services le `$maintenant` de son choix (§ 3.8).
 - **Nommage** : un test cite l'écran et le parcours couverts (`AGENTS.md`).
