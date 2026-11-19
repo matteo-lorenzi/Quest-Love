@@ -6,7 +6,8 @@ Cadrage de référence : `01-cadrage/cadrage-unifie.md` (fait foi en cas d'écar
 
 Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête, motifs en `$`, adresses d'écran dans le modèle, vue rendue par une méthode POST) : `bash scripts/verifier.sh`. Tests de la couche modèle : `bash scripts/tester.sh` (prépare `config.php`, vérifie le phar et la base). La CI relance les deux.
 
-- Tickets et tests citent l'écran et le parcours couverts.
+- Tickets et tests citent l'écran et le parcours couverts. Une règle reprise du cadrage cite sa section (« cadrage § 4.6 ») au lieu de la reformuler.
+- Notes d'implémentation : `docs/agents/notes/`, une par spec. Avant un ticket, lire celles de sa spec et des specs qui la bloquent ; avant de rendre la main, y ajouter ce qui servira au ticket suivant.
 - Maquettes : URL du Figma de zonage dans `README.md` ; conventions de cadres (nommage, variantes en notes) dans `03-conception/inventaire-ecrans.md`.
 
 ## Commits, PR et tickets
