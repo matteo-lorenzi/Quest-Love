@@ -42,6 +42,7 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
         <?php elseif ($etat === EtatAccueil::DefiRevele): ?>
             <?php // Annonce seulement : le défi n'est dévoilé, et la découverte posée, que sur C3 (doc technique § 3.4). ?>
             <p>Vous avez tous les deux choisi : <?= e($nomPartenaire) ?> t'a lancé un défi, à relever avant minuit.</p>
+            <a class="bouton" href="index.php?ecran=defi-recu">Voir mon défi</a>
         <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
             <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
         <?php elseif ($etat === EtatAccueil::JourneeBlancheSansChoix): ?>
