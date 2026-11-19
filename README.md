@@ -7,7 +7,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 
 ## Feuille de route
 
-État du **code** au 06/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (27 cadres sur 27) : ce qui reste à faire est le code.
+État du **code** au 19/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (27 cadres sur 27) : ce qui reste à faire est le code.
 
 Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanche en pointillés = à faire. Le statut est aussi écrit dans le texte de la case.
 
@@ -15,7 +15,7 @@ Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanc
 %%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 20, "padding": 6, "htmlLabels": true}}}%%
 flowchart TB
   S["Socle · fait<br/>noyau MVC, routeur, horloge, CI"]:::fait
-  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 7 écrans sur 17"]:::encours
+  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 13 écrans sur 17"]:::encours
   L2["LOT 2 · Gamification<br/>conditionnel : seulement si le lot 1 est fini en S11"]:::afaire
   L3["LOT 3 · Confort · optionnel · à faire"]:::afaire
   L4["LOT 4 · Perspectives<br/>non développé, documenté en recul réflexif"]:::afaire
@@ -39,16 +39,16 @@ flowchart TB
 
   subgraph P3["Journée de jeu"]
     direction LR
-    C1["C1 Accueil duo<br/>à faire"]:::afaire
-    C2["C2 Tirage<br/>à faire"]:::afaire
-    C3["C3 Défi reçu<br/>à faire"]:::afaire
+    C1["C1 Accueil duo<br/>fait"]:::fait
+    C2["C2 Tirage<br/>fait"]:::fait
+    C3["C3 Défi reçu<br/>fait"]:::fait
     C1 ~~~ C2 ~~~ C3
   end
 
   subgraph P4["Fin de défi"]
     direction LR
-    D1["D1 Expiré, -1 PV<br/>à faire"]:::afaire
-    D5["D5 Retour à 5 PV<br/>à faire"]:::afaire
+    D1["D1 Expiré, -1 PV<br/>fait"]:::fait
+    D5["D5 Retour à 5 PV<br/>fait"]:::fait
     D1 ~~~ D5
   end
 
@@ -56,7 +56,7 @@ flowchart TB
     direction LR
     F1["F1 Profil<br/>à faire"]:::afaire
     F2["F2 Dissolution<br/>fait"]:::fait
-    D3["D3 Duo dissous<br/>à faire"]:::afaire
+    D3["D3 Duo dissous<br/>fait"]:::fait
     F3["F3 Suppression<br/>à faire"]:::afaire
     G1["G1 Erreurs<br/>fait"]:::fait
     F1 ~~~ F2 ~~~ D3 ~~~ F3 ~~~ G1
@@ -83,7 +83,7 @@ Repli sans diagramme (même contenu) :
 | Lot | Statut | Écrans faits | Écrans à faire |
 |---|---|---|---|
 | Socle | Fait | Noyau MVC, routeur, horloge, garde-fous CI | — |
-| 1 — Duo et défi du jour | En cours, 7 sur 17 | A2, A3, B1, B2, B3, F2, G1 | A1, A4, C1, C2, C3, D1, D3, D5, F1, F3 |
+| 1 — Duo et défi du jour | En cours, 13 sur 17 | A2, A3, B1, B2, B3, C1, C2, C3, D1, D3, D5, F2, G1 | A1, A4, F1, F3 |
 | 2 — Gamification | Conditionnel | — | C3+, D1+, D4, D5+, D6, D7, E1, E2, E3, E4 |
 | 3 — Confort | À faire | — | Catégories, statistiques (F4), changement de mot de passe et de pseudo (F5), avatars |
 | 4 — Perspectives | Non développé | — | Défis personnalisés, preuve photo, courriel, web push, récupération de compte |
@@ -107,7 +107,7 @@ Mise à jour : à la main, dans la même PR que le ticket (`Closes #N`).
 
 ## Modèle de données
 
-Dix tables, noms identiques à `sql/schema.sql`. Seules `joueur`, `duo` et `tentative` existent en base ; les autres sont prévues (`gage` au lot 2). Colonnes, contraintes et index : [`04-technique/modele-donnees.md`](04-technique/modele-donnees.md), à valider en S8. Libellé d'un lien : colonne, règle de suppression.
+Dix tables, noms identiques à `sql/schema.sql`. Toutes existent en base sauf `gage`, prévue au lot 2. Colonnes, contraintes et index : [`04-technique/modele-donnees.md`](04-technique/modele-donnees.md), à valider en S8. Libellé d'un lien : colonne, règle de suppression.
 
 ```mermaid
 erDiagram

@@ -28,9 +28,10 @@ Notes des implémenteurs des tickets de la spec #61, sur la branche d'intégrati
 - D3 puis D1 dans un même rattrapage est impossible : la dissolution supprime les missions (cadrage § 10, « suppression définitive et immédiate des missions »), il ne reste rien à expirer. D'où pas de test D3-D1-D5 ; l'ordre reste tenu par le code (D3 empilé avant l'expiration).
 - Textes de D1 et D5 : `EvenementControleur` tire les valeurs de `PointsDeVieService::PENALITE` et `Joueur::PV_DEPART`.
 
-## Pour #80
+## Ticket #80 — documents à jour après le lot
 
-- Démonstration de Rose vérifiée au niveau du modèle (rattrapage en ligne de commande : D1 « jamais découvert », D5, 5 PV), pas encore dans le navigateur.
+- README (13 écrans sur 17, C1 à D5 faits) et doc technique § 5.1 recalés sur le code ; § 6.6 (recette) laissé tel quel, il se coche à la recette.
+- Reste ouvert : démonstration de Rose vérifiée au niveau du modèle (rattrapage en ligne de commande : D1 « jamais découvert », D5, 5 PV), pas encore dans le navigateur. `echeance.js` n'existe pas encore.
 
 ## Pièges
 
