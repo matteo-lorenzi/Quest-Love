@@ -83,3 +83,18 @@ INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (2, 1), (2, 2), (2, 3
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
   (7, 2, 1, 110, 111, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele'),
   (7, 3, 5, 111, 110, CONCAT(CURDATE(), ' 08:30:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele');
+
+-- Un huitième duo pour C1 « aucun jeu », variante « l'un de vous n'a pas choisi » : Jade a choisi le défi d'Owen, Owen n'a pas pioché.
+-- La mission de Jade est déjà annulée, comme le rattrapage l'aurait fait à 12 h : les deux lisent la journée blanche à toute heure. Même limite que l'état 2 (CURDATE()).
+-- Le duo d'Ana et Noé (état 4) passe aussi dans cette variante au premier chargement après 12 h.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (8, '2026-10-08 18:00:00', '2026-10-08 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (112, 'jade', 'Jade', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 8, 1, '2026-10-08 17:50:00'),
+  (113, 'owen', 'Owen', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 8, 1, '2026-10-08 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (8, 112, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00')),
+  (8, 113, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:05:00'));
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES (4, 8, 112, 113, CURDATE());
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (4, 1), (4, 2), (4, 3);
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
+  (8, 4, 3, 112, 113, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'annule');

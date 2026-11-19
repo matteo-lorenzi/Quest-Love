@@ -23,6 +23,16 @@ Notes des implémenteurs des tickets de la spec #59, sur la branche d'intégrati
 - Démonstration : duo 7, Lina (110) et Sam (111), deux missions non révélées du jour (tirages 2 et 3) ; le premier chargement les révèle.
 - Tests : `RattrapageServiceTest` crée son propre défi (`setUpBeforeClass`, catégorie « Catégorie du test de rattrapage ») et écrit tirage et mission par les dépôts ; la date limite de départ y est volontairement fausse pour prouver que la révélation la fixe.
 
+## Ticket #75 — annulation à 12 h, journée blanche « l'un de vous n'a pas choisi »
+
+- Annulation (méthode privée `annuler`) : sous verrou, après `reveler`, toute mission `attribue_non_revele` du duo dont `$maintenant >= bascule(dateAttribution)` passe `annule` (`changerStatut`). Révélation d'abord : deux choix rattrapés après 12 h sont révélés, jamais annulés.
+- `MissionDepot::trouverParDuoEtStatut(duoId, statut)` (index de `fk_mission_duo`) : sert à la sortie rapide et à l'annulation, dans les deux sens. La sortie rapide teste désormais « marqueur D3, ou mission non révélée dans le duo » : l'émetteur seul voit aussi l'annulation. #61 devra encore l'élargir aux missions `en_cours` échues (le `TODO(simplif)` restant le dit).
+- `EtatAccueil::JourneeBlancheSansChoix` : branche « deux oui » de `etatAccueil`, après le test de l'état 5 : passé 12 h sans révélation, ou mission du jour `annule`, pour les deux joueurs. Le `TODO(simplif)` de #74 est levé ; `ATirer` n'existe plus après 12 h.
+- C2 : `TirageControleur` montre `MIDI_PASSE` sur `JourneeBlancheSansChoix` (plus sur `ATirer`). Limite : celui qui avait choisi et rouvre C2 après 12 h lit ce message au lieu d'être renvoyé à l'accueil.
+- Socle C1 : variante sans action, texte `[TEXTE À RÉDIGER : …]`.
+- Démonstration : duo 8, Jade (112) et Owen (113), mission de Jade déjà `annule` (lisible à toute heure). Ana et Noé (duo 6) basculent aussi dans la variante au premier chargement après 12 h.
+- Aucun événement empilé pour l'annulation (doc technique § 3.2) : seul C1 l'affiche.
+
 ## Pièges
 
 - Le rattrapage tourne à chaque requête d'un joueur connecté, écrans publics compris : il appelle `Routeur::joueurConnecte`, qui renvoie vers la connexion si le compte a disparu.

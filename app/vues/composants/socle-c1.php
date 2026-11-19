@@ -11,6 +11,7 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
     EtatAccueil::DefiEnvoye => ['Défi envoyé', 'Oui', 'En attente de révélation'],
     EtatAccueil::DefiRevele => ['Défi envoyé', 'Défi envoyé', 'Un défi t\'attend'],
     EtatAccueil::JourneeBlanche => ['', '', 'Journée blanche'],
+    EtatAccueil::JourneeBlancheSansChoix => ['', '', 'Journée blanche'],
     EtatAccueil::PremierJourDemain => ['', '', 'Premier jour de jeu demain'],
 };
 ?>
@@ -43,6 +44,8 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
             <p>Vous avez tous les deux choisi : <?= e($nomPartenaire) ?> t'a lancé un défi, à relever avant minuit.</p>
         <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
             <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
+        <?php elseif ($etat === EtatAccueil::JourneeBlancheSansChoix): ?>
+            <p>[TEXTE À RÉDIGER : journée blanche « l'un de vous n'a pas choisi » — il est midi passé et l'un de vous deux n'a pas pioché le défi de l'autre ; aucun défi aujourd'hui, aucun point de vie perdu. Rendez-vous demain matin.]</p>
         <?php elseif ($etat === EtatAccueil::PremierJourDemain): ?>
             <p>Votre duo est prêt, mais il est midi passé : votre premier jour de jeu commence demain. Reviens avant 12 h pour répondre à « On joue aujourd'hui ? ».</p>
             <a class="bouton bouton--secondaire" href="index.php?ecran=regles&amp;origine=<?= ReglesControleur::parametre(OrigineRegles::Accueil) ?>">Règles complètes</a>

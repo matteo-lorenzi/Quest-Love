@@ -80,12 +80,16 @@ class JourneeService
                     return EtatAccueil::DefiRevele;
                 }
             }
+            // Sans révélation à 12 h, l'un des deux n'a pas choisi : journée blanche pour les deux, même pour celui qui avait choisi.
+            // Une mission annulée suffit aussi : c'est la trace écrite par le rattrapage (et par le jeu de démonstration).
+            if (!$this->avantBascule($maintenant) || array_filter($missions, fn (Mission $mission) => $mission->statut === StatutMission::Annule) !== []) {
+                return EtatAccueil::JourneeBlancheSansChoix;
+            }
             foreach ($missions as $mission) {
                 if ($mission->emetteurId === $joueur->id) {
                     return EtatAccueil::DefiEnvoye;
                 }
             }
-            // TODO(simplif): passé 12 h sans choix, l'état 3 reste (C2 dit que la journée est passée) au lieu de la journée blanche « l'un de vous n'a pas choisi », texte à rédiger avec la révélation (#59).
             return EtatAccueil::ATirer;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.

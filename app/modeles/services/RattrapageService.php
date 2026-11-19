@@ -16,14 +16,14 @@ class RattrapageService
     // Appelé par le routeur une fois par requête, avant toute sortie. Rend les événements à montrer, dans l'ordre de la file :
     // duo dissous, expiration, passage à zéro (§ 3.2). Le routeur les range en session : le service ne touche pas à la session.
     // Une transaction qui verrouille les deux lignes joueur du duo : deux appareils qui chargent en même temps ne rejouent rien deux fois.
-    // Sans rien à rejouer (ni marqueur, ni mission non révélée pour ce joueur), une lecture indexée et aucun verrou : la page n'est pas ralentie (spec #59, récit 9).
-    // TODO(simplif): D3 et la révélation sont rejoués ; expiration et annulation à 12 h arrivent avec leurs tickets (spec #59, #61), et élargiront la sortie rapide.
+    // Sans rien à rejouer (ni marqueur, ni mission non révélée dans le duo), une lecture indexée et aucun verrou : la page n'est pas ralentie (spec #59, récit 9).
+    // TODO(simplif): l'expiration arrive avec son ticket (#61), avant la révélation, et élargira la sortie rapide aux missions en cours.
     /** @return Evenement[] */
     public function rattraper(Joueur $joueur, DateTimeImmutable $maintenant): array
     {
         // Sortie rapide hors verrou : $joueur vient d'être relu par le routeur. Un marqueur posé entre-temps sera vu à la requête suivante.
-        // La révélation exige une mission non révélée destinée à ce joueur : sans elle, rien à révéler.
-        if (!$joueur->dissolutionASignaler && $this->missions->trouverParDestinataireEtStatut($joueur->id, StatutMission::AttribueNonRevele) === []) {
+        // Révélation et annulation exigent une mission non révélée dans le duo, reçue ou émise : celui qui avait choisi doit voir l'annulation à 12 h.
+        if (!$joueur->dissolutionASignaler && ($joueur->duoId === null || $this->missions->trouverParDuoEtStatut($joueur->duoId, StatutMission::AttribueNonRevele) === [])) {
             return [];
         }
         $evenements = [];
@@ -41,6 +41,7 @@ class RattrapageService
                 }
                 if ($partenaire !== null) {
                     $this->reveler($frais, $partenaire, $maintenant);
+                    $this->annuler($frais->duoId, $maintenant);
                 }
             }
             $this->pdo->commit();
@@ -66,6 +67,17 @@ class RattrapageService
                 $minuit = $this->journee->minuitSuivant($mission->dateAttribution);
                 $this->missions->reveler($mission->id, $maintenant, $minuit);
                 $this->missions->reveler($autre->id, $maintenant, $minuit);
+            }
+        }
+    }
+
+    // Annulation (doc technique § 3.4) : après la révélation, une mission encore non révélée à la bascule de sa journée n'a pas eu de réponse.
+    // Statut seul : aucun PV perdu, et sans date_revelation le défi n'est pas compté comme reçu (glossaire, Annulation). Relue sous verrou : annulée une seule fois.
+    private function annuler(int $duoId, DateTimeImmutable $maintenant): void
+    {
+        foreach ($this->missions->trouverParDuoEtStatut($duoId, StatutMission::AttribueNonRevele) as $mission) {
+            if ($maintenant >= $this->journee->bascule($mission->dateAttribution)) {
+                $this->missions->changerStatut($mission->id, StatutMission::Annule);
             }
         }
     }

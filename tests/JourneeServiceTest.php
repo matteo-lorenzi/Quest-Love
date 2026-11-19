@@ -180,14 +180,15 @@ class JourneeServiceTest extends TestCase
         $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
     }
 
-    // Ticket #69 : les deux oui avant 12 h, la journée reste jouée après la bascule.
-    public function testLesDeuxOuiRestentJouesApresMidi(): void
+    // Ticket #75 : les deux oui avant 12 h mais aucun choix, la bascule donne la journée blanche « l'un de vous n'a pas choisi » aux deux.
+    public function testLesDeuxOuiSansChoixDonnentLaJourneeBlancheApresMidi(): void
     {
         [$lou, $mia] = $this->formerDuo();
         $this->service->repondre($lou, Reponse::Oui, $this->matin);
         $this->service->repondre($mia, Reponse::Oui, $this->matin);
 
-        $this->assertSame(EtatAccueil::ATirer, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 15:00:00')));
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $this->service->etatAccueil($lou, new DateTimeImmutable('2026-10-15 15:00:00')));
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $this->service->etatAccueil($mia, new DateTimeImmutable('2026-10-15 15:00:00')));
     }
 
     // Ticket #69 : un duo activé avant 12 h joue le jour même, état 1.

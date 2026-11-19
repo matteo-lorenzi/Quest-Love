@@ -14,7 +14,7 @@ class TirageService
     ) {}
 
     // Tirage du jour de l'émetteur : créé à sa première demande, relu ensuite, pour qu'un rechargement ne redonne pas d'autres défis.
-    // Sans éventail à montrer, l'état de l'accueil : hors état 3 (pas encore les deux oui, défi déjà envoyé), ou état 3 passé 12 h, quand le choix n'est plus possible.
+    // Sans éventail à montrer, l'état de l'accueil : hors état 3 (pas encore les deux oui, défi déjà envoyé, journée blanche « l'un de vous n'a pas choisi » passé 12 h).
     public function tirer(Joueur $emetteur, DateTimeImmutable $maintenant): Tirage|EtatAccueil
     {
         $etat = $this->journee->etatAccueil($emetteur, $maintenant);

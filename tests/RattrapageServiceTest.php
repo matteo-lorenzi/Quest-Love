@@ -180,4 +180,82 @@ class RattrapageServiceTest extends TestCase
         $this->assertSame(EtatAccueil::DefiRevele, $journee->etatAccueil($mia, $choix));
         $this->assertNull($this->mission($id)->dateDecouverte);
     }
+    // Lou et Mia ont dit oui ce matin : l'accueil de chacun peut alors être lu.
+    private function deuxOui(Joueur $lou, Joueur $mia, DateTimeImmutable $instant): JourneeService
+    {
+        $participations = new ParticipationDepot($this->pdo);
+        foreach ([$lou, $mia] as $joueur) {
+            $participations->ajouter($joueur->duoId, $joueur->id, $instant, Reponse::Oui, $instant);
+        }
+        return new JourneeService($participations, new DuoDepot($this->pdo), new MissionDepot($this->pdo));
+    }
+
+    // C1 « aucun jeu », spec #59 récit 4 : à 12 h, la mission de celui qui avait choisi est annulée, sans perte de PV, et l'accueil des deux dit que l'un n'a pas choisi.
+    public function testUnSeulChoixAMidiAnnuleLaMissionSansPerteDePv(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $choix = new DateTimeImmutable('2026-10-20 09:00:00');
+        $journee = $this->deuxOui($lou, $mia, $choix);
+        $id = $this->choisir($lou, $mia, $choix);
+        $midi = new DateTimeImmutable('2026-10-20 12:00:00');
+
+        // Celui qui avait choisi charge la page : l'annulation doit passer la sortie rapide, même sans mission reçue.
+        $this->assertSame([], $this->rattrapage->rattraper($lou, $midi));
+
+        $this->assertSame(StatutMission::Annule, $this->mission($id)->statut);
+        $joueurs = new JoueurDepot($this->pdo);
+        $this->assertSame(Joueur::PV_DEPART, $joueurs->trouverParId($lou->id)->pv);
+        $this->assertSame(Joueur::PV_DEPART, $joueurs->trouverParId($mia->id)->pv);
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $journee->etatAccueil($lou, $midi));
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $journee->etatAccueil($mia, $midi));
+    }
+
+    // Avant 12 h, la mission attend le choix de l'autre : rien n'est annulé.
+    public function testAvantMidiLaMissionNEstPasAnnulee(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $id = $this->choisir($lou, $mia, new DateTimeImmutable('2026-10-20 09:00:00'));
+
+        $this->rattrapage->rattraper($lou, new DateTimeImmutable('2026-10-20 11:59:00'));
+
+        $this->assertSame(StatutMission::AttribueNonRevele, $this->mission($id)->statut);
+    }
+
+    // Glossaire, Annulation : le défi annulé n'est pas compté comme reçu, il peut être reproposé au destinataire dès le lendemain.
+    public function testLeDefiAnnulePeutEtreReproposeAuDestinataire(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->choisir($lou, $mia, new DateTimeImmutable('2026-10-20 09:00:00'));
+
+        $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-20 12:30:00'));
+
+        $this->assertSame([], (new MissionDepot($this->pdo))->recusPar($mia->id));
+    }
+
+    // Spec #59 récit 5 : le second rattrapage (autre appareil, lendemain) ne retouche pas une mission déjà annulée.
+    public function testDeuxRattrapagesNAnnulentQuUneFois(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $id = $this->choisir($lou, $mia, new DateTimeImmutable('2026-10-20 09:00:00'));
+
+        $this->rattrapage->rattraper($lou, new DateTimeImmutable('2026-10-20 12:00:00'));
+        $this->assertSame([], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:00:00')));
+
+        $this->assertSame(StatutMission::Annule, $this->mission($id)->statut);
+        $this->assertSame(Joueur::PV_DEPART, (new JoueurDepot($this->pdo))->trouverParId($mia->id)->pv);
+    }
+
+    // Doc technique § 3.2 : révélation avant annulation. Deux choix rattrapés après 12 h sont révélés, jamais annulés.
+    public function testUneMissionReveleeNEstJamaisAnnulee(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $choix = new DateTimeImmutable('2026-10-20 09:00:00');
+        $pourMia = $this->choisir($lou, $mia, $choix);
+        $pourLou = $this->choisir($mia, $lou, $choix);
+
+        $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-20 15:00:00'));
+
+        $this->assertSame(StatutMission::EnCours, $this->mission($pourMia)->statut);
+        $this->assertSame(StatutMission::EnCours, $this->mission($pourLou)->statut);
+    }
 }
