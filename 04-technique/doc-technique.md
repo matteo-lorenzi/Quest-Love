@@ -170,11 +170,12 @@ Huit entrées : ce que fait le mécanisme, quand il se déclenche, ce qu'il écr
 Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout ce qui aurait dû se produire depuis la dernière visite.
 
 - **Service** : `RattrapageService`, appelé par le routeur pour tout joueur connecté, une fois par requête, avant toute sortie.
-- **Opérations, dans cet ordre, à l'intérieur d'une seule transaction** :
-  1. expiration des missions échues au statut « en cours », avec perte de points de vie ;
-  2. évaluation de la participation du jour et détermination de la journée blanche ;
-  3. révélation des missions dont la condition est remplie ;
-  4. après la bascule de 12 h, annulation des missions non révélées (journée blanche, § 3.4) ; aucun défi n'est attribué à la place d'un joueur.
+- **Opérations, dans cet ordre, à l'intérieur d'une seule transaction** (ordre fixé par la revue de #59 : une révélation constatée en retard expire dans le même rattrapage) :
+  1. constat de la dissolution du duo (D3), signalée une seule fois ;
+  2. révélation des missions dont la condition est remplie ;
+  3. après la bascule de 12 h, annulation des missions non révélées (journée blanche, § 3.4) ; aucun défi n'est attribué à la place d'un joueur ;
+  4. expiration des missions échues au statut « en cours », avec perte de points de vie ;
+  5. passage à zéro : le capital tombé à 0 remonte aussitôt à 5 (D5, empilé juste après le D1 qui l'a causé).
 - **Verrou** : les lignes `joueur` des deux joueurs sont verrouillées en écriture pour la durée de la transaction. C'est la protection contre la double pénalité quand deux appareils chargent une page en même temps.
 - **Trois protections, toutes posées en base** — unicité sur `participation`, unicité sur `tirage`, vérification du statut avant transition sur `mission`. Détail : annexe § 4.
 - **File d'événements** : le rattrapage dépose les événements produits dans une file en session ; tant qu'elle n'est pas vide, le routeur redirige vers l'écran `evenement`, qui en dépile un par affichage. Ordre : duo dissous, expiration, passage à zéro. L'annulation n'empile rien : la journée blanche s'affiche sur C1 « aucun jeu ».
@@ -344,9 +345,9 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] Dépôts `ParticipationDepot`, `DefiDepot`, `TirageDepot`, `MissionDepot`
 - [x] `JourneeService` — bornes, participation
 - [ ] `TirageService` — tirage persistant, choix
-- [ ] `MissionService` — découverte, validation, expiration _(découverte et validation livrées avec #76)_
-- [ ] `PointsDeVieService` — pertes et plancher
-- [ ] `RattrapageService` — calculs paresseux (révélation, annulation, expiration) et file d'événements
+- [x] `MissionService` — découverte, validation, expiration _(découverte et validation livrées avec #76, expiration avec #78)_
+- [x] `PointsDeVieService` — pertes, plancher et passage à zéro _(passage à zéro et D5 livrés avec #79)_
+- [x] `RattrapageService` — calculs paresseux (révélation, annulation, expiration) et file d'événements _(D3, révélation, annulation, expiration avec D1, et D5 avec #79)_
 - [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_ _(états 1 à 6, variante « défi réalisé », journées blanches et premier jour demain livrés ; après expiration avec #61)_
 - [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php` _(en cours : `panneau-confirmation.php`)_
 - [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(états 1 à 6, variante « défi réalisé », journées blanches et premier jour demain livrés ; après expiration avec #61)_
@@ -356,7 +357,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 **Événements et erreurs** _(B, sauf D3)_
 
 - [ ] `vues/composants/bloc-evenement.php`
-- [ ] D1, D3, D5 `EvenementControleur`
+- [x] D1, D3, D5 `EvenementControleur` _(D5 livré avec #79)_
 - [ ] G1 `ErreurControleur` — page introuvable et erreur serveur _(en cours : version minimale pour le routeur)_
 
 **Exploitation** _(commun)_

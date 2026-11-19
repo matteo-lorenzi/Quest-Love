@@ -1,15 +1,16 @@
 <?php
-// Service des missions — C3 Défi reçu — parcours 2 (journée de jeu) — lot 1 — B. Découverte et validation (doc technique § 3.4) ; révélation et annulation sont au rattrapage.
+// Service des missions — C3 Défi reçu — parcours 2 (journée de jeu) — lot 1 — B. Découverte, validation, et expiration (D1, D5) pour le rattrapage (doc technique § 3.4) ; révélation et annulation sont au rattrapage.
 
 class MissionService
 {
     // La connexion sert à la transaction de la validation ; les dépôts sont construits par l'appelant (ADR-0001).
-    public function __construct(private PDO $pdo, private JoueurDepot $joueurs, private MissionDepot $missions) {}
+    public function __construct(private PDO $pdo, private JoueurDepot $joueurs, private MissionDepot $missions, private PointsDeVieService $pointsDeVie) {}
 
     // Le contrôleur et les tests construisent le service de la même façon, comme RattrapageService.
     public static function construire(PDO $pdo): self
     {
-        return new self($pdo, new JoueurDepot($pdo), new MissionDepot($pdo));
+        $joueurs = new JoueurDepot($pdo);
+        return new self($pdo, $joueurs, new MissionDepot($pdo), new PointsDeVieService($joueurs));
     }
 
     // Défi reçu du jour, révélé, en cours ou réalisé : null sinon (rien à montrer sur C3). Seul ce GET de C3 pose la découverte, jamais l'annonce de C1 (spec #60, récit 9).
@@ -46,6 +47,24 @@ class MissionService
             $this->pdo->rollBack();
             throw $erreur;
         }
+    }
+
+    // Expiration (cadrage § 4.3) : une mission en cours dont minuit est passé passe expirée et son destinataire perd des PV.
+    // Appelée par le rattrapage seulement, dans sa transaction, sur une mission relue sous le verrou du duo (celui de valider) : le statut contrôlé ici est frais,
+    // donc deux rattrapages concurrents ne retirent qu'un PV et une validation concurrente ne se fait pas expirer.
+    // Rend les événements à empiler : D1 (variante « jamais découvert » si date_decouverte est nulle), puis D5 si le capital est passé à zéro ; rien si rien n'a été écrit.
+    /** @return Evenement[] */
+    public function expirer(Mission $mission, DateTimeImmutable $maintenant): array
+    {
+        if ($mission->statut !== StatutMission::EnCours || $maintenant < $mission->dateLimite) {
+            return [];
+        }
+        $this->missions->changerStatut($mission->id, StatutMission::Expire);
+        $evenements = [$mission->dateDecouverte === null ? Evenement::DefiExpireJamaisDecouvert : Evenement::DefiExpire];
+        if ($this->pointsDeVie->perdre($mission->destinataireId)) {
+            $evenements[] = Evenement::PassageAZero;
+        }
+        return $evenements;
     }
 
     // Le duo du joueur borne la lecture : seules les missions du jour de son duo, dont il est le destinataire.
