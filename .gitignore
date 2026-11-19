@@ -37,3 +37,6 @@ phpunit.phar
 
 # Graphe de code Graphify, régénéré localement par chacun
 graphify-out/
+
+# Captures et journaux du navigateur piloté par Playwright (serveur MCP)
+.playwright-mcp/
