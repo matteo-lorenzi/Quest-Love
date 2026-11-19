@@ -26,25 +26,20 @@ class TirageServiceTest extends TestCase
     public static function tearDownAfterClass(): void
     {
         $pdo = Bdd::connexion();
+        // Les propositions du dernier test retiennent ses défis : la base est vidée d'abord.
+        viderLaBase($pdo);
         $pdo->prepare('DELETE FROM defi WHERE categorie_id = ?')->execute([self::$categorie]);
         $pdo->prepare('DELETE FROM categorie WHERE id = ?')->execute([self::$categorie]);
     }
 
     protected function setUp(): void
     {
-        // Comme le test de la journée : base locale vidée (tirages et participations partent avec le duo), l'heure passée en paramètre.
+        // Comme le test de la journée : base locale vidée, l'heure passée en paramètre.
         $this->pdo = Bdd::connexion();
-        $this->pdo->exec('DELETE FROM duo');
-        $this->pdo->exec('DELETE FROM joueur');
+        viderLaBase($this->pdo);
 
         $this->service = $this->construire(new TirageDepot($this->pdo));
         $this->matin = new DateTimeImmutable('2026-10-15 09:00:00');
-    }
-
-    // Les tirages retiennent leurs joueurs : sans ce ménage, les tests qui vident joueur sans vider duo échoueraient après celui-ci.
-    protected function tearDown(): void
-    {
-        $this->pdo->exec('DELETE FROM duo');
     }
 
     private function construire(TirageDepot $tirages): TirageService

@@ -22,6 +22,9 @@ lectures=$(grep -nE 'new DateTime(Immutable)?\(|\btime\(\)|\bdate\(|strtotime\(|
 # 3. Horodatages écrits depuis $maintenant, jamais par l'horloge SQL (§ 3.8).
 sql_horloge=$(grep -niE 'NOW\(\)|CURRENT_TIMESTAMP' -- "${fichiers[@]}" /dev/null)
 [ -n "$sql_horloge" ] && signaler "horloge SQL utilisée :"$'\n'"$sql_horloge"
+# Seul le jeu de démonstration date ses lignes du jour du rechargement (sql/demonstration.sql, TODO(simplif)).
+sql_jour=$(grep -niE 'CURDATE\(|CURRENT_DATE' -- "${fichiers[@]}" /dev/null | grep -v '^sql/demonstration.sql:')
+[ -n "$sql_jour" ] && signaler "date SQL du jour utilisée hors du jeu de démonstration :"$'\n'"$sql_jour"
 
 # 4. Chaque fichier commence par sa ligne rôle / écran / lot / périmètre (§ 2.4).
 for f in "${fichiers[@]}"; do
