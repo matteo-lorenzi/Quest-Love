@@ -27,6 +27,19 @@ class EvenementControleur
                 'salle-attente',
                 '[TEXTE À RÉDIGER : trouver un nouveau partenaire]',
             ],
+            // D1 : 1 PV perdu (PointsDeVieService::PENALITE). La variante ne parle pas de mensonge : le défi n'a jamais été ouvert (spec #61, récit 3).
+            Evenement::DefiExpire => [
+                'Défi expiré',
+                '[TEXTE À RÉDIGER : ton défi n\'a pas été réalisé avant minuit ; tu perds 1 PV]',
+                'accueil',
+                '[TEXTE À RÉDIGER : revenir à l\'accueil]',
+            ],
+            Evenement::DefiExpireJamaisDecouvert => [
+                'Défi expiré',
+                '[TEXTE À RÉDIGER : ton défi n\'a jamais été ouvert avant minuit ; tu perds 1 PV]',
+                'accueil',
+                '[TEXTE À RÉDIGER : revenir à l\'accueil]',
+            ],
         };
         Vue::rendre('d-evenement', $titre, [
             'texte' => $texte,

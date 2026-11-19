@@ -1,5 +1,5 @@
 <?php
-// Tests de RattrapageService — D3 Duo dissous (écran evenement), C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — parcours 2 (journée de jeu) — lot 1 — B.
+// Tests de RattrapageService — D1 Défi expiré et D3 Duo dissous (écran evenement), C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — parcours 2 (journée de jeu) — lot 1 — B.
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -257,5 +257,112 @@ class RattrapageServiceTest extends TestCase
 
         $this->assertSame(StatutMission::EnCours, $this->mission($pourMia)->statut);
         $this->assertSame(StatutMission::EnCours, $this->mission($pourLou)->statut);
+    }
+
+    // Lou et Mia ont chacun choisi le défi de l'autre ce jour-là à 9 h ; le rattrapage de 9 h les révèle, jusqu'au minuit suivant. Renvoie [pour Mia, pour Lou].
+    private function defisRevelesLe(Joueur $lou, Joueur $mia, string $jour): array
+    {
+        $choix = new DateTimeImmutable($jour . ' 09:00:00');
+        $pourMia = $this->choisir($lou, $mia, $choix);
+        $pourLou = $this->choisir($mia, $lou, $choix);
+        $this->rattrapage->rattraper($lou, $choix);
+        return [$pourMia, $pourLou];
+    }
+
+    private function pv(Joueur $joueur): int
+    {
+        return (new JoueurDepot($this->pdo))->trouverParId($joueur->id)->pv;
+    }
+
+    // D1, spec #61 récits 1 et 3 : le défi de Mia, jamais ouvert, n'est pas validé à minuit ; il expire, elle perd 1 PV et lit la variante « jamais découvert ».
+    // Lou a validé le sien : rien ne lui arrive.
+    public function testUneMissionNonValideeAMinuitExpireEtCouteUnPv(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        [$pourMia, $pourLou] = $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        (new MissionDepot($this->pdo))->valider($pourLou, new DateTimeImmutable('2026-10-20 18:00:00'));
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 00:00:00'));
+
+        $this->assertSame([Evenement::DefiExpireJamaisDecouvert], $evenements);
+        $this->assertSame(StatutMission::Expire, $this->mission($pourMia)->statut);
+        $this->assertSame(4, $this->pv($mia));
+        $this->assertSame([], $this->rattrapage->rattraper($lou, new DateTimeImmutable('2026-10-21 00:00:00')));
+        $this->assertSame(StatutMission::Valide, $this->mission($pourLou)->statut);
+        $this->assertSame(5, $this->pv($lou));
+    }
+
+    // D1, spec #61 récits 2 et 9 : un défi ouvert mais pas validé donne la variante ordinaire, une seule fois ; à 23 h 59, rien n'expire encore.
+    public function testUnDefiDecouvertExpireAvecLaVarianteOrdinaireUneSeuleFois(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        [$pourMia] = $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        (new MissionDepot($this->pdo))->decouvrir($pourMia, new DateTimeImmutable('2026-10-20 10:00:00'));
+
+        $this->assertSame([], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-20 23:59:00')));
+        $this->assertSame([Evenement::DefiExpire], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:00:00')));
+        $this->assertSame([], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:01:00')));
+        $this->assertSame(4, $this->pv($mia));
+    }
+
+    // Spec #61 récit 6, recette § 6.6 : deux appareils chargent à minuit avec le même objet Joueur, lu avant le premier rattrapage.
+    // Le second relit la mission sous verrou, déjà expirée : un seul PV perdu, un seul D1.
+    // Sans deux connexions simultanées, le test rejoue les deux rattrapages l'un après l'autre (notes de la spec #59).
+    public function testDeuxRattrapagesConcurrentsNeRetirentQuUnPv(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        $minuit = new DateTimeImmutable('2026-10-21 00:00:00');
+
+        $this->assertCount(1, $this->rattrapage->rattraper($mia, $minuit));
+        $this->assertSame([], $this->rattrapage->rattraper($mia, $minuit));
+
+        $this->assertSame(4, $this->pv($mia));
+    }
+
+    // Spec #61 récit 5 : Mia ne vient pas pendant deux jours ; à son retour, ses deux défis expirent dans l'ordre des journées, deux PV en moins.
+    // Lou, qui a joué, n'a fait expirer que ses propres défis : ceux de Mia attendaient son rattrapage.
+    public function testPlusieursJoursManquesSontRejouesDansLOrdre(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        [$premier] = $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        (new MissionDepot($this->pdo))->decouvrir($premier, new DateTimeImmutable('2026-10-20 10:00:00'));
+        [$second] = $this->defisRevelesLe($lou, $mia, '2026-10-21');
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-22 09:00:00'));
+
+        $this->assertSame([Evenement::DefiExpire, Evenement::DefiExpireJamaisDecouvert], $evenements);
+        $this->assertSame(StatutMission::Expire, $this->mission($premier)->statut);
+        $this->assertSame(StatutMission::Expire, $this->mission($second)->statut);
+        $this->assertSame(3, $this->pv($mia));
+        $this->assertSame(4, $this->pv($lou));
+    }
+
+    // Spec #61 récit 7 : une journée blanche (aucune mission) ou une mission annulée à 12 h ne coûte rien, même passé minuit.
+    public function testUneJourneeBlancheOuUneMissionAnnuleeNeCouteRien(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->choisir($lou, $mia, new DateTimeImmutable('2026-10-20 09:00:00'));
+
+        $this->assertSame([], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 09:00:00')));
+        $this->assertSame([], $this->rattrapage->rattraper($lou, new DateTimeImmutable('2026-10-23 09:00:00')));
+
+        $this->assertSame(5, $this->pv($mia));
+        $this->assertSame(5, $this->pv($lou));
+    }
+
+    // Revue de #59 : deux choix de la veille, rattrapés le lendemain, sont révélés puis expirés dans le même rattrapage (minuit vient du choix, pas du rattrapage).
+    public function testUneRevelationConstateeEnRetardExpireDansLeMemeRattrapage(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $choix = new DateTimeImmutable('2026-10-20 09:00:00');
+        $pourMia = $this->choisir($lou, $mia, $choix);
+        $this->choisir($mia, $lou, $choix);
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:00:00'));
+
+        $this->assertSame([Evenement::DefiExpireJamaisDecouvert], $evenements);
+        $this->assertSame(StatutMission::Expire, $this->mission($pourMia)->statut);
+        $this->assertSame(4, $this->pv($mia));
     }
 }

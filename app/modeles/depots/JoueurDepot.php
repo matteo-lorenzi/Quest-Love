@@ -104,6 +104,12 @@ class JoueurDepot
         $this->pdo->prepare('UPDATE joueur SET pv = ?, onboarding_vu = 0 WHERE id = ?')->execute([$pv, $id]);
     }
 
+    // Écriture brute : le capital vient de PointsDeVieService, seul à décider des points de vie (doc technique § 3.5).
+    public function changerPv(int $id, int $pv): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET pv = ? WHERE id = ?')->execute([$pv, $id]);
+    }
+
     // Pose le marqueur « duo dissous par le partenaire » (D3 le lira). Jamais remis à 0 ici : un marqueur non lu doit survivre.
     public function signalerDissolution(int $id): void
     {

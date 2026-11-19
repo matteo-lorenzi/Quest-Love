@@ -115,3 +115,21 @@ INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (5, 1), (5, 2), (5, 3
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
   (9, 5, 2, 114, 115, CONCAT(CURDATE(), ' 07:20:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:35:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE(), ' 07:50:00')),
   (9, 6, 4, 115, 114, CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:40:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'en_cours', NULL);
+
+-- Un dixième duo pour D1, variante « jamais découvert » : hier, Rose et Théo ont chacun reçu leur défi. Théo a validé le sien ; Rose n'a jamais ouvert le sien.
+-- Sa mission est encore en cours, minuit passé : le premier chargement de Rose la fait expirer (rattrapage), elle perd 1 PV et lit D1. Théo ne voit rien.
+-- La veille est celle du rechargement (CURDATE() - 1) : D1 se montre le jour même, à toute heure, tant que Rose ne s'est pas connectée.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (10, '2026-10-10 18:00:00', '2026-10-10 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (116, 'rose', 'Rose', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 1, '2026-10-10 17:50:00'),
+  (117, 'theo', 'Théo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 1, '2026-10-10 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (10, 116, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:00:00')),
+  (10, 117, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:05:00'));
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES
+  (7, 10, 116, 117, CURDATE() - INTERVAL 1 DAY),
+  (8, 10, 117, 116, CURDATE() - INTERVAL 1 DAY);
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (7, 1), (7, 2), (7, 3), (8, 4), (8, 5), (8, 6);
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
+  (10, 7, 1, 116, 117, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:00:00'), CONCAT(CURDATE(), ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 18:00:00')),
+  (10, 8, 6, 117, 116, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), NULL, CONCAT(CURDATE(), ' 00:00:00'), 'en_cours', NULL);
