@@ -58,4 +58,8 @@ if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
     echo "Base de test du worktree : $base"
 fi
 
-exec "${lancer[@]}" "$@"
+# 5. Les tests vident la base : elle est rechargée ensuite, pour que le jeu de démonstration reste servi (§ 6.3).
+"${lancer[@]}" "$@"
+statut=$?
+php sql/reinitialiser.php > /dev/null || echo "ÉCHEC : base non rechargée après les tests (php sql/reinitialiser.php)." >&2
+exit "$statut"

@@ -30,4 +30,4 @@ Notes des implémenteurs des tickets #70, #71, #72 et de la revue, remises à jo
 - Une course se teste avec un dépôt anonyme dont la première lecture rend null (`TirageServiceTest`, comme `AppairageServiceTest`).
 - Le test de course voit ses propres propositions comme « non retenues récentes » : d'où le repli sur toute la bibliothèque.
 - `scripts/verifier.sh` refuse `new DateTimeImmutable(` hors de `index.php` : passer par `$maintenant`, `enHeureDeParis` ou `createFromFormat`.
-- Essai HTTP d'un worktree : `quest-love.local` sert le dossier principal. Lancer `php -S localhost:8765 -t app/public` dans le worktree, après `php sql/reinitialiser.php`. Le jeton CSRF se lit sur `?ecran=connexion` (les pages sans formulaire n'en ont pas) ; après une modification de `config.php`, attendre 2 s (`opcache.revalidate_freq`).
+- Essai HTTP d'un worktree : `docs/agents/verifier-un-ecran.md`.
