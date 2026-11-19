@@ -13,5 +13,5 @@ Les couches MVC (ADR-0001) et les règles de commentaires (doc technique § 2.4,
 
 - Skill : `.claude/skills/graphify/SKILL.md`, déclenché par `/graphify`.
 - Le graphe se construit uniquement par `graphify extract . --code-only`. Jamais `/graphify .` sans `--code-only` : son extraction sémantique envoie la doc à un LLM.
-- Avant de fouiller le code, lancer `graphify query "<question>"`. Un worktree neuf n'a pas de `graphify-out/` : le construire d'abord par `graphify extract . --code-only` (local, environ 50 s).
+- Avant de fouiller le code, lancer `graphify query "<question>"`. Un worktree neuf n'a pas de `graphify-out/` : `bash scripts/tester.sh` le copie du dossier principal (à lancer d'abord, il prépare aussi `config.php` et la base).
 - Après une modification du code, `graphify update .` (analyse locale, aucun appel à un LLM). `graphify-out/` n'est jamais versionné.

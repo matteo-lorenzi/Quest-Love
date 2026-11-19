@@ -36,7 +36,8 @@ Notes des implémenteurs des tickets de la spec #59, sur la branche d'intégrati
 ## Revue de la spec #59
 
 - Verrou : `JoueurDepot::verrouillerAvecPartenaire(id)` lit le partenaire sans verrou, verrouille les deux lignes triées en une requête, puis rend `null` si un `duo_id` a changé entre-temps. `RattrapageService::rattraper` abandonne alors (`[]`, la requête suivante rejoue) et `AppairageService::dissoudre` rend faux. À réutiliser pour toute opération qui verrouille le duo (expiration #61, validation) : ne jamais verrouiller le joueur seul puis les deux.
-- `AppairageService::terminerOnboarding` garde l'ancien schéma (joueur seul, puis les deux) : même risque d'interblocage, hors du périmètre de la revue.
+- `AppairageService::terminerOnboarding` passe aussi par `verrouillerAvecPartenaire` (#88). `scripts/verifier.sh` refuse désormais un joueur verrouillé seul dans un service.
+- Démonstration : elle passe par le code réel. Un état difficile à obtenir s'obtient par l'heure (`HORLOGE_DECALAGE`) ou par des lignes que le rattrapage fera évoluer, jamais par une branche du modèle écrite pour les données de démonstration (constat de la revue, duo 8).
 - Aucun test de l'interblocage ni du duo changé : il faudrait deux connexions concurrentes.
 
 ## Pièges

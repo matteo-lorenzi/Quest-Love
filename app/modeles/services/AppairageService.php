@@ -191,22 +191,17 @@ class AppairageService
     }
 
     // B2 — « Passer » et le bouton du dernier écran. Idempotent (deux appareils) : le second appel ne change rien, donc ne déplace pas l'activation.
-    // Transaction sous verrou des deux joueurs, comme la formation : deux joueurs qui finissent en même temps ne s'ignorent pas.
-    // Le partenaire est lu APRÈS le verrou du joueur, sur sa ligne fraîche : un duo dissous ou refait entre-temps ne trompe pas l'activation.
+    // Transaction sous verrou des deux joueurs, pris en une fois (comme la dissolution) : deux joueurs qui finissent en même temps ne s'ignorent pas
+    // et ne s'interbloquent pas. Duo changé entre la lecture et le verrou : rien n'est écrit, le joueur reste sur B2 et recommence.
     public function terminerOnboarding(Joueur $joueur, DateTimeImmutable $maintenant): void
     {
         $this->pdo->beginTransaction();
         try {
-            $frais = $this->joueurs->verrouiller([$joueur->id])[$joueur->id] ?? null;
+            [$frais, $partenaireFrais] = $this->joueurs->verrouillerAvecPartenaire($joueur->id) ?? [null, null];
             if ($frais?->duoId !== null && !$frais->onboardingVu) {
-                $partenaire = $this->joueurs->trouverPartenaire($frais);
-                // Les deux lignes, dans l'ordre des numéros. Le joueur est déjà verrouillé : le second verrou n'attend que le partenaire.
-                // Un interblocage reste possible si les deux finissent à la même milliseconde : InnoDB en annule un, le joueur recommence.
-                $verrouilles = $this->joueurs->verrouiller(array_filter([$joueur->id, $partenaire?->id]));
                 $this->joueurs->marquerOnboardingVu($joueur->id);
-                $partenaireFrais = $partenaire === null ? null : ($verrouilles[$partenaire->id] ?? null);
-                // N'active que si le partenaire est toujours du même duo et a fini.
-                if ($partenaireFrais?->duoId === $frais->duoId && $partenaireFrais->onboardingVu) {
+                // N'active que si le partenaire, du même duo par construction du verrou, a fini.
+                if ($partenaireFrais?->onboardingVu) {
                     $this->duos->activer($frais->duoId, $maintenant);
                 }
             }
