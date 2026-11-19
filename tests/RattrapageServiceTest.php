@@ -365,4 +365,47 @@ class RattrapageServiceTest extends TestCase
         $this->assertSame(StatutMission::Expire, $this->mission($pourMia)->statut);
         $this->assertSame(4, $this->pv($mia));
     }
+
+    // D5, spec #61 récit 4 : Mia, à 1 PV, laisse expirer son défi ; elle tombe à 0 et remonte aussitôt à la valeur de départ (F2), D5 empilé après D1.
+    // D5 ne s'affiche qu'une fois : le rattrapage suivant n'empile rien.
+    public function testUnJoueurAUnPvQuiTombeAZeroRemonteACinqAvecD1PuisD5(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        (new JoueurDepot($this->pdo))->changerPv($mia->id, 1);
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:00:00'));
+
+        $this->assertSame([Evenement::DefiExpireJamaisDecouvert, Evenement::PassageAZero], $evenements);
+        $this->assertSame(5, $this->pv($mia));
+        $this->assertSame([], $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:01:00')));
+        $this->assertSame(5, $this->pv($mia));
+    }
+
+    // Spec #61 récit 8 : à 1 PV avec deux jours manqués, la première expiration passe par 0 et remonte à 5, la seconde retire 1 PV ; D5 suit le D1 qui l'a causé.
+    public function testDeuxExpirationsAUnPvPassentParZeroSansDescendreDessous(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        $this->defisRevelesLe($lou, $mia, '2026-10-21');
+        (new JoueurDepot($this->pdo))->changerPv($mia->id, 1);
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-22 09:00:00'));
+
+        $this->assertSame([Evenement::DefiExpireJamaisDecouvert, Evenement::PassageAZero, Evenement::DefiExpireJamaisDecouvert], $evenements);
+        $this->assertSame(4, $this->pv($mia));
+    }
+
+    // Spec #61 récit 8, plancher : un capital déjà à 0 (état que le jeu ne laisse pas, posé à la main) ne descend pas sous 0 ; il remonte à 5 avec D5.
+    public function testUnCapitalANulNeDescendPasSousZero(): void
+    {
+        [$lou, $mia] = $this->duoForme();
+        $this->defisRevelesLe($lou, $mia, '2026-10-20');
+        (new JoueurDepot($this->pdo))->changerPv($mia->id, 0);
+
+        $evenements = $this->rattrapage->rattraper($mia, new DateTimeImmutable('2026-10-21 08:00:00'));
+
+        $this->assertSame([Evenement::DefiExpireJamaisDecouvert, Evenement::PassageAZero], $evenements);
+        $this->assertSame(5, $this->pv($mia));
+    }
 }

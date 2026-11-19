@@ -40,6 +40,13 @@ class EvenementControleur
                 'accueil',
                 '[TEXTE À RÉDIGER : revenir à l\'accueil]',
             ],
+            // D5 : toujours après le D1 qui l'a causé ; le capital est déjà revenu à Joueur::PV_DEPART.
+            Evenement::PassageAZero => [
+                'Plus de points de vie',
+                '[TEXTE À RÉDIGER : tu es tombé à 0 PV ; ton compteur repart à 5]',
+                'accueil',
+                '[TEXTE À RÉDIGER : revenir à l\'accueil]',
+            ],
         };
         Vue::rendre('d-evenement', $titre, [
             'texte' => $texte,

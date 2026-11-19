@@ -1,5 +1,5 @@
 <?php
-// Service des missions — C3 Défi reçu — parcours 2 (journée de jeu) — lot 1 — B. Découverte, validation, et expiration (D1) pour le rattrapage (doc technique § 3.4) ; révélation et annulation sont au rattrapage.
+// Service des missions — C3 Défi reçu — parcours 2 (journée de jeu) — lot 1 — B. Découverte, validation, et expiration (D1, D5) pour le rattrapage (doc technique § 3.4) ; révélation et annulation sont au rattrapage.
 
 class MissionService
 {
@@ -51,15 +51,20 @@ class MissionService
 
     // Expiration (cadrage § 4.3) : une mission en cours dont minuit est passé passe expirée et son destinataire perd des PV.
     // Appelée par le rattrapage seulement, dans sa transaction, sur une mission relue sous le verrou du duo (celui de valider) : le statut contrôlé ici est frais,
-    // donc deux rattrapages concurrents ne retirent qu'un PV et une validation concurrente ne se fait pas expirer. Faux si rien n'a été écrit.
-    public function expirer(Mission $mission, DateTimeImmutable $maintenant): bool
+    // donc deux rattrapages concurrents ne retirent qu'un PV et une validation concurrente ne se fait pas expirer.
+    // Rend les événements à empiler : D1 (variante « jamais découvert » si date_decouverte est nulle), puis D5 si le capital est passé à zéro ; rien si rien n'a été écrit.
+    /** @return Evenement[] */
+    public function expirer(Mission $mission, DateTimeImmutable $maintenant): array
     {
         if ($mission->statut !== StatutMission::EnCours || $maintenant < $mission->dateLimite) {
-            return false;
+            return [];
         }
         $this->missions->changerStatut($mission->id, StatutMission::Expire);
-        $this->pointsDeVie->perdre($mission->destinataireId);
-        return true;
+        $evenements = [$mission->dateDecouverte === null ? Evenement::DefiExpireJamaisDecouvert : Evenement::DefiExpire];
+        if ($this->pointsDeVie->perdre($mission->destinataireId)) {
+            $evenements[] = Evenement::PassageAZero;
+        }
+        return $evenements;
     }
 
     // Le duo du joueur borne la lecture : seules les missions du jour de son duo, dont il est le destinataire.

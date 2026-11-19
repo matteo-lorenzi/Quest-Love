@@ -1,5 +1,5 @@
 <?php
-// Service de rattrapage paresseux — tous écrans connectés, D1, D3, C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — lot 1 — B. Rejoue ce qui aurait dû se produire depuis la dernière visite (doc technique § 3.2).
+// Service de rattrapage paresseux — tous écrans connectés, D1, D3, D5, C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — lot 1 — B. Rejoue ce qui aurait dû se produire depuis la dernière visite (doc technique § 3.2).
 
 class RattrapageService
 {
@@ -73,15 +73,13 @@ class RattrapageService
     }
 
     // Expiration (doc technique § 3.4), dans l'ordre chronologique : seules les missions reçues par le joueur qui charge la page,
-    // parce que D1 va dans sa file de session ; celles de son partenaire expireront à son propre rattrapage. Un D1 par mission expirée.
+    // parce que D1 va dans sa file de session ; celles de son partenaire expireront à son propre rattrapage. Un D1 par mission expirée, suivi de D5 s'il a fait passer à zéro.
     /** @return Evenement[] */
     private function expirer(Joueur $joueur, DateTimeImmutable $maintenant): array
     {
         $evenements = [];
         foreach ($this->echues($joueur->id, $maintenant) as $mission) {
-            if ($this->missionService->expirer($mission, $maintenant)) {
-                $evenements[] = $mission->dateDecouverte === null ? Evenement::DefiExpireJamaisDecouvert : Evenement::DefiExpire;
-            }
+            array_push($evenements, ...$this->missionService->expirer($mission, $maintenant));
         }
         return $evenements;
     }

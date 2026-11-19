@@ -116,13 +116,13 @@ INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, d
   (9, 5, 2, 114, 115, CONCAT(CURDATE(), ' 07:20:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:35:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE(), ' 07:50:00')),
   (9, 6, 4, 115, 114, CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:40:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'en_cours', NULL);
 
--- Un dixième duo pour D1, variante « jamais découvert » : hier, Rose et Théo ont chacun reçu leur défi. Théo a validé le sien ; Rose n'a jamais ouvert le sien.
--- Sa mission est encore en cours, minuit passé : le premier chargement de Rose la fait expirer (rattrapage), elle perd 1 PV et lit D1. Théo ne voit rien.
+-- Un dixième duo pour D1, variante « jamais découvert », et D5 : hier, Rose et Théo ont chacun reçu leur défi. Théo a validé le sien ; Rose n'a jamais ouvert le sien.
+-- Sa mission est encore en cours, minuit passé, et Rose n'a plus qu'1 PV : son premier chargement la fait expirer (rattrapage), elle tombe à 0 et remonte à 5 ; elle lit D1 puis D5. Théo ne voit rien.
 -- La veille est celle du rechargement (CURDATE() - 1) : D1 se montre le jour même, à toute heure, tant que Rose ne s'est pas connectée.
 INSERT INTO duo (id, date_creation, date_activation) VALUES (10, '2026-10-10 18:00:00', '2026-10-10 18:05:00');
-INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
-  (116, 'rose', 'Rose', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 1, '2026-10-10 17:50:00'),
-  (117, 'theo', 'Théo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 1, '2026-10-10 17:55:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, pv, onboarding_vu, date_creation) VALUES
+  (116, 'rose', 'Rose', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 1, 1, '2026-10-10 17:50:00'),
+  (117, 'theo', 'Théo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 10, 5, 1, '2026-10-10 17:55:00');
 INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
   (10, 116, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:00:00')),
   (10, 117, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:05:00'));

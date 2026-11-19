@@ -345,8 +345,8 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] `JourneeService` — bornes, participation
 - [ ] `TirageService` — tirage persistant, choix
 - [x] `MissionService` — découverte, validation, expiration _(découverte et validation livrées avec #76, expiration avec #78)_
-- [x] `PointsDeVieService` — pertes et plancher _(passage à zéro et D5 avec #79)_
-- [ ] `RattrapageService` — calculs paresseux (révélation, annulation, expiration) et file d'événements _(D3, révélation, annulation et expiration avec D1 livrés ; D5 avec #79)_
+- [x] `PointsDeVieService` — pertes, plancher et passage à zéro _(passage à zéro et D5 livrés avec #79)_
+- [x] `RattrapageService` — calculs paresseux (révélation, annulation, expiration) et file d'événements _(D3, révélation, annulation, expiration avec D1, et D5 avec #79)_
 - [ ] `vues/composants/socle-c1.php` — colonnes _(A)_, zone d'action _(B)_ _(états 1 à 6, variante « défi réalisé », journées blanches et premier jour demain livrés ; après expiration avec #61)_
 - [ ] `vues/composants/carte-defi.php`, `panneau-confirmation.php` _(en cours : `panneau-confirmation.php`)_
 - [ ] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(états 1 à 6, variante « défi réalisé », journées blanches et premier jour demain livrés ; après expiration avec #61)_
@@ -356,7 +356,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 **Événements et erreurs** _(B, sauf D3)_
 
 - [ ] `vues/composants/bloc-evenement.php`
-- [ ] D1, D3, D5 `EvenementControleur` _(D3 et D1 livrés ; D5 avec #79)_
+- [x] D1, D3, D5 `EvenementControleur` _(D5 livré avec #79)_
 - [ ] G1 `ErreurControleur` — page introuvable et erreur serveur _(en cours : version minimale pour le routeur)_
 
 **Exploitation** _(commun)_
