@@ -184,7 +184,7 @@ class TirageServiceTest extends TestCase
         if ($retenu !== null) {
             $missions = new MissionDepot($this->pdo);
             $mission = $missions->ajouter($tirages->trouverParEmetteurEtJour($emetteur->id, $jour), $retenu, $jour, $jour->modify('tomorrow'));
-            $missions->reveler($mission, $jour);
+            $missions->reveler($mission, $jour, $jour->modify('tomorrow'));
         }
     }
 

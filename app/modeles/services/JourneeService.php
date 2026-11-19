@@ -73,8 +73,14 @@ class JourneeService
             return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
-            // Le joueur a choisi le défi de son partenaire dès qu'une mission du jour l'a pour émetteur.
-            foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $mission) {
+            // État 5 dès que la mission reçue est révélée (par le rattrapage) ; sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
+            $missions = $this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant));
+            foreach ($missions as $mission) {
+                if ($mission->destinataireId === $joueur->id && $mission->dateRevelation !== null) {
+                    return EtatAccueil::DefiRevele;
+                }
+            }
+            foreach ($missions as $mission) {
                 if ($mission->emetteurId === $joueur->id) {
                     return EtatAccueil::DefiEnvoye;
                 }

@@ -45,7 +45,7 @@ class Routeur
         // Il passe avant toute sortie, pour qu'une redirection reste possible.
         // Les événements qu'il rend s'ajoutent à la file de session, en valeurs d'énumération : la session ne porte jamais l'état de jeu (§ 3.6).
         if ($connecte) {
-            $evenements = (new RattrapageService($pdo, new JoueurDepot($pdo)))->rattraper(self::joueurConnecte($pdo), $maintenant);
+            $evenements = RattrapageService::construire($pdo)->rattraper(self::joueurConnecte($pdo), $maintenant);
             foreach ($evenements as $evenement) {
                 $_SESSION['evenements'][] = $evenement->value;
             }

@@ -4,16 +4,28 @@
 class RattrapageService
 {
     // Le service reçoit la connexion : le rattrapage est une transaction, et les transactions vivent dans les services (ADR-0001).
-    public function __construct(private PDO $pdo, private JoueurDepot $joueurs) {}
+    public function __construct(private PDO $pdo, private JoueurDepot $joueurs, private MissionDepot $missions, private JourneeService $journee) {}
+
+    // Le routeur et les tests construisent le service de la même façon, comme AppairageService.
+    public static function construire(PDO $pdo): self
+    {
+        $missions = new MissionDepot($pdo);
+        return new self($pdo, new JoueurDepot($pdo), $missions, new JourneeService(new ParticipationDepot($pdo), new DuoDepot($pdo), $missions));
+    }
 
     // Appelé par le routeur une fois par requête, avant toute sortie. Rend les événements à montrer, dans l'ordre de la file :
     // duo dissous, expiration, passage à zéro (§ 3.2). Le routeur les range en session : le service ne touche pas à la session.
     // Une transaction qui verrouille les deux lignes joueur du duo : deux appareils qui chargent en même temps ne rejouent rien deux fois.
-    // Sans rien à rejouer, deux lectures par clé primaire : la page n'est pas ralentie.
-    // TODO(simplif): seul D3 est rejoué, expiration, révélation et annulation arrivent avec leurs tickets (spec #59, #61).
+    // Sans rien à rejouer (ni marqueur, ni mission non révélée pour ce joueur), une lecture indexée et aucun verrou : la page n'est pas ralentie (spec #59, récit 9).
+    // TODO(simplif): D3 et la révélation sont rejoués ; expiration et annulation à 12 h arrivent avec leurs tickets (spec #59, #61), et élargiront la sortie rapide.
     /** @return Evenement[] */
     public function rattraper(Joueur $joueur, DateTimeImmutable $maintenant): array
     {
+        // Sortie rapide hors verrou : $joueur vient d'être relu par le routeur. Un marqueur posé entre-temps sera vu à la requête suivante.
+        // La révélation exige une mission non révélée destinée à ce joueur : sans elle, rien à révéler.
+        if (!$joueur->dissolutionASignaler && $this->missions->trouverParDestinataireEtStatut($joueur->id, StatutMission::AttribueNonRevele) === []) {
+            return [];
+        }
         $evenements = [];
         $this->pdo->beginTransaction();
         try {
@@ -27,6 +39,9 @@ class RattrapageService
                     $this->joueurs->effacerDissolutionASignaler($frais->id);
                     $evenements[] = Evenement::DuoDissous;
                 }
+                if ($partenaire !== null) {
+                    $this->reveler($frais, $partenaire, $maintenant);
+                }
             }
             $this->pdo->commit();
         } catch (Throwable $erreur) {
@@ -34,5 +49,24 @@ class RattrapageService
             throw $erreur;
         }
         return $evenements;
+    }
+
+    // Révélation (doc technique § 3.4) : dès que les deux ont choisi pour la même journée, les deux missions passent en cours, sans repli à 12 h.
+    // Relue sous verrou : un second rattrapage ne trouve plus de mission non révélée et ne révèle rien.
+    // La date limite est le minuit qui suit le choix, par le calendrier : une révélation rattrapée le lendemain ne prolonge pas le défi.
+    private function reveler(Joueur $joueur, Joueur $partenaire, DateTimeImmutable $maintenant): void
+    {
+        $pourLePartenaire = [];
+        foreach ($this->missions->trouverParDestinataireEtStatut($partenaire->id, StatutMission::AttribueNonRevele) as $mission) {
+            $pourLePartenaire[$this->journee->journee($mission->dateAttribution)] = $mission;
+        }
+        foreach ($this->missions->trouverParDestinataireEtStatut($joueur->id, StatutMission::AttribueNonRevele) as $mission) {
+            $autre = $pourLePartenaire[$this->journee->journee($mission->dateAttribution)] ?? null;
+            if ($autre !== null) {
+                $minuit = $this->journee->minuitSuivant($mission->dateAttribution);
+                $this->missions->reveler($mission->id, $maintenant, $minuit);
+                $this->missions->reveler($autre->id, $maintenant, $minuit);
+            }
+        }
     }
 }

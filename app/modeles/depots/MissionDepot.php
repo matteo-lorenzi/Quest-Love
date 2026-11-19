@@ -65,10 +65,11 @@ class MissionDepot
     }
 
     // Écritures simples : le service vérifie la transition (modèle de données § 3) sous transaction avec verrou (#59).
-    public function reveler(int $id, DateTimeImmutable $maintenant): void
+    // La date limite est recalculée à la révélation : c'est elle qui ouvre le délai jusqu'à minuit.
+    public function reveler(int $id, DateTimeImmutable $maintenant, DateTimeImmutable $dateLimite): void
     {
-        $this->pdo->prepare('UPDATE mission SET statut = ?, date_revelation = ? WHERE id = ?')
-            ->execute([StatutMission::EnCours->value, $maintenant->format('Y-m-d H:i:s'), $id]);
+        $this->pdo->prepare('UPDATE mission SET statut = ?, date_revelation = ?, date_limite = ? WHERE id = ?')
+            ->execute([StatutMission::EnCours->value, $maintenant->format('Y-m-d H:i:s'), $dateLimite->format('Y-m-d H:i:s'), $id]);
     }
 
     // Seule la première consultation compte : une découverte déjà posée n'est jamais déplacée.

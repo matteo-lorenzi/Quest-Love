@@ -66,3 +66,20 @@ INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES 
 INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (1, 1), (1, 2), (1, 3);
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
   (6, 1, 2, 108, 109, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele');
+
+-- Un septième duo pour C1 état 5 : Lina et Sam ont chacun choisi le défi de l'autre, missions non révélées.
+-- Le premier chargement de l'un ou l'autre les révèle (rattrapage) : les deux lisent « un défi t'attend ». Même limite que l'état 2 (CURDATE()).
+INSERT INTO duo (id, date_creation, date_activation) VALUES (7, '2026-10-07 18:00:00', '2026-10-07 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (110, 'lina', 'Lina', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 7, 1, '2026-10-07 17:50:00'),
+  (111, 'sam', 'Sam', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 7, 1, '2026-10-07 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (7, 110, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:00:00')),
+  (7, 111, CURDATE(), 'oui', CONCAT(CURDATE(), ' 08:05:00'));
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES
+  (2, 7, 110, 111, CURDATE()),
+  (3, 7, 111, 110, CURDATE());
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (2, 1), (2, 2), (2, 3), (3, 4), (3, 5), (3, 6);
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
+  (7, 2, 1, 110, 111, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele'),
+  (7, 3, 5, 111, 110, CONCAT(CURDATE(), ' 08:30:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele');

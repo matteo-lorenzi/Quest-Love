@@ -9,6 +9,7 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
     EtatAccueil::AttentePartenaire => ['Oui', 'Pas encore répondu', 'En attente de ' . $nomPartenaire],
     EtatAccueil::ATirer => ['Oui', 'Oui', 'À toi de piocher'],
     EtatAccueil::DefiEnvoye => ['Défi envoyé', 'Oui', 'En attente de révélation'],
+    EtatAccueil::DefiRevele => ['Défi envoyé', 'Défi envoyé', 'Un défi t\'attend'],
     EtatAccueil::JourneeBlanche => ['', '', 'Journée blanche'],
     EtatAccueil::PremierJourDemain => ['', '', 'Premier jour de jeu demain'],
 };
@@ -37,6 +38,9 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
             <a class="bouton" href="index.php?ecran=tirage">Piocher le défi de <?= e($nomPartenaire) ?></a>
         <?php elseif ($etat === EtatAccueil::DefiEnvoye): ?>
             <p>Défi envoyé à <?= e($nomPartenaire) ?>. Ta mission sera révélée dès que <?= e($nomPartenaire) ?> aura pioché la tienne.</p>
+        <?php elseif ($etat === EtatAccueil::DefiRevele): ?>
+            <?php // Annonce seulement : le défi n'est dévoilé, et la découverte posée, que sur C3 (doc technique § 3.4). ?>
+            <p>Vous avez tous les deux choisi : <?= e($nomPartenaire) ?> t'a lancé un défi, à relever avant minuit.</p>
         <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
             <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
         <?php elseif ($etat === EtatAccueil::PremierJourDemain): ?>
