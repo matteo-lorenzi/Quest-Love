@@ -93,6 +93,12 @@ class JoueurDepot
         $this->pdo->prepare('UPDATE joueur SET dissolution_a_signaler = 1 WHERE id = ?')->execute([$id]);
     }
 
+    // D3 a été déposé dans la file : le marqueur retombe, dans la transaction du rattrapage.
+    public function effacerDissolutionASignaler(int $id): void
+    {
+        $this->pdo->prepare('UPDATE joueur SET dissolution_a_signaler = 0 WHERE id = ?')->execute([$id]);
+    }
+
     public function marquerOnboardingVu(int $id): void
     {
         $this->pdo->prepare('UPDATE joueur SET onboarding_vu = 1 WHERE id = ?')->execute([$id]);

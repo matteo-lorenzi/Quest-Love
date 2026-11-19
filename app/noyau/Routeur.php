@@ -18,6 +18,8 @@ class Routeur
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
         'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
         'tirage' => ['TirageControleur', 'afficher', 'choisir', NiveauAcces::Jeu],
+        // Accès Connecté, hors verrou du jeu : D3 s'adresse à un joueur que la dissolution a laissé sans duo (§ 3.6).
+        'evenement' => ['EvenementControleur', 'afficher', null, NiveauAcces::Connecte],
         'erreur' => ['ErreurControleur', 'afficher', null, NiveauAcces::Public],
     ];
 
@@ -41,7 +43,13 @@ class Routeur
         // Étape 3 — rattrapage.
         // Pour un joueur connecté, RattrapageService rejoue les échéances manquées depuis sa dernière visite.
         // Il passe avant toute sortie, pour qu'une redirection reste possible.
-        // TODO(simplif): rattrapage vide, à brancher quand RattrapageService existe (lot 1, périmètre B).
+        // Les événements qu'il rend s'ajoutent à la file de session, en valeurs d'énumération : la session ne porte jamais l'état de jeu (§ 3.6).
+        if ($connecte) {
+            $evenements = (new RattrapageService($pdo, new JoueurDepot($pdo)))->rattraper(self::joueurConnecte($pdo), $maintenant);
+            foreach ($evenements as $evenement) {
+                $_SESSION['evenements'][] = $evenement->value;
+            }
+        }
 
         // Étape 4 — file d'événements.
         // Tant que le rattrapage a laissé des événements à montrer, tout écran cède la place à l'écran evenement.
