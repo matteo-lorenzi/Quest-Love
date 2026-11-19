@@ -6,6 +6,7 @@
 > Statut : ✅ zoné · ⬜ à zoner. Lot 2 : zones en pointillés sur les cadres du lot 1, écrans dédiés en bande 05.
 > Nommage des cadres : `ID · Écran — état` ; cas particuliers « cas : … » ; précisions en pastille sous le titre.
 > Une variante ou un dialogue standard n'a plus systématiquement son propre cadre : elle est documentée en note sous le cadre concerné quand le zonage ne change pas.
+> Navigation : un écran « sans navigation » n'a pas de barre basse ; un lien de retour reste permis. La barre gagne un onglet quand la page correspondante existe.
 
 ## Bande 01 — Arrivée et appairage (périmètre A)
 
