@@ -6,7 +6,6 @@ class Routeur
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : un NiveauAcces (Public, Connecte, Duo, ou Jeu : en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
-    // Le défi reçu y entrera avec l'accès Jeu (§ 3.6), comme l'accueil et le tirage ; le verrou est en place à l'étape 5.
     private const ECRANS = [
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
@@ -18,6 +17,7 @@ class Routeur
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
         'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
         'tirage' => ['TirageControleur', 'afficher', 'choisir', NiveauAcces::Jeu],
+        'defi-recu' => ['DefiRecuControleur', 'afficher', 'valider', NiveauAcces::Jeu],
         // Accès Connecté, hors verrou du jeu : D3 s'adresse à un joueur que la dissolution a laissé sans duo (§ 3.6).
         'evenement' => ['EvenementControleur', 'afficher', null, NiveauAcces::Connecte],
         'erreur' => ['ErreurControleur', 'afficher', null, NiveauAcces::Public],

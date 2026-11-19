@@ -44,6 +44,7 @@ class AccueilControleur
             'etat' => $etat,
             'pseudo' => $joueur->pseudo,
             'partenaire' => AppairageService::construire($this->pdo)->pseudoPartenaire($joueur),
+            'defiEnvoye' => $this->journee->statutDefiEnvoye($joueur, $this->maintenant),
             // Le panneau « pas aujourd'hui » s'ouvre par un lien, sans JavaScript (la CSP n'en permet aucun), et seulement tant que la question se pose.
             'confirmerNon' => $etat === EtatAccueil::Question && ($_GET['confirmer'] ?? null) === 'non',
             'message' => $message,

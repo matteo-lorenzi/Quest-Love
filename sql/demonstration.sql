@@ -98,3 +98,20 @@ INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES 
 INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (4, 1), (4, 2), (4, 3);
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_limite, statut) VALUES
   (8, 4, 3, 112, 113, CONCAT(CURDATE(), ' 08:20:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'attribue_non_revele');
+
+-- Un neuvième duo pour C3 et C1 état 6 : Iris et Yann ont chacun reçu leur défi (missions révélées). Yann a déjà déclaré le sien réalisé : C3 montre « réalisé », C1 la variante de l'état 6.
+-- Iris a déjà ouvert son défi, encore en cours : C1 état 6, où elle lit que Yann a relevé le défi qu'elle lui a envoyé ; elle peut valider le sien sur C3. Même limite que l'état 2 (CURDATE()).
+INSERT INTO duo (id, date_creation, date_activation) VALUES (9, '2026-10-09 18:00:00', '2026-10-09 18:05:00');
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (114, 'iris', 'Iris', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 9, 1, '2026-10-09 17:50:00'),
+  (115, 'yann', 'Yann', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 9, 1, '2026-10-09 17:55:00');
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (9, 114, CURDATE(), 'oui', CONCAT(CURDATE(), ' 07:00:00')),
+  (9, 115, CURDATE(), 'oui', CONCAT(CURDATE(), ' 07:05:00'));
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES
+  (5, 9, 114, 115, CURDATE()),
+  (6, 9, 115, 114, CURDATE());
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (5, 1), (5, 2), (5, 3), (6, 4), (6, 5), (6, 6);
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
+  (9, 5, 2, 114, 115, CONCAT(CURDATE(), ' 07:20:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:35:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE(), ' 07:50:00')),
+  (9, 6, 4, 115, 114, CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:30:00'), CONCAT(CURDATE(), ' 07:40:00'), CONCAT(CURDATE() + INTERVAL 1 DAY, ' 00:00:00'), 'en_cours', NULL);
