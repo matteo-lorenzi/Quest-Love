@@ -81,8 +81,7 @@ class JourneeService
                 }
             }
             // Sans révélation à 12 h, l'un des deux n'a pas choisi : journée blanche pour les deux, même pour celui qui avait choisi.
-            // Une mission annulée suffit aussi : c'est la trace écrite par le rattrapage (et par le jeu de démonstration).
-            if (!$this->avantBascule($maintenant) || array_filter($missions, fn (Mission $mission) => $mission->statut === StatutMission::Annule) !== []) {
+            if (!$this->avantBascule($maintenant)) {
                 return EtatAccueil::JourneeBlancheSansChoix;
             }
             foreach ($missions as $mission) {

@@ -73,6 +73,23 @@ class JoueurDepot
         return $joueurs;
     }
 
+    // Le joueur et son partenaire, verrouillés ensemble dans l'ordre des numéros : verrouiller le joueur seul puis les deux
+    // interbloquerait deux joueurs du duo qui le font en même temps (MySQL 1213). Le partenaire est donc lu d'abord sans verrou, puis relu sous verrou.
+    // Null si le duo a changé entre les deux lectures (dissolution ou formation à la même milliseconde) : l'appelant abandonne, rien n'est écrit.
+    /** @return array{0: ?Joueur, 1: ?Joueur}|null le joueur et son partenaire frais, null pour l'un ou l'autre s'il n'existe pas */
+    public function verrouillerAvecPartenaire(int $id): ?array
+    {
+        $lu = $this->trouverParId($id);
+        $partenaire = $lu?->duoId === null ? null : $this->trouverPartenaire($lu);
+        $verrouilles = $this->verrouiller(array_filter([$id, $partenaire?->id]));
+        $frais = $verrouilles[$id] ?? null;
+        $partenaireFrais = $partenaire === null ? null : ($verrouilles[$partenaire->id] ?? null);
+        if ($frais?->duoId !== $lu?->duoId || $partenaireFrais?->duoId !== $partenaire?->duoId) {
+            return null;
+        }
+        return [$frais, $partenaireFrais];
+    }
+
     // Le code ne sert qu'une fois : il disparaît avec le rattachement, et l'onboarding est à refaire avec ce duo.
     public function rattacherAuDuo(int $id, int $duoId): void
     {

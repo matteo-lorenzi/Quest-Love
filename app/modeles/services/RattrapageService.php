@@ -1,5 +1,5 @@
 <?php
-// Service de rattrapage paresseux — tous écrans connectés, D3 — lot 1 — B. Rejoue ce qui aurait dû se produire depuis la dernière visite (doc technique § 3.2).
+// Service de rattrapage paresseux — tous écrans connectés, D3, C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — lot 1 — B. Rejoue ce qui aurait dû se produire depuis la dernière visite (doc technique § 3.2).
 
 class RattrapageService
 {
@@ -29,11 +29,9 @@ class RattrapageService
         $evenements = [];
         $this->pdo->beginTransaction();
         try {
-            // Même ordre de verrou que la dissolution : le joueur seul, puis les deux, décision prise sur les lignes fraîches.
-            $frais = $this->joueurs->verrouiller([$joueur->id])[$joueur->id] ?? null;
+            // Les deux lignes verrouillées en une fois, décision prise sur les lignes fraîches. Duo changé entre-temps : rien n'est rejoué, la requête suivante le fera.
+            [$frais, $partenaire] = $this->joueurs->verrouillerAvecPartenaire($joueur->id) ?? [null, null];
             if ($frais !== null) {
-                $partenaire = $frais->duoId === null ? null : $this->joueurs->trouverPartenaire($frais);
-                $this->joueurs->verrouiller(array_filter([$frais->id, $partenaire?->id]));
                 // D3 : le marqueur est lu puis remis à 0 sous verrou, donc signalé une seule fois.
                 if ($frais->dissolutionASignaler) {
                     $this->joueurs->effacerDissolutionASignaler($frais->id);
