@@ -477,7 +477,7 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 
 - un duo formé, avec quelques jours d'historique ;
 - une mission expirée, `date_decouverte` nulle, pour la variante « jamais découvert » ;
-- une journée blanche par refus et une par choix manquant (mission annulée) ;
+- une journée blanche par refus et une par choix manquant (mission annulée) ; la seconde (duo 8, Jade et Owen) ne se montre qu'après 12 h ou avec `HORLOGE_DECALAGE` (§ 3.8) : avant, Jade lit l'état 4 et Owen l'état 3 ;
 - un joueur à 1 point de vie, pour atteindre D5 en une action ;
 - _(lot 2)_ un gage en attente.
 

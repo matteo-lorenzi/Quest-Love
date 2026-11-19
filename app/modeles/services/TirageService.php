@@ -40,6 +40,13 @@ class TirageService
         return $this->tirages->trouverParEmetteurEtJour($emetteur->id, $jour);
     }
 
+    // Vrai si l'émetteur a choisi aujourd'hui, mission annulée depuis comprise : passé 12 h, C2 distingue ainsi celui qui avait choisi de celui qui n'a pas choisi.
+    public function aChoisi(Joueur $emetteur, DateTimeImmutable $maintenant): bool
+    {
+        $tirage = $this->tirages->trouverParEmetteurEtJour($emetteur->id, $this->journee->enHeureDeParis($maintenant));
+        return $tirage !== null && $this->missions->trouverParTirage($tirage->id) !== null;
+    }
+
     // Réservoir du destinataire (doc technique § 3.3) : les défis qu'il n'a jamais reçus, hors propositions non retenues depuis moins de trois jours.
     /** @return int[] trois numéros de défi distincts */
     private function proposer(int $destinataireId, DateTimeImmutable $jour): array

@@ -123,6 +123,19 @@ class TirageServiceTest extends TestCase
         $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
     }
 
+    // C2 passé 12 h, journée blanche « l'un de vous n'a pas choisi » : seul celui qui avait choisi est reconnu, C2 le renvoie à l'accueil et garde « midi passé » pour l'autre.
+    public function testApresMidiSeulCeluiQuiAvaitChoisiEstReconnu(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $tirage = $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
+        $this->service->choisir($lou, $tirage->defiIds[0], $this->matin->modify('+10 minutes'));
+        $this->service->tirer($mia, $this->matin->modify('+15 minutes'));
+        $midi = new DateTimeImmutable('2026-10-15 12:00:00');
+
+        $this->assertTrue($this->service->aChoisi($lou, $midi));
+        $this->assertFalse($this->service->aChoisi($mia, $midi));
+    }
+
     // C1 état 4 : une fois le choix fait, l'éventail n'est plus montré, même avant 12 h ; C2 renvoie à l'accueil.
     public function testApresLeChoixLEventailNEstPlusMontre(): void
     {

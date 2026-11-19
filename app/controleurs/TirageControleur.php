@@ -3,7 +3,7 @@
 
 class TirageControleur
 {
-    // C2 ouvert passé 12 h sans les deux choix, y compris après un choix refusé : la journée est passée.
+    // C2 ouvert passé 12 h par celui qui n'a pas choisi, y compris après un choix refusé : la journée est passée.
     private const MIDI_PASSE = 'Il est midi passé : le défi de ton partenaire se choisit avant 12 h, ce n\'est plus possible aujourd\'hui.';
 
     private DefiDepot $defis;
@@ -44,12 +44,13 @@ class TirageControleur
         Routeur::rediriger('accueil');
     }
 
-    // Le tirage à montrer, ou null quand la réponse est déjà partie : journée blanche faute de choix, C2 dit en texte que le choix n'est plus possible
-    // (sans renvoi vers l'accueil, qui ramènerait ici) ; hors état 3, retour à l'accueil.
+    // Le tirage à montrer, ou null quand la réponse est déjà partie : journée blanche faute de choix, C2 dit en texte à celui qui n'a pas choisi que le choix
+    // n'est plus possible (sans renvoi vers l'accueil, qui ramènerait ici) ; celui qui avait choisi retourne à l'accueil, dont la journée blanche explique la situation ;
+    // hors état 3, retour à l'accueil.
     private function tirageOuSortie(Joueur $joueur): ?Tirage
     {
         $tirage = $this->tirage->tirer($joueur, $this->maintenant);
-        if ($tirage === EtatAccueil::JourneeBlancheSansChoix) {
+        if ($tirage === EtatAccueil::JourneeBlancheSansChoix && !$this->tirage->aChoisi($joueur, $this->maintenant)) {
             $this->rendre(null, null, self::MIDI_PASSE);
             return null;
         }
