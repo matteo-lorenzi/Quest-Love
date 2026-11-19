@@ -1,5 +1,5 @@
 <?php
-// Tests de MissionService — C3 Défi reçu, découverte et validation — parcours 2 (journée de jeu) — lot 1 — B.
+// Tests de MissionService — C3 Défi reçu, découverte et validation, et C1 état 6 qui en découle — parcours 2 (journée de jeu) — lot 1 — B.
 
 use PHPUnit\Framework\TestCase;
 
@@ -146,6 +146,42 @@ class MissionServiceTest extends TestCase
         $this->service->valider($this->lou, $id, new DateTimeImmutable('2026-10-20 18:00:00'));
 
         $this->assertSame(StatutMission::EnCours, $this->missions->trouverParId($id)->statut);
+    }
+
+    // C1 état 6, parcours journée de jeu : annoncé (état 5), puis en cours une fois découvert sur C3, puis sa variante « réalisé » après la validation.
+    public function testLAccueilPasseALEtat6ALaDecouverteEtASaVarianteALaValidation(): void
+    {
+        $id = $this->missionPour($this->lou, $this->mia);
+        $journee = $this->journeeDesDeuxOui();
+        $decouverte = new DateTimeImmutable('2026-10-20 10:30:00');
+
+        $this->assertSame(EtatAccueil::DefiRevele, $journee->etatAccueil($this->mia, $decouverte));
+        $this->service->decouvrir($this->mia, $decouverte);
+        $this->assertSame(EtatAccueil::DefiEnCours, $journee->etatAccueil($this->mia, $decouverte));
+        $this->service->valider($this->mia, $id, new DateTimeImmutable('2026-10-20 18:00:00'));
+        $this->assertSame(EtatAccueil::DefiRealise, $journee->etatAccueil($this->mia, new DateTimeImmutable('2026-10-20 18:05:00')));
+    }
+
+    // Spec #60 récit 5, C1 état 6 : l'émetteur lit le statut du défi qu'il a envoyé, en cours puis réalisé ; rien avant la révélation.
+    public function testLEmetteurVoitLeStatutDuDefiQuIlAEnvoye(): void
+    {
+        $journee = $this->journeeDesDeuxOui();
+        $id = $this->missionPour($this->lou, $this->mia, false);
+        $this->assertNull($journee->statutDefiEnvoye($this->lou, new DateTimeImmutable('2026-10-20 09:30:00')));
+
+        $this->missions->reveler($id, new DateTimeImmutable('2026-10-20 10:00:00'), new DateTimeImmutable('2026-10-21 00:00:00'));
+        $this->assertSame(StatutMission::EnCours, $journee->statutDefiEnvoye($this->lou, new DateTimeImmutable('2026-10-20 10:30:00')));
+        $this->service->valider($this->mia, $id, new DateTimeImmutable('2026-10-20 18:00:00'));
+        $this->assertSame(StatutMission::Valide, $journee->statutDefiEnvoye($this->lou, new DateTimeImmutable('2026-10-20 18:05:00')));
+    }
+
+    // Les deux joueurs ont dit oui ce matin : l'accueil lit alors les missions du jour.
+    private function journeeDesDeuxOui(): JourneeService
+    {
+        $journee = new JourneeService(new ParticipationDepot($this->pdo), new DuoDepot($this->pdo), $this->missions);
+        $journee->repondre($this->lou, Reponse::Oui, $this->matin);
+        $journee->repondre($this->mia, Reponse::Oui, $this->matin);
+        return $journee;
     }
 
     // Cadrage § 4.1 : le défi se relève avant minuit ; une page restée ouverte ne le valide pas après, même avant le passage de l'expiration.

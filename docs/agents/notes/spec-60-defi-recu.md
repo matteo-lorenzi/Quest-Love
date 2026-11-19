@@ -11,15 +11,19 @@ Notes des implémenteurs des tickets de la spec #60, sur la branche d'intégrati
 - Vue `ecrans/c3-defi-recu.php` : `carte-defi`, puis « en cours » (lien vers la confirmation) ou « réalisé » ; panneau `panneau-confirmation` partagé avec C1. Pas de `navigation.php`, aucune mention de contestabilité ; un lien « Retour à l'accueil » comme C2. Pas de CSS dédié.
 - Routeur : `defi-recu` en accès Jeu.
 - C1 état 5 (`socle-c1.php`) : lien « Voir mon défi » vers C3.
-- Démonstration : duo 9, Iris (114) et Yann (115), missions du jour révélées (tirages 5 et 6). Yann : défi validé, C3 « réalisé ». Iris : défi en cours non découvert ; elle peut le valider. Ne vaut que le jour du rechargement (CURDATE()), à toute heure.
+- Démonstration : duo 9, Iris (114) et Yann (115), missions du jour révélées (tirages 5 et 6). Yann : défi validé, C3 « réalisé ». Iris : défi en cours, déjà découvert depuis #77 (C1 état 6) ; elle peut le valider. Ne vaut que le jour du rechargement (CURDATE()), à toute heure. La découverte au premier affichage de C3 ne se montre plus en démonstration (Lina et Sam, duo 7, passent par l'état 5 sans découverte).
 - Tests : `MissionServiceTest` crée son défi (`setUpBeforeClass`, catégorie « Catégorie du test de mission ») et révèle par `MissionDepot::reveler`, sans passer par le rattrapage.
 
-## Pour #77 (C1 état 6)
+## Ticket #77 — C1 état 6 et statut du défi envoyé
 
-- Après validation, l'accueil reste à `EtatAccueil::DefiRevele` (état 5) : `JourneeService::etatAccueil` ne regarde que `date_revelation`. L'état 6 (défi reçu en cours) et sa variante ex-état 7 (défi réalisé, statut du défi envoyé) se déduisent du `statut` des deux missions du jour (`trouverParDuoEtJour` les rend déjà, reçue et envoyée).
-- Le lien « Voir mon défi » est sur la variante état 5 du socle : à garder sur l'état 6.
-- Ne pas appeler `MissionService::decouvrir` depuis C1 (récit 9) : la lecture de l'accueil passe par `JourneeService`.
-- `carte-defi.php` n'affiche pas encore de statut (doc technique § 4.2) : à ajouter si l'état 6 montre la carte avec son statut.
+- `EtatAccueil::DefiEnCours` (état 6) et `EtatAccueil::DefiRealise` (sa variante, ex-état 7). `JourneeService::etatAccueil`, sur la mission reçue révélée : `valide` → variante ; `date_decouverte` posée → état 6 ; sinon état 5. Lecture seule : C1 n'appelle jamais `MissionService::decouvrir` (récit 9).
+- `JourneeService::statutDefiEnvoye(Joueur, $maintenant): ?StatutMission` : statut de la mission du jour émise par le joueur, une fois révélée ; null avant. `AccueilControleur` le passe à la vue (`$defiEnvoye`).
+- Socle C1 : la colonne du partenaire porte ce statut dès l'état 5 (« Défi en cours », « Défi réalisé », « Défi expiré », sinon « Défi envoyé »). État 6 : lien « Voir mon défi » ; variante : lien secondaire « Revoir mon défi ». La carte du défi n'est pas affichée sur C1 : `carte-defi.php` reste sans statut.
+- Tests : `MissionServiceTest` (état 5 → 6 → variante à travers `decouvrir` et `valider` ; statut envoyé null, en cours, réalisé). `journeeDesDeuxOui()` y répond oui pour les deux.
+
+## Pour #61 (expiration)
+
+- `etatAccueil` porte un `TODO(simplif)` : une mission reçue expirée après découverte reste en état 6 (non découverte : état 5). L'état de C1 après expiration est à décider là.
 
 ## Pièges
 

@@ -13,6 +13,10 @@ enum EtatAccueil
     case DefiEnvoye;
     // État 5 : les deux ont choisi, la mission du joueur est révélée ; l'accueil l'annonce sans la dévoiler (la découverte est sur C3).
     case DefiRevele;
+    // État 6 : défi reçu découvert sur C3 et encore en cours ; lien vers C3, statut du défi envoyé.
+    case DefiEnCours;
+    // Variante de l'état 6 (ex-état 7) : défi reçu réalisé, statut du défi envoyé (cadrage § 4.6).
+    case DefiRealise;
     // Journée blanche : l'un des deux a dit non, ou n'avait pas répondu à 12 h. Déduite, jamais écrite.
     case JourneeBlanche;
     // Journée blanche « l'un de vous n'a pas choisi » : les deux oui, mais 12 h passée sans les deux choix (mission annulée par le rattrapage). Pour les deux joueurs.

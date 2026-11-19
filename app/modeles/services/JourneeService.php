@@ -73,11 +73,16 @@ class JourneeService
             return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
-            // État 5 dès que la mission reçue est révélée (par le rattrapage) ; sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
+            // Mission reçue révélée (par le rattrapage) : état 5, puis 6 une fois découverte sur C3, puis sa variante une fois validée. Sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
             $missions = $this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant));
             foreach ($missions as $mission) {
                 if ($mission->destinataireId === $joueur->id && $mission->dateRevelation !== null) {
-                    return EtatAccueil::DefiRevele;
+                    // TODO(simplif): une mission expirée après découverte reste en état 6, à traiter avec l'expiration (#61).
+                    return match (true) {
+                        $mission->statut === StatutMission::Valide => EtatAccueil::DefiRealise,
+                        $mission->dateDecouverte !== null => EtatAccueil::DefiEnCours,
+                        default => EtatAccueil::DefiRevele,
+                    };
                 }
             }
             // Sans révélation à 12 h, l'un des deux n'a pas choisi : journée blanche pour les deux, même pour celui qui avait choisi.
@@ -99,6 +104,20 @@ class JourneeService
             return EtatAccueil::Question;
         }
         return EtatAccueil::AttentePartenaire;
+    }
+
+    // Statut du défi que le joueur a envoyé aujourd'hui, une fois révélé à son partenaire ; null avant (C1 états 5 et 6). Lecture seule.
+    public function statutDefiEnvoye(Joueur $joueur, DateTimeImmutable $maintenant): ?StatutMission
+    {
+        if ($joueur->duoId === null) {
+            return null;
+        }
+        foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $mission) {
+            if ($mission->emetteurId === $joueur->id && $mission->dateRevelation !== null) {
+                return $mission->statut;
+            }
+        }
+        return null;
     }
 
     // La journée se lit à Paris quel que soit le fuseau de l'instant reçu : le service ne dépend pas du fuseau par défaut posé par l'amorce.

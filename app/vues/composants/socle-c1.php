@@ -1,15 +1,24 @@
 <?php
 // Composant socle de l'accueil — C1 — parcours 2 (journée de jeu) — lot 1 — B. Deux colonnes symétriques, élément commun au centre, zone d'action pleine largeur.
-// Reçoit : $etat (EtatAccueil), $pseudo, $partenaire (pseudo ou null), $jeton. Chaque état de l'accueil est une variante de ce socle (doc technique § 4.2).
+// Reçoit : $etat (EtatAccueil), $pseudo, $partenaire (pseudo ou null), $defiEnvoye (StatutMission du défi envoyé une fois révélé, ou null), $jeton. Chaque état de l'accueil est une variante de ce socle (doc technique § 4.2).
 
 $nomPartenaire = $partenaire ?? 'ton partenaire';
+// Dès la révélation, la colonne du partenaire porte le statut du défi que le joueur lui a envoyé (spec #60, récit 5).
+$statutEnvoye = match ($defiEnvoye) {
+    StatutMission::EnCours => 'Défi en cours',
+    StatutMission::Valide => 'Défi réalisé',
+    StatutMission::Expire => 'Défi expiré',
+    default => 'Défi envoyé',
+};
 // Statut sous chaque colonne et élément commun, par état. Le statut du partenaire n'est montré qu'une fois sa réponse utile au joueur.
 [$statutJoueur, $statutPartenaire, $centre] = match ($etat) {
     EtatAccueil::Question => ['Pas encore répondu', '', 'On joue aujourd\'hui ?'],
     EtatAccueil::AttentePartenaire => ['Oui', 'Pas encore répondu', 'En attente de ' . $nomPartenaire],
     EtatAccueil::ATirer => ['Oui', 'Oui', 'À toi de piocher'],
     EtatAccueil::DefiEnvoye => ['Défi envoyé', 'Oui', 'En attente de révélation'],
-    EtatAccueil::DefiRevele => ['Défi envoyé', 'Défi envoyé', 'Un défi t\'attend'],
+    EtatAccueil::DefiRevele => ['Défi envoyé', $statutEnvoye, 'Un défi t\'attend'],
+    EtatAccueil::DefiEnCours => ['Défi en cours', $statutEnvoye, 'Ton défi du jour'],
+    EtatAccueil::DefiRealise => ['Défi réalisé', $statutEnvoye, 'Défi relevé'],
     EtatAccueil::JourneeBlanche => ['', '', 'Journée blanche'],
     EtatAccueil::JourneeBlancheSansChoix => ['', '', 'Journée blanche'],
     EtatAccueil::PremierJourDemain => ['', '', 'Premier jour de jeu demain'],
@@ -43,6 +52,12 @@ $nomPartenaire = $partenaire ?? 'ton partenaire';
             <?php // Annonce seulement : le défi n'est dévoilé, et la découverte posée, que sur C3 (doc technique § 3.4). ?>
             <p>Vous avez tous les deux choisi : <?= e($nomPartenaire) ?> t'a lancé un défi, à relever avant minuit.</p>
             <a class="bouton" href="index.php?ecran=defi-recu">Voir mon défi</a>
+        <?php elseif ($etat === EtatAccueil::DefiEnCours): ?>
+            <p>Ton défi t'attend jusqu'à minuit. Quand tu l'as relevé, déclare-le réalisé sur sa page.</p>
+            <a class="bouton" href="index.php?ecran=defi-recu">Voir mon défi</a>
+        <?php elseif ($etat === EtatAccueil::DefiRealise): ?>
+            <p>Défi relevé, bravo. <?= e($nomPartenaire) ?> <?= $defiEnvoye === StatutMission::Valide ? 'a relevé le sien aussi.' : 'a encore jusqu\'à minuit pour relever le sien.' ?></p>
+            <a class="bouton bouton--secondaire" href="index.php?ecran=defi-recu">Revoir mon défi</a>
         <?php elseif ($etat === EtatAccueil::JourneeBlanche): ?>
             <p>Pas de défi aujourd'hui : l'un de vous deux a dit non, ou n'avait pas répondu à 12 h. Rendez-vous demain matin.</p>
         <?php elseif ($etat === EtatAccueil::JourneeBlancheSansChoix): ?>
