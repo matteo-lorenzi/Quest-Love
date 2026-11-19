@@ -11,8 +11,12 @@ enum EtatAccueil
     case ATirer;
     // État 4 : défi envoyé, en attente de révélation ; dure jusqu'à la révélation (#59).
     case DefiEnvoye;
+    // État 5 : les deux ont choisi, la mission du joueur est révélée ; l'accueil l'annonce sans la dévoiler (la découverte est sur C3).
+    case DefiRevele;
     // Journée blanche : l'un des deux a dit non, ou n'avait pas répondu à 12 h. Déduite, jamais écrite.
     case JourneeBlanche;
+    // Journée blanche « l'un de vous n'a pas choisi » : les deux oui, mais 12 h passée sans les deux choix (mission annulée par le rattrapage). Pour les deux joueurs.
+    case JourneeBlancheSansChoix;
     // Duo activé à 12 h ou après : pas de jeu aujourd'hui, le premier jour de jeu est demain (jusqu'à minuit).
     case PremierJourDemain;
 }

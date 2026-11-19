@@ -111,15 +111,15 @@ class TirageServiceTest extends TestCase
         $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
     }
 
-    // C2 passé 12 h, état 3 sans choix : plus d'éventail, qu'un tirage existe déjà ou non. L'état 3 rendu permet à C2 de dire que la journée est passée.
+    // C2 passé 12 h sans choix : plus d'éventail, qu'un tirage existe déjà ou non. La journée blanche rendue permet à C2 de dire que la journée est passée.
     public function testApresMidiSansChoixLEventailNEstPlusMontre(): void
     {
         [$lou, $mia] = $this->formerDuo();
         $this->service->tirer($lou, $this->matin->modify('+5 minutes'));
         $midi = new DateTimeImmutable('2026-10-15 12:00:00');
 
-        $this->assertSame(EtatAccueil::ATirer, $this->service->tirer($lou, $midi));
-        $this->assertSame(EtatAccueil::ATirer, $this->service->tirer($mia, $midi));
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $this->service->tirer($lou, $midi));
+        $this->assertSame(EtatAccueil::JourneeBlancheSansChoix, $this->service->tirer($mia, $midi));
         $this->assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM tirage')->fetchColumn());
     }
 
@@ -184,7 +184,7 @@ class TirageServiceTest extends TestCase
         if ($retenu !== null) {
             $missions = new MissionDepot($this->pdo);
             $mission = $missions->ajouter($tirages->trouverParEmetteurEtJour($emetteur->id, $jour), $retenu, $jour, $jour->modify('tomorrow'));
-            $missions->reveler($mission, $jour);
+            $missions->reveler($mission, $jour, $jour->modify('tomorrow'));
         }
     }
 

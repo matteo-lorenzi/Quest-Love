@@ -73,13 +73,22 @@ class JourneeService
             return EtatAccueil::JourneeBlanche;
         }
         if ($sienne === Reponse::Oui && $celleDuPartenaire === Reponse::Oui) {
-            // Le joueur a choisi le défi de son partenaire dès qu'une mission du jour l'a pour émetteur.
-            foreach ($this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant)) as $mission) {
+            // État 5 dès que la mission reçue est révélée (par le rattrapage) ; sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
+            $missions = $this->missions->trouverParDuoEtJour($joueur->duoId, $this->enHeureDeParis($maintenant));
+            foreach ($missions as $mission) {
+                if ($mission->destinataireId === $joueur->id && $mission->dateRevelation !== null) {
+                    return EtatAccueil::DefiRevele;
+                }
+            }
+            // Sans révélation à 12 h, l'un des deux n'a pas choisi : journée blanche pour les deux, même pour celui qui avait choisi.
+            if (!$this->avantBascule($maintenant)) {
+                return EtatAccueil::JourneeBlancheSansChoix;
+            }
+            foreach ($missions as $mission) {
                 if ($mission->emetteurId === $joueur->id) {
                     return EtatAccueil::DefiEnvoye;
                 }
             }
-            // TODO(simplif): passé 12 h sans choix, l'état 3 reste (C2 dit que la journée est passée) au lieu de la journée blanche « l'un de vous n'a pas choisi », texte à rédiger avec la révélation (#59).
             return EtatAccueil::ATirer;
         }
         // Passé 12 h sans les deux oui : l'un des deux n'a pas répondu, la journée est blanche.

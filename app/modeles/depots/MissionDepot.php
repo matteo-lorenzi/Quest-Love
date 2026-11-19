@@ -55,7 +55,7 @@ class MissionDepot
         return array_map('intval', $requete->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    // Missions d'un destinataire encore dans un statut donné : le rattrapage y cherche celles à expirer ou à annuler (index ix_mission_rattrapage).
+    // Missions d'un destinataire encore dans un statut donné : le rattrapage y cherche celles à révéler ou à expirer (index ix_mission_rattrapage).
     /** @return Mission[] */
     public function trouverParDestinataireEtStatut(int $destinataireId, StatutMission $statut): array
     {
@@ -64,11 +64,21 @@ class MissionDepot
         return array_map(fn (array $ligne) => $this->hydrater($ligne), $requete->fetchAll());
     }
 
-    // Écritures simples : le service vérifie la transition (modèle de données § 3) sous transaction avec verrou (#59).
-    public function reveler(int $id, DateTimeImmutable $maintenant): void
+    // Missions d'un duo, dans les deux sens, encore dans un statut donné : sortie rapide et annulation du rattrapage (index de la clé fk_mission_duo).
+    /** @return Mission[] */
+    public function trouverParDuoEtStatut(int $duoId, StatutMission $statut): array
     {
-        $this->pdo->prepare('UPDATE mission SET statut = ?, date_revelation = ? WHERE id = ?')
-            ->execute([StatutMission::EnCours->value, $maintenant->format('Y-m-d H:i:s'), $id]);
+        $requete = $this->pdo->prepare('SELECT * FROM mission WHERE duo_id = ? AND statut = ?');
+        $requete->execute([$duoId, $statut->value]);
+        return array_map(fn (array $ligne) => $this->hydrater($ligne), $requete->fetchAll());
+    }
+
+    // Écritures simples : le service vérifie la transition (modèle de données § 3) sous transaction avec verrou (#59).
+    // La date limite est recalculée à la révélation : c'est elle qui ouvre le délai jusqu'à minuit.
+    public function reveler(int $id, DateTimeImmutable $maintenant, DateTimeImmutable $dateLimite): void
+    {
+        $this->pdo->prepare('UPDATE mission SET statut = ?, date_revelation = ?, date_limite = ? WHERE id = ?')
+            ->execute([StatutMission::EnCours->value, $maintenant->format('Y-m-d H:i:s'), $dateLimite->format('Y-m-d H:i:s'), $id]);
     }
 
     // Seule la première consultation compte : une découverte déjà posée n'est jamais déplacée.
