@@ -60,5 +60,10 @@ rendus=$(grep -oE "\[\s*'[A-Za-z]+Controleur', ('[a-zA-Z]+'|null), '[a-zA-Z]+'" 
     done)
 [ -n "$rendus" ] && signaler "vue rendue par une méthode POST au lieu de rediriger (§ 2.4) :"$'\n'"$rendus"
 
+# 8. Un service verrouille les deux joueurs d'un duo en une fois (JoueurDepot::verrouillerAvecPartenaire) : verrouiller un joueur seul,
+#    puis son partenaire, interbloque deux joueurs du duo qui le font en même temps (MySQL 1213, revue de la spec #59).
+seuls=$(grep -nE 'verrouiller\(\[[^],]*\]\)' -- $(printf '%s\n' "${fichiers[@]}" | grep '^app/modeles/services/.*\.php$') /dev/null)
+[ -n "$seuls" ] && signaler "joueur verrouillé seul dans un service (utiliser verrouillerAvecPartenaire) :"$'\n'"$seuls"
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"

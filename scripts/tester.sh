@@ -15,6 +15,12 @@ if [ ! -f app/config/config.php ]; then
     fi
 fi
 
+# Le graphe graphify n'est pas versionné non plus : un worktree neuf reprend celui du dossier principal (graphify update . le remet à jour).
+if [ ! -d graphify-out ] && [ -d "$principal/graphify-out" ]; then
+    cp -r "$principal/graphify-out" graphify-out
+    echo "graphify-out copié depuis $principal"
+fi
+
 # 2. phpunit.phar vit hors du dépôt (§ 6.4) : variable PHPUNIT_PHAR, sinon ~/outils/phpunit.phar, sinon une commande phpunit du PATH.
 [ -z "${PHPUNIT_PHAR:-}" ] && [ -f "$HOME/outils/phpunit.phar" ] && PHPUNIT_PHAR="$HOME/outils/phpunit.phar"
 if [ -n "${PHPUNIT_PHAR:-}" ] && [ -f "$PHPUNIT_PHAR" ]; then

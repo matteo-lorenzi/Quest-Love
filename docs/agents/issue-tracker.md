@@ -7,18 +7,12 @@ Les tickets et les specs de ce dépôt sont des GitHub Issues (`matteo-lorenzi/Q
 - **Créer un ticket** : `gh issue create --title "..." --body "..."`. Utiliser un heredoc pour un corps sur plusieurs lignes.
 - **Lire un ticket** : `gh issue view <numéro> --json number,title,body,labels,comments`.
 - **Lister les tickets** : `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, avec les filtres `--label` et `--state` adaptés.
-- **Rattacher un ticket à un parent (sous-ticket)** : `gh issue create --parent <parent> ...`, ou `gh issue edit <parent> --add-sub-issue <enfant>` après coup (`gh` 2.94+). `gh` plus ancien : `gh api --method POST repos/<owner>/<repo>/issues/<parent>/sub_issues -F sub_issue_id=<id-base-enfant>` (identifiant de base de données, comme dans **Blocage** ci-dessous). Sans sous-tickets, écrire `Part of #<parent>` en tête du corps de l'enfant.
+- **Rattacher un ticket à un parent (sous-ticket)** : `gh issue create --parent <parent> ...`, ou `gh issue edit <parent> --add-sub-issue <enfant>` après coup. Sans sous-tickets, écrire `Part of #<parent>` en tête du corps de l'enfant.
 - **Commenter** : `gh issue comment <numéro> --body "..."`
 - **Ajouter / retirer une étiquette** : `gh issue edit <numéro> --add-label "..."` / `--remove-label "..."`
 - **Fermer** : `gh issue close <numéro> --comment "..."`
 
 Le dépôt se déduit de `git remote -v` ; `gh` le fait seul dans un clone.
-
-## Limites de `gh` 2.40 (poste local)
-
-- `gh pr edit` échoue (dépréciation de Projects classic). Corps d'une PR : `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@fichier.md`.
-- `gh issue view <n> --comments` échoue de la même façon : lire un ticket avec `--json …,comments` (voir **Lire un ticket**).
-- `--parent` et `--add-sub-issue` n'existent pas avant `gh` 2.94 : utiliser `Part of #<parent>` ou l'API (voir ci-dessus).
 
 ## Pull requests comme canal de demande
 
