@@ -1,5 +1,5 @@
 <?php
-// Tests de RattrapageService — D1 Défi expiré et D3 Duo dissous (écran evenement), C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — parcours 2 (journée de jeu) — lot 1 — B.
+// Tests de RattrapageService — D1 Défi expiré, D3 Duo dissous et D5 Passage à zéro (écran evenement), C1 état 5, C1 journée blanche « l'un de vous n'a pas choisi » — parcours 2 (journée de jeu) — lot 1 — B.
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

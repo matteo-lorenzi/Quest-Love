@@ -1,5 +1,5 @@
 <?php
-// Service des points de vie — D1 Défi expiré, D5 Passage à zéro — parcours 2 (journée de jeu) — lot 1 — B. Seul à faire écrire la colonne pv (doc technique § 3.5).
+// Service des points de vie — D1 Défi expiré, D5 Passage à zéro — parcours 2 (journée de jeu) — lot 1 — B. Seul à appliquer la pénalité et le passage à zéro ; la dissolution (F2, AppairageService::dissoudre) écrit aussi pv (doc technique § 3.5).
 
 class PointsDeVieService
 {

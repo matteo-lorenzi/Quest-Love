@@ -170,11 +170,12 @@ Huit entrées : ce que fait le mécanisme, quand il se déclenche, ce qu'il écr
 Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout ce qui aurait dû se produire depuis la dernière visite.
 
 - **Service** : `RattrapageService`, appelé par le routeur pour tout joueur connecté, une fois par requête, avant toute sortie.
-- **Opérations, dans cet ordre, à l'intérieur d'une seule transaction** :
-  1. expiration des missions échues au statut « en cours », avec perte de points de vie ;
-  2. évaluation de la participation du jour et détermination de la journée blanche ;
-  3. révélation des missions dont la condition est remplie ;
-  4. après la bascule de 12 h, annulation des missions non révélées (journée blanche, § 3.4) ; aucun défi n'est attribué à la place d'un joueur.
+- **Opérations, dans cet ordre, à l'intérieur d'une seule transaction** (ordre fixé par la revue de #59 : une révélation constatée en retard expire dans le même rattrapage) :
+  1. constat de la dissolution du duo (D3), signalée une seule fois ;
+  2. révélation des missions dont la condition est remplie ;
+  3. après la bascule de 12 h, annulation des missions non révélées (journée blanche, § 3.4) ; aucun défi n'est attribué à la place d'un joueur ;
+  4. expiration des missions échues au statut « en cours », avec perte de points de vie ;
+  5. passage à zéro : le capital tombé à 0 remonte aussitôt à 5 (D5, empilé juste après le D1 qui l'a causé).
 - **Verrou** : les lignes `joueur` des deux joueurs sont verrouillées en écriture pour la durée de la transaction. C'est la protection contre la double pénalité quand deux appareils chargent une page en même temps.
 - **Trois protections, toutes posées en base** — unicité sur `participation`, unicité sur `tirage`, vérification du statut avant transition sur `mission`. Détail : annexe § 4.
 - **File d'événements** : le rattrapage dépose les événements produits dans une file en session ; tant qu'elle n'est pas vide, le routeur redirige vers l'écran `evenement`, qui en dépile un par affichage. Ordre : duo dissous, expiration, passage à zéro. L'annulation n'empile rien : la journée blanche s'affiche sur C1 « aucun jeu ».
