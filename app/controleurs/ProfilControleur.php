@@ -12,10 +12,6 @@ class ProfilControleur
         $joueur = Routeur::joueurConnecte($this->pdo);
         $service = AppairageService::construire($this->pdo);
         $etape = $service->etapeAcces($joueur);
-        // TODO(simplif): les variantes « duo activé » et « sans duo » sont écrites ; les autres étapes renvoient à l'écran de leur étape jusqu'au ticket #107.
-        if ($etape !== EtapeAcces::AccesAuJeu && $etape !== EtapeAcces::SansDuo) {
-            Routeur::rediriger(Routeur::ecranDeLEtape($etape));
-        }
         $elements = self::elementsAffiches($etape);
         Vue::rendre('f1-profil', 'Mon profil', [
             'pseudo' => $joueur->pseudo,
@@ -33,6 +29,8 @@ class ProfilControleur
         return match ($etape) {
             EtapeAcces::AccesAuJeu => ['carteDuo' => true, 'barre' => true, 'retour' => null],
             EtapeAcces::SansDuo => ['carteDuo' => false, 'barre' => false, 'retour' => Routeur::ecranDeLEtape($etape)],
+            // Duo formé, pas encore activé : pas de barre, qui ouvrirait l'accueil avant la fin de l'onboarding ; la flèche ← mène à B2.
+            EtapeAcces::OnboardingAFaire, EtapeAcces::Attente => ['carteDuo' => true, 'barre' => false, 'retour' => Routeur::ecranDeLEtape($etape)],
         };
     }
 }

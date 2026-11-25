@@ -27,4 +27,22 @@ class ProfilTest extends TestCase
             ProfilControleur::elementsAffiches(EtapeAcces::SansDuo),
         );
     }
+
+    // Duo formé, pas encore activé (F1 · Profil — cas : duo sans accès au jeu) : carte duo, pas de barre, flèche ← vers B2.
+    public function testOnboardingAFaireMontreLaCarteDuoSansBarreAvecRetourVersB2(): void
+    {
+        $this->assertSame(
+            ['carteDuo' => true, 'barre' => false, 'retour' => 'onboarding'],
+            ProfilControleur::elementsAffiches(EtapeAcces::OnboardingAFaire),
+        );
+    }
+
+    // Même cas, joueur qui a fini l'onboarding avant son partenaire : la flèche ← mène à B2, qui montre sa variante d'attente.
+    public function testAttenteMontreLaCarteDuoSansBarreAvecRetourVersB2(): void
+    {
+        $this->assertSame(
+            ['carteDuo' => true, 'barre' => false, 'retour' => 'onboarding'],
+            ProfilControleur::elementsAffiches(EtapeAcces::Attente),
+        );
+    }
 }
