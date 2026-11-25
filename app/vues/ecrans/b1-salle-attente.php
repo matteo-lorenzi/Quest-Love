@@ -19,7 +19,7 @@ if (!$dejaEnDuo) {
 }
 ?>
 <header class="entete-ecran">
-    <!-- TODO(simplif): l'écran profil (F1) n'existe pas, cette flèche mène à G1 jusqu'à ce qu'il soit écrit. -->
+    <!-- TODO(simplif): la variante « sans duo » de F1 arrive avec #106 ; d'ici là, le profil renvoie ici. -->
     <a class="entete-ecran__retour" href="index.php?ecran=profil" aria-label="Profil">←</a>
     <h1 class="entete-ecran__titre">Salle d'attente</h1>
 </header>

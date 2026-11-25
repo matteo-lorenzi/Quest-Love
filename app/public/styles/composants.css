@@ -123,3 +123,45 @@
     padding: 0;
     list-style: none;
 }
+
+/* Texte entier dans la page, « … » ajouté à l'affichage quand il déborde : le lecteur d'écran lit tout (F1, cadrage § 9). */
+.texte-coupe {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Liste de liens et d'actions en ligne (F1) : chaque ligne est une cible de 44 px au moins (cadrage § 9). */
+.liste-liens {
+    margin: var(--espace-4) 0;
+    padding: 0;
+    list-style: none;
+}
+
+.liste-liens__lien {
+    display: flex;
+    align-items: center;
+    gap: var(--espace-1);
+    min-height: 44px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--couleur-accent);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.liste-liens__precision { color: var(--couleur-discret); }
+
+/* Zone des actions destructrices, séparée du reste et sobre (F1, cadrage § 10). */
+.zone-sensible {
+    margin-top: var(--espace-5);
+    padding-top: var(--espace-3);
+    border-top: 1px solid var(--couleur-trait);
+}
+
+.zone-sensible__titre { font-size: 1rem; color: var(--couleur-discret); }
+.zone-sensible__discret { font-size: 0.875rem; color: var(--couleur-discret); }

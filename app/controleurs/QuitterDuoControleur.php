@@ -39,6 +39,7 @@ class QuitterDuoControleur
             OrigineQuitterDuo::SalleAttente => 'salle-attente',
             OrigineQuitterDuo::Onboarding => 'onboarding',
             OrigineQuitterDuo::Accueil => 'accueil',
+            OrigineQuitterDuo::Profil => 'profil',
         };
     }
 

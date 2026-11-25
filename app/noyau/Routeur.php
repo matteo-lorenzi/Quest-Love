@@ -5,8 +5,8 @@ class Routeur
 {
     // Table de routage : écran => [contrôleur, méthode en GET, méthode en POST, accès].
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : un NiveauAcces (Public, Connecte, Duo, ou Jeu : en duo, onboarding terminé par les deux).
-    // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
-    private const ECRANS = [
+    // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3. Publique pour que les tests lisent l'entrée d'un écran.
+    public const ECRANS = [
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', NiveauAcces::Connecte],
@@ -15,6 +15,8 @@ class Routeur
         // Accès Duo, donc sans le verrou du jeu : un joueur dont le partenaire n'a pas fini l'onboarding doit pouvoir sortir (cadrage § 8.5).
         'quitter-duo' => ['QuitterDuoControleur', 'afficher', 'dissoudre', NiveauAcces::Duo],
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
+        // Accès Connecté, hors verrou du jeu : le profil reste ouvert sans duo et pendant l'onboarding (cadrage § 8.5, § 3.6).
+        'profil' => ['ProfilControleur', 'afficher', null, NiveauAcces::Connecte],
         'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
         'tirage' => ['TirageControleur', 'afficher', 'choisir', NiveauAcces::Jeu],
         'defi-recu' => ['DefiRecuControleur', 'afficher', 'valider', NiveauAcces::Jeu],
