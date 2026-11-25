@@ -28,6 +28,10 @@ class TentativeDepot
     // F3 — les essais d'un type portés par ces clés. L'interclassement de la colonne égale « LOU » et « lou », comme l'unicité de l'identifiant.
     public function supprimerCles(TypeTentative $type, array $cles): void
     {
+        // Sans clé, « IN () » serait du SQL invalide.
+        if ($cles === []) {
+            return;
+        }
         $marques = implode(', ', array_fill(0, count($cles), '?'));
         $this->pdo->prepare("DELETE FROM tentative WHERE type = ? AND cle IN ($marques)")->execute([$type->value, ...$cles]);
     }

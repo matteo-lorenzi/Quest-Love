@@ -9,7 +9,7 @@ require_once __DIR__ . '/../app/noyau/Vue.php';
 class SupprimerCompteVueTest extends TestCase
 {
     // Rend la vue comme Vue::rendre le ferait, sans gabarit d'en-tête ni de pied.
-    private function rendre(?string $partenaire): string
+    private function rendre(?string $partenaire, bool $refus = false): string
     {
         $jeton = 'jeton-de-test';
         ob_start();
@@ -29,6 +29,13 @@ class SupprimerCompteVueTest extends TestCase
     public function testSansDuoAucunePhraseSurLeDuo(): void
     {
         $this->assertStringNotContainsString('Ton duo avec', $this->rendre(null));
+    }
+
+    // Suppression refusée (duo reformé entre les deux transactions) : l'écran l'explique, et seulement dans ce cas.
+    public function testLeRefusEstExpliqueSeulementApresUnRefus(): void
+    {
+        $this->assertStringContainsString('role="alert"', $this->rendre('Tom', refus: true));
+        $this->assertStringNotContainsString('role="alert"', $this->rendre('Tom'));
     }
 
     // La confirmation est un POST avec le jeton ; « Annuler » et la flèche ← mènent au profil.

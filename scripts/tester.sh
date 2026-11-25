@@ -25,6 +25,8 @@ fi
 # Simple avertissement, les tests tournent quand même.
 if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
     for dossier in .claude/skills .claude/agents; do
+        # Absent des deux côtés : rien à comparer (diff sortirait en erreur).
+        [ -d "$dossier" ] || [ -d "$principal/$dossier" ] || continue
         if ! diff -rq "$dossier" "$principal/$dossier" > /dev/null 2>&1; then
             echo "ATTENTION : $dossier diffère du dossier principal ($principal). Le mettre à jour (git pull sur main), sinon l'agent ne voit pas les skills du projet." >&2
         fi
