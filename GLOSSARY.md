@@ -16,6 +16,10 @@ _Éviter_ : login, nom d'utilisateur
 Prénom ou surnom libre sous lequel le joueur apparaît à son partenaire. Plusieurs joueurs peuvent porter le même.
 _Éviter_ : nom affiché, surnom
 
+**Profil** :
+Écran personnel d'un joueur, vu par lui seul : son pseudo, son identifiant, le pseudo de son partenaire s'il a un duo, et l'accès aux règles, aux pages légales, à la déconnexion, à la sortie du duo et à la suppression du compte.
+_Éviter_ : compte (le compte désigne seulement les identifiants)
+
 **Duo** :
 Deux joueurs appairés qui jouent ensemble. Un joueur appartient à au plus un duo.
 _Éviter_ : couple (réservé à la cible et à la recherche utilisateur), équipe, binôme (réservé aux auteurs du projet)
@@ -33,6 +37,10 @@ _Éviter_ : receveur, cible
 **Appairage** :
 Formation d'un duo : un joueur sans duo saisit le code d'invitation d'un autre joueur sans duo.
 _Éviter_ : jumelage, association
+
+**Activation** :
+Moment où les deux joueurs d'un duo ont terminé l'onboarding ; elle ouvre l'accès au jeu. Un duo est formé dès l'appairage, puis activé quand les deux ont fini.
+_Éviter_ : validation du duo
 
 **Code d'invitation** :
 Code de 8 caractères propre à un joueur sans duo, qu'il donne à son partenaire. À usage unique, valable 60 minutes, remplacé quand le joueur en demande un nouveau. Il disparaît quand le duo se forme.

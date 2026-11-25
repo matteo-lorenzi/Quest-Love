@@ -223,7 +223,7 @@ Le mécanisme central : il remplace la tâche planifiée absente et rejoue tout 
 - **Étape d'accès** : `AppairageService` donne l'étape d'un joueur parmi quatre : sans duo (`duo_id` nul) ; onboarding à faire (son `onboarding_vu` vaut 0) ; attente du partenaire (le sien vaut 1, celui du partenaire 0) ; accès au jeu (les deux valent 1). C'est la règle unique que le routeur, A3 et B1 appliquent. Elle ne touche pas `joueur.duo_id` : « en duo » pour le routeur veut toujours dire duo présent, l'étape vient en plus.
 - **Aiguillage après authentification** : en duo vers l'étape correspondante (B2 si onboarding à faire ou attente, sinon C1), sans duo vers B1 (code conservé prérempli). Après la saisie d'un code valide en B1 : vers B2.
 - **Vérification au chargement** : B1 contrôle à chaque chargement si le duo s'est formé entre-temps ; un joueur en duo avec l'étape « onboarding à faire » ou « attente » est renvoyé vers B2 ; avec l'étape « accès au jeu », vers C1, sauf à l'arrivée par un lien d'invitation (variante « déjà en duo », réservée à ce cas et à cette étape). La variante d'attente de B2 (`&etape=attente`) est vérifiée de la même façon à chaque chargement.
-- **Précondition du routeur** : tant que l'étape n'est pas « accès au jeu », C1, C2 et C3 renvoient vers B2. Restent accessibles hors verrou : quitter-duo (F2), profil, règles (B3), événement, suppression de compte. B2 et sa variante masquent la barre basse (cadrage § 8.5).
+- **Précondition du routeur** : tant que l'étape n'est pas « accès au jeu », C1, C2 et C3 renvoient vers B2. Restent accessibles hors verrou : quitter-duo (F2), profil, règles (B3), événement, suppression de compte. B2 et sa variante masquent la barre basse (cadrage § 8.5), tout comme F1 tant que le duo n'est pas activé.
 - **Terminer l'onboarding** : une opération de `AppairageService` met `onboarding_vu` à 1 pour le joueur ; si le partenaire l'a déjà, elle pose `duo.date_activation` avec `$maintenant`, dans la même transaction. Idempotente (deux appareils). « Passer » et le bouton du dernier écran appellent la même opération, en `POST` avec jeton CSRF ; les passages d'un écran à l'autre sont des liens `GET` (`&etape=`). Étape absente ou invalide : première règle ; au-delà de la dernière : C1. Les textes des trois règles ont une source unique partagée avec B3 (liste en B3, pas à pas en B2). B3 reçoit l'écran d'origine en paramètre, contrôlé contre une liste fermée, avec l'étape si l'origine est B2.
 - **Formation du duo** : une transaction de `AppairageService`. Les deux `joueur` sont verrouillés dans l'ordre des `id`, puis l'état est revérifié (aucun des deux en duo, code inchangé et non expiré) avant de créer le `duo` (`date_activation` nulle) et de rattacher les deux joueurs ; les codes sont remis à nul et `onboarding_vu` à 0 pour les deux joueurs, sous le même verrou. Un refus ne modifie rien ; l'échec est enregistré une fois la transaction terminée.
 - **Cas d'erreur à couvrir** : attente en cours (pas compté), propre code, code expiré, code pas valable (faux, régénéré ou dont le propriétaire est déjà en duo : non distingués, `TODO(simplif)` en code), texte sans forme de code (pas compté), joueur déjà en duo (pas compté). Règle de comptage : cadrage § 6.6.
@@ -262,7 +262,7 @@ Réponse à la remarque n° 5 de l'enseignant (07/10/2026) : comment effectuer o
 
 - **Une vue d'écran = un gabarit d'en-tête, un contenu, un gabarit de pied.** Aucun HTML dupliqué entre deux écrans.
 - **`entete.php`** — ouverture du document, `lang="fr"`, méta `viewport`, feuilles de style, titre passé en variable.
-- **`navigation.php`** — barre basse, créée avec le seul onglet Accueil : Profil arrive avec F1, Gages et Historique avec le lot 2 (liste finale des onglets : cadrage § 8.5) ; incluse seulement par les écrans qui la portent, jamais sur les sous-écrans focalisés ni sur les événements.
+- **`navigation.php`** — barre basse, onglets Accueil et Profil (actif sur F1 quand le duo est activé) ; Gages et Historique arrivent avec le lot 2 (liste finale des onglets : cadrage § 8.5) ; incluse seulement par les écrans qui la portent, jamais sur les sous-écrans focalisés ni sur les événements.
 - **`pied.php`** — fermeture du document, scripts en fin de corps, mention d'horloge décalée quand elle est active (§ 3.8).
 - Les textes d'interface sont rédigés en S6 et remplacent les textes d'attente ; ils ne sont pas improvisés dans le code. Cadrage § 8.3.
 
@@ -319,7 +319,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
 - [x] `noyau/Securite.php` — jeton CSRF
 - [x] `noyau/Vue.php` — rendu et échappement de sortie
-- [x] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(`navigation.php` avec le seul onglet Accueil)_
+- [x] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(`navigation.php` avec les onglets Accueil et Profil)_
 - [ ] `public/styles/base.css`, `composants.css`, `ecrans.css` _(en cours : `base.css` et `composants.css` de C1)_
 - [x] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
 - [x] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
@@ -335,7 +335,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
 - [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [x] B2 `OnboardingControleur` — trois règles, une par écran, étape en `&etape=` ; variante d'attente (`&etape=attente`) ; précondition du routeur sur C1, C2, C3 · B3 `ReglesControleur` (retour vers l'écran d'origine)
-- [ ] F1 `ProfilControleur` — et cas « sans duo »
+- [x] F1 `ProfilControleur` — et cas « duo sans accès au jeu » et « sans duo » _(livré avec la spec #104)_
 - [x] F2 `QuitterDuoControleur`
 - [ ] F3 `SupprimerCompteControleur`
 

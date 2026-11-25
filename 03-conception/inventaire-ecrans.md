@@ -50,8 +50,9 @@
 
 | ID | Écran / état | Lot | Statut |
 |---|---|---|---|
-| F1 | Profil (pseudo, partenaire, règles, pages légales, déconnexion, suppression de compte) | 1 | ✅ |
-| F1 | Profil · cas : sans duo (accès depuis B1, sans partenaire ni dissolution, flèche ← vers B1) | 1 | ✅ |
+| F1 | Profil — avec duo (pseudo, identifiant, « Tu es en duo avec {pseudo} », règles, pages légales, déconnexion, quitter mon duo, suppression de compte ; barre basse, onglet Profil actif) | 1 | ✅ |
+| F1 | Profil · cas : duo sans accès au jeu (duo formé, pas encore activé : même contenu, sans barre basse, flèche ← vers B2) | 1 | ✅ |
+| F1 | Profil · cas : sans duo (accès depuis B1, sans partenaire ni dissolution, sans barre basse, flèche ← vers B1) | 1 | ✅ |
 | F2 | Dissolution du duo (écran dédié, avertissement, confirmation, retour à l'écran d'origine) | 1 | ✅ |
 | F3 | Suppression de compte (avertissement, confirmation, sans mot de passe) | 1 | ✅ |
 | G1 | Écrans d'erreur (page introuvable ; variante : erreur serveur ou action impossible, ex-G2) | 1 | ✅ |
@@ -77,4 +78,4 @@ F4 Statistiques du couple · F5 Changement de mot de passe / pseudo · avatars g
 
 ## Avancement lot 1
 
-27 cadres zonés sur 27 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste ; un cadre ajouté le 06/11 pour la variante d'attente de B2 ; cadre D2 retiré le 18/11 avec le défi aléatoire). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).
+28 cadres zonés sur 28 (34 avant la reprise du 18/09 : sept cadres fusionnés en notes de variante sur le cadre qui reste ; un cadre ajouté le 06/11 pour la variante d'attente de B2 ; cadre D2 retiré le 18/11 avec le défi aléatoire ; un cadre ajouté avec la spec F1, #104, pour le cas « duo sans accès au jeu »). Lot 1 complet et relu pour la lisibilité. Reste la bande 05 (lot 2).

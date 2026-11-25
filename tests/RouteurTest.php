@@ -34,4 +34,17 @@ class RouteurTest extends TestCase
     {
         $this->assertSame($attendu, Routeur::redirectionAcces($acces, $connecte, $etape));
     }
+
+    // F1 Profil : ouvert à tout joueur connecté, hors du verrou du jeu (cadrage § 8.5), donc aussi sans duo ou en attente du partenaire.
+    // Aucune méthode POST : un POST, même avec un jeton valide, reçoit G1 (405) à l'étape 6.
+    public function testLeProfilEstOuvertAuJoueurConnecteSansVerrouNiPost(): void
+    {
+        [$classe, $methodeGet, $methodePost, $acces] = Routeur::ECRANS['profil'];
+        $this->assertSame(['ProfilControleur', 'afficher'], [$classe, $methodeGet]);
+        $this->assertNull($methodePost);
+        $this->assertSame('connexion', Routeur::redirectionAcces($acces, false, null));
+        foreach (EtapeAcces::cases() as $etape) {
+            $this->assertNull(Routeur::redirectionAcces($acces, true, $etape), $etape->name);
+        }
+    }
 }
