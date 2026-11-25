@@ -2,6 +2,29 @@
   "env": {
     "PONYTAIL_DEFAULT_MODE": "full"
   },
+  "permissions": {
+    "deny": [
+      "Read(/**/config/config.php)",
+      "Edit(/**/config/config.php)",
+      "Read(/**/.env*)",
+      "Edit(/**/.env*)",
+      "Read(~/.ssh/**)",
+      "Bash(cat *config.php*)",
+      "Bash(head *config.php*)",
+      "Bash(tail *config.php*)",
+      "Bash(type *config.php*)",
+      "Bash(Get-Content *config.php*)",
+      "Bash(grep *config.php*)",
+      "Bash(rg *config.php*)"
+    ],
+    "ask": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(rm -rf *)"
+    ]
+  },
   "attribution": {
     "commit": "",
     "pr": "",
