@@ -9,7 +9,9 @@
 - La vue `f1-profil` reçoit `$pseudo`, `$identifiant`, `$carteDuo`, `$partenaire`, `$barre`, `$retour`. `$carteDuo` faux masque la ligne du duo et « Quitter mon duo » ; « Supprimer mon compte » reste. `$retour` non nul affiche la flèche ←.
 - `ProfilVueTest` rend la vue sans gabarit ; il pose `$vue = 'f1-profil'` car `navigation.php` choisit l'onglet actif d'après `$vue` (posée par `Vue::rendre`).
 - Barre basse : onglets Accueil (`c1-accueil`) et Profil (`f1-profil`) ; un nouvel onglet est une ligne du tableau `$onglets`.
-- Styles ajoutés à `composants.css` : `.texte-coupe` (« … » par la feuille de style, texte entier dans la page), `.liste-liens` (lignes de 44 px), `.zone-sensible`.
+- Styles ajoutés à `composants.css` : `.texte-coupe` (« … » par la feuille de style, texte entier dans la page), `.liste-liens` (lignes de 44 px), `.zone-sensible` (ses liens `zone-sensible__lien`, même règle que `liste-liens__lien`), `.profil__libelle` (libellé de l'identifiant, même règle que `liste-liens__precision`), `.entete-ecran__retour` (flèche ← de 44 × 44 px, vaut pour tous les écrans qui la portent).
+- `afficher` passe les éléments de `elementsAffiches` à la vue par `...$elements` : une clé ajoutée au `match` arrive dans la vue sans retouche du contrôleur.
+- Le 405 sur `POST profil` n'a pas de test qui exécute `Routeur::traiter` : celui-ci émet ses en-têtes et termine le script (`exit`), ce qui arrêterait PHPUnit. `RouteurTest` vérifie donc l'entrée de la table (aucune méthode POST, donc G1 405 à l'étape 6) et l'accès par `redirectionAcces` ; le 405 est vérifié dans le navigateur.
 - Liens vers A4 (`legal`), F3 (`supprimer-compte`) et déconnexion vers A1 (`bienvenue`) : G1 (404), chacun avec un `TODO(simplif)` dans la vue.
 - Vérifié dans le navigateur (`php -S localhost:8765`, compte `lea`, 375 px) : contenu, onglet Profil actif, coupe « … » sur un pseudo long, retour de B3 et annulation de F2 vers le profil, POST avec jeton → 405, déconnexion → G1 puis profil → connexion.
 

@@ -13,7 +13,7 @@
 <main class="profil">
     <p class="texte-coupe"><strong><?= e($pseudo) ?></strong></p>
     <p>
-        <span class="liste-liens__precision">Ton identifiant · celui qui t'ouvre la porte</span><br>
+        <span class="profil__libelle">Ton identifiant · celui qui t'ouvre la porte</span><br>
         <span class="texte-coupe"><?= e($identifiant) ?></span>
     </p>
     <?php if ($carteDuo): ?>
@@ -36,10 +36,10 @@
     <section class="zone-sensible" aria-labelledby="titre-sensible">
         <h2 id="titre-sensible" class="zone-sensible__titre">Ici, on réfléchit avant de cliquer</h2>
         <?php if ($carteDuo): ?>
-            <a class="liste-liens__lien" href="index.php?ecran=quitter-duo&amp;origine=<?= QuitterDuoControleur::parametre(OrigineQuitterDuo::Profil) ?>">Quitter mon duo</a>
+            <a class="zone-sensible__lien" href="index.php?ecran=quitter-duo&amp;origine=<?= QuitterDuoControleur::parametre(OrigineQuitterDuo::Profil) ?>">Quitter mon duo</a>
         <?php endif ?>
         <!-- TODO(simplif): F3 · suppression du compte n'existe pas, ce lien mène à G1 (404) jusqu'à son lot. -->
-        <a class="liste-liens__lien zone-sensible__discret" href="index.php?ecran=supprimer-compte">Supprimer mon compte</a>
+        <a class="zone-sensible__lien zone-sensible__lien--discret" href="index.php?ecran=supprimer-compte">Supprimer mon compte</a>
     </section>
 </main>
 <?php if ($barre) {

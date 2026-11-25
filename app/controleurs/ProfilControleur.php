@@ -16,10 +16,8 @@ class ProfilControleur
         Vue::rendre('f1-profil', 'Mon profil', [
             'pseudo' => $joueur->pseudo,
             'identifiant' => $joueur->identifiant,
-            'carteDuo' => $elements['carteDuo'],
             'partenaire' => $elements['carteDuo'] ? $service->pseudoPartenaire($joueur) : null,
-            'barre' => $elements['barre'],
-            'retour' => $elements['retour'],
+            ...$elements,
         ]);
     }
 
