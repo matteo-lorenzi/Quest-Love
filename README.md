@@ -15,7 +15,7 @@ Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanc
 %%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 20, "padding": 6, "htmlLabels": true}}}%%
 flowchart TB
   S["Socle · fait<br/>noyau MVC, routeur, horloge, CI"]:::fait
-  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 14 écrans sur 17"]:::encours
+  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 15 écrans sur 17"]:::encours
   L2["LOT 2 · Gamification<br/>conditionnel : seulement si le lot 1 est fini en S11"]:::afaire
   L3["LOT 3 · Confort · optionnel · à faire"]:::afaire
   L4["LOT 4 · Perspectives<br/>non développé, documenté en recul réflexif"]:::afaire
@@ -57,7 +57,7 @@ flowchart TB
     F1["F1 Profil<br/>fait"]:::fait
     F2["F2 Dissolution<br/>fait"]:::fait
     D3["D3 Duo dissous<br/>fait"]:::fait
-    F3["F3 Suppression<br/>à faire"]:::afaire
+    F3["F3 Suppression<br/>fait"]:::fait
     G1["G1 Erreurs<br/>fait"]:::fait
     F1 ~~~ F2 ~~~ D3 ~~~ F3 ~~~ G1
   end
@@ -83,7 +83,7 @@ Repli sans diagramme (même contenu) :
 | Lot | Statut | Écrans faits | Écrans à faire |
 |---|---|---|---|
 | Socle | Fait | Noyau MVC, routeur, horloge, garde-fous CI | — |
-| 1 — Duo et défi du jour | En cours, 14 sur 17 | A2, A3, B1, B2, B3, C1, C2, C3, D1, D3, D5, F1, F2, G1 | A1, A4, F3 |
+| 1 — Duo et défi du jour | En cours, 15 sur 17 | A2, A3, B1, B2, B3, C1, C2, C3, D1, D3, D5, F1, F2, F3, G1 | A1, A4 |
 | 2 — Gamification | Conditionnel | — | C3+, D1+, D4, D5+, D6, D7, E1, E2, E3, E4 |
 | 3 — Confort | À faire | — | Catégories, statistiques (F4), changement de mot de passe et de pseudo (F5), avatars |
 | 4 — Perspectives | Non développé | — | Défis personnalisés, preuve photo, courriel, web push, récupération de compte |

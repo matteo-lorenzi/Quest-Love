@@ -64,6 +64,10 @@ _Éviter_ : lettre, symbole
 Mot de passe qui figure dans la liste des plus fréquents, issue de fuites publiques. Refusé à l'inscription même s'il respecte toutes les autres règles. La comparaison ignore majuscules et accents.
 _Éviter_ : mot de passe faible, liste noire
 
+**Suppression de compte** :
+Effacement définitif du compte, décidé par son joueur seul. Elle entraîne d'abord la dissolution de son duo s'il en a un ; rien n'est conservé du joueur.
+_Éviter_ : désinscription, fermeture de compte
+
 ## Rythme quotidien
 
 **Journée de jeu** :

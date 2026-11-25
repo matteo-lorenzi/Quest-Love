@@ -38,7 +38,6 @@
         <?php if ($carteDuo): ?>
             <a class="zone-sensible__lien" href="index.php?ecran=quitter-duo&amp;origine=<?= QuitterDuoControleur::parametre(OrigineQuitterDuo::Profil) ?>">Quitter mon duo</a>
         <?php endif ?>
-        <!-- TODO(simplif): F3 · suppression du compte n'existe pas, ce lien mène à G1 (404) jusqu'à son lot. -->
         <a class="zone-sensible__lien zone-sensible__lien--discret" href="index.php?ecran=supprimer-compte">Supprimer mon compte</a>
     </section>
 </main>

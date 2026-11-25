@@ -17,6 +17,8 @@ class Routeur
         'regles' => ['ReglesControleur', 'afficher', null, NiveauAcces::Connecte],
         // Accès Connecté, hors verrou du jeu : le profil reste ouvert sans duo et pendant l'onboarding (cadrage § 8.5, § 3.6).
         'profil' => ['ProfilControleur', 'afficher', null, NiveauAcces::Connecte],
+        // Accès Connecté, hors verrou du jeu : le lien figure dans les trois variantes de F1, y compris sans duo et pendant l'onboarding (cadrage § 8.5).
+        'supprimer-compte' => ['SupprimerCompteControleur', 'afficher', 'supprimer', NiveauAcces::Connecte],
         'accueil' => ['AccueilControleur', 'afficher', 'repondre', NiveauAcces::Jeu],
         'tirage' => ['TirageControleur', 'afficher', 'choisir', NiveauAcces::Jeu],
         'defi-recu' => ['DefiRecuControleur', 'afficher', 'valider', NiveauAcces::Jeu],
