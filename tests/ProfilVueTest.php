@@ -10,16 +10,16 @@ require_once __DIR__ . '/../app/controleurs/QuitterDuoControleur.php';
 
 class ProfilVueTest extends TestCase
 {
-    // Rend la vue comme Vue::rendre le ferait, sans gabarit d'en-tête ni de pied : variante « duo activé ».
-    private function rendre(): string
+    // Rend la vue comme Vue::rendre le ferait, sans gabarit d'en-tête ni de pied : variante « duo activé » par défaut, « sans duo » si $sansDuo.
+    private function rendre(bool $sansDuo = false): string
     {
         $vue = 'f1-profil';
         $pseudo = 'Léa <b>';
         $identifiant = 'lea.martin&co';
-        $carteDuo = true;
-        $partenaire = 'Tom';
-        $barre = true;
-        $retour = null;
+        $carteDuo = !$sansDuo;
+        $partenaire = $sansDuo ? null : 'Tom';
+        $barre = !$sansDuo;
+        $retour = $sansDuo ? 'salle-attente' : null;
         $jeton = 'jeton-de-test';
         ob_start();
         require __DIR__ . '/../app/vues/ecrans/f1-profil.php';
@@ -52,5 +52,16 @@ class ProfilVueTest extends TestCase
         $this->assertStringContainsString('href="index.php?ecran=profil" aria-current="page"', $html);
         $this->assertStringContainsString('href="index.php?ecran=regles&amp;origine=profil"', $html);
         $this->assertStringContainsString('href="index.php?ecran=quitter-duo&amp;origine=profil"', $html);
+    }
+
+    // Sans duo : ni ligne du duo, ni « Quitter mon duo », ni barre basse ; « Supprimer mon compte » reste et la flèche ← mène à B1.
+    public function testSansDuoNiDuoNiBarreMaisSuppressionEtRetourALaSalleDAttente(): void
+    {
+        $html = $this->rendre(sansDuo: true);
+        $this->assertStringNotContainsString('Tu es en duo avec', $html);
+        $this->assertStringNotContainsString('Quitter mon duo', $html);
+        $this->assertStringNotContainsString('aria-current="page"', $html);
+        $this->assertStringContainsString('Supprimer mon compte', $html);
+        $this->assertStringContainsString('href="index.php?ecran=salle-attente" aria-label="Retour"', $html);
     }
 }
