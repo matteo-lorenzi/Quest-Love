@@ -35,4 +35,4 @@ Notes des implémenteurs des tickets de la spec #61, sur la branche d'intégrati
 
 ## Pièges
 
-- `JourneeService::etatAccueil` garde son `TODO(simplif)` (mission expirée après découverte vue en état 6) : en pratique une mission n'expire qu'à minuit, quand la journée a changé, donc C1 ne la montre plus.
+- `JourneeService::etatAccueil` n'a plus de `TODO(simplif)` sur l'état 6 : une mission n'expire qu'à minuit, quand la journée a changé, donc C1 ne la lit plus. Verrouillé par `MissionServiceTest::testLAccueilNeGardePasLEtat6UneFoisMinuitPasse` : le lendemain, deux oui posés et aucune mission du jour, la mission de la veille encore en cours n'est pas relue (état 3, pas état 6).

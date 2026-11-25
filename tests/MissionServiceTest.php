@@ -224,4 +224,21 @@ class MissionServiceTest extends TestCase
 
         $this->assertSame(StatutMission::EnCours, $this->missions->trouverParId($id)->statut);
     }
+
+    // C1 état 6, parcours journée de jeu : le lendemain, deux oui posés mais aucune mission du jour, la mission découverte de la veille (encore en cours, l'expiration n'a pas tourné) n'est pas relue : l'accueil est à l'état 3, pas à l'état 6.
+    // Les deux oui font entrer etatAccueil dans la branche qui lit les missions : sans eux, la fin de la fonction rendrait la question sans jamais les lire.
+    public function testLAccueilNeGardePasLEtat6UneFoisMinuitPasse(): void
+    {
+        $this->missionPour($this->lou, $this->mia);
+        $journee = $this->journeeDesDeuxOui();
+        $decouverte = new DateTimeImmutable('2026-10-20 10:30:00');
+        $this->service->decouvrir($this->mia, $decouverte);
+        $this->assertSame(EtatAccueil::DefiEnCours, $journee->etatAccueil($this->mia, $decouverte));
+
+        $lendemain = new DateTimeImmutable('2026-10-21 08:00:00');
+        $journee->repondre($this->lou, Reponse::Oui, $lendemain);
+        $journee->repondre($this->mia, Reponse::Oui, $lendemain);
+
+        $this->assertSame(EtatAccueil::ATirer, $journee->etatAccueil($this->mia, $lendemain));
+    }
 }
