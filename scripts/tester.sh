@@ -21,6 +21,16 @@ if [ ! -d graphify-out ] && [ -d "$principal/graphify-out" ]; then
     echo "graphify-out copié depuis $principal"
 fi
 
+# Les skills et agents du projet sont lus dans le dossier principal, même depuis un worktree : s'il est en retard, /cloture-ticket est introuvable.
+# Simple avertissement, les tests tournent quand même.
+if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
+    for dossier in .claude/skills .claude/agents; do
+        if ! diff -rq "$dossier" "$principal/$dossier" > /dev/null 2>&1; then
+            echo "ATTENTION : $dossier diffère du dossier principal ($principal). Le mettre à jour (git pull sur main), sinon l'agent ne voit pas les skills du projet." >&2
+        fi
+    done
+fi
+
 # 2. phpunit.phar vit hors du dépôt (§ 6.4) : variable PHPUNIT_PHAR, sinon ~/outils/phpunit.phar, sinon une commande phpunit du PATH.
 [ -z "${PHPUNIT_PHAR:-}" ] && [ -f "$HOME/outils/phpunit.phar" ] && PHPUNIT_PHAR="$HOME/outils/phpunit.phar"
 if [ -n "${PHPUNIT_PHAR:-}" ] && [ -f "$PHPUNIT_PHAR" ]; then

@@ -9,7 +9,7 @@ Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : 
 - Avant de modifier `app/modeles/`, `app/controleurs/` ou `app/vues/`, lire le `GOTCHAS.md` de ce dossier (pièges de la couche, avec renvoi aux règles ; il ne les remplace pas).
 - Tickets et tests citent l'écran et le parcours couverts. Les seams de test sont ceux des « Testing Decisions » de la spec : ils valent validation. Une règle reprise du cadrage cite sa section (« cadrage § 4.6 ») au lieu de la reformuler.
 - Notes d'implémentation : `docs/agents/notes/`, une par spec. Avant un ticket, lire celles de sa spec et des specs qui la bloquent ; avant de rendre la main, la tenir à jour (elle et toute section de la doc technique que le ticket ou sa revue rend fausse) : ajouter ce qui servira au ticket suivant, corriger ce que le ticket a rendu faux.
-- Fin de ticket : avant de rendre la main, lancer le skill `cloture-ticket` (vérifications, notes, doc, commit), sans attendre de validation.
+- Fin de ticket : lancer le skill `cloture-ticket` avant toute revue de code ; il fixe l'ordre (vérifications, doc, revue, commit).
 - Écran livré : le vérifier dans le navigateur, procédure dans `docs/agents/verifier-un-ecran.md`.
 - Maquettes : URL du Figma de zonage dans `README.md` ; conventions de cadres (nommage, variantes en notes) dans `03-conception/inventaire-ecrans.md`.
 

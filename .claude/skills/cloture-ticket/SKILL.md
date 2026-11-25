@@ -1,11 +1,11 @@
 ---
 name: cloture-ticket
-description: Clôture d'un ticket Quest & Love, à lancer par l'agent avant de rendre la main : vérifications, notes d'implémentation, doc technique, message de commit sans attribution.
+description: Clôture d'un ticket Quest & Love, à lancer par l'agent avant la revue de code : vérifications, notes d'implémentation, doc technique, revue, commit sans attribution.
 ---
 
 # /cloture-ticket
 
-Dernière étape d'un ticket, avant le commit ou la PR. L'agent la lance seul, sans attendre de validation. Ne rien supposer : chaque point se vérifie, et un point non vérifié se dit dans le compte rendu.
+Fin d'un ticket, lancée avant la revue de code pour que la doc soit à jour quand le relecteur lit le diff. L'agent la lance seul, sans attendre de validation. Ne rien supposer : chaque point se vérifie, et un point non vérifié se dit dans le compte rendu.
 
 ## 1. Vérifications mécaniques
 
@@ -27,12 +27,17 @@ Dernière étape d'un ticket, avant le commit ou la PR. L'agent la lance seul, s
 3. `GOTCHAS.md` du dossier modifié : ajouter le piège découvert, s'il y en a un, avec renvoi à la règle (il ne la remplace pas).
 4. Tickets et tests citent l'écran et le parcours couverts.
 
-## 4. Commit, PR et ticket
+## 4. Revue
 
+Si le flux du ticket prévoit une revue de code (`/implement`), elle se lance ici, sur le diff complet, doc comprise. Corriger ce qu'elle retient, puis relancer le § 1.
+
+## 5. Commit, PR et ticket
+
+- Committer sur la branche du ticket, sans attendre de validation. Pousser et ouvrir la PR seulement à la demande.
 - En français, au nom du binôme : un titre, le détail du changement, puis `Closes #N` s'il y a lieu, et rien d'autre.
 - Aucune attribution à un outil d'IA : ni `Co-Authored-By: Claude…`, ni `Claude-Session:`, ni « Generated with Claude Code », ni lien `claude.ai/code`. `.githooks/commit-msg` et la CI le refusent.
 - Une PR par spec, fusionnée dans `main` avant la spec suivante.
 
-## 5. Compte rendu
+## 6. Compte rendu
 
-Terminer par trois lignes : ce qui est vérifié, ce qui ne l'est pas, ce qui reste à faire (ou « rien »). Ne pas committer sans demande explicite.
+Terminer par trois lignes : ce qui est vérifié, ce qui ne l'est pas, ce qui reste à faire (ou « rien »).
