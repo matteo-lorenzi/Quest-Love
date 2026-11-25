@@ -30,7 +30,7 @@ Notes des implémenteurs des tickets de la spec #60, sur la branche d'intégrati
 
 ## Pour #61 (expiration)
 
-- `etatAccueil` porte un `TODO(simplif)` : une mission reçue expirée après découverte reste en état 6 (non découverte : état 5). L'état de C1 après expiration est à décider là.
+- `etatAccueil` portait un `TODO(simplif)` (mission reçue expirée après découverte restée en état 6) : levé, la mission de la veille n'est plus lue une fois la journée changée (voir `spec-61-expiration.md`, Pièges).
 
 ## Pièges
 

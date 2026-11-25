@@ -76,7 +76,7 @@ class JourneeService
             // Mission reçue révélée (par le rattrapage) : état 5, puis 6 une fois découverte sur C3, puis sa variante une fois validée. Sinon état 4 dès qu'une mission du jour a le joueur pour émetteur.
             [$recue, $envoyee] = $this->missions->trouverParJoueurEtJour($joueur->duoId, $joueur->id, $this->enHeureDeParis($maintenant));
             if ($recue?->dateRevelation !== null) {
-                // TODO(simplif): une mission expirée après découverte reste en état 6, à traiter avec l'expiration (#61).
+                // Seules les missions de la journée sont lues : passé minuit la mission de la veille n'est plus celle du jour, donc une mission expirée ne reste jamais en état 6.
                 return match (true) {
                     $recue->statut === StatutMission::Valide => EtatAccueil::DefiRealise,
                     $recue->dateDecouverte !== null => EtatAccueil::DefiEnCours,
