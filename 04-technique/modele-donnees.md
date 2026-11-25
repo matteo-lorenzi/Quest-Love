@@ -322,7 +322,7 @@ erDiagram
 | `type` | énumération `connexion` / `code` / `inscription` | non nul ; inscription : clé IP seule |
 | `date` | date-heure | non nul |
 
-- Purge des lignes de plus de 30 minutes (15 de fenêtre + 15 d'attente) à chaque essai, par `LimiteTentativesService` : la table ne peut pas enfler.
+- Purge des lignes de plus de 30 minutes (15 de fenêtre + 15 d'attente) à chaque essai et à chaque suppression de compte, par `LimiteTentativesService` : la table ne peut pas enfler.
 
 ## 3. Cycle de vie d'une mission
 
@@ -373,7 +373,7 @@ Règles : cadrage § 10. Aucune corbeille, aucune conservation différée.
 | Action | Supprimé | Conservé |
 |---|---|---|
 | Dissolution du duo | `mission`, `tirage`, `tirage_proposition`, `participation`, `gage` du duo, puis la ligne `duo` | Les deux `joueur`, remis à `duo_id` nul et 5 points de vie |
-| Suppression de compte | Tout ce qui précède, plus la ligne `joueur` | Rien |
+| Suppression de compte | Tout ce qui précède, plus la ligne `joueur` et les `tentative` dont la clé est son identifiant, son numéro de joueur ou l'empreinte de la session en cours | Rien du joueur. Les autres `tentative` (empreintes d'IP, anciennes sessions) disparaissent au plus 30 minutes après la prochaine tentative ou suppression de compte |
 
 - Les clés étrangères des tables de jeu sont déclarées en suppression en cascade depuis `duo` : la dissolution est une seule instruction, pas une séquence à maintenir.
 
@@ -384,7 +384,7 @@ F2 (`AppairageService::dissoudre`) livre avant les tables de jeu. Dans une seule
 - [x] **Cascade** : `mission`, `tirage`, `participation` et `gage` portent un `duo_id` avec `ON DELETE CASCADE` vers `duo`. `tirage_proposition` suit `tirage` par la même cascade. Aucune clé étrangère vers `joueur` ne doit bloquer le `DELETE FROM duo` : les joueurs ne sont pas supprimés à la dissolution. Un oubli de cascade échoue franchement (erreur de clé étrangère à la suppression), il ne laisse pas de données orphelines en silence. `DuoDepot::supprimer` reste une seule instruction et ne change pas.
 - [x] **`sql/schema.sql`** : les tables de jeu sont supprimées avant `joueur` et `duo` (ordre des `DROP`).
 - [x] **Test** : `tests/SchemaTest.php` crée des lignes de chaque table de jeu (hors `gage`, lot 2) pour deux duos, supprime l'un par `DuoDepot::supprimer` et vérifie que seules les lignes du duo dissous disparaissent (#65).
-- [ ] **F3** : `SupprimerCompteControleur` appelle `dissoudre` avant de supprimer la ligne `joueur` (cadrage § 10), sans réécrire la suppression des données de jeu.
+- [x] **F3** : `AppairageService::supprimerCompte` appelle `dissoudre` avant de supprimer la ligne `joueur` (cadrage § 10), sans réécrire la suppression des données de jeu. Deux transactions : une panne entre les deux laisse un joueur sans duo avec son compte, un second envoi termine.
 - Code d'invitation : rien à faire. `code_invitation` est déjà nul depuis la formation du duo ; B1 en génère un nouveau à son prochain affichage (cadrage § 7).
 - `tentative` n'est pas une donnée de jeu : la dissolution n'y touche pas.
 

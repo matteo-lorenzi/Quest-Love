@@ -122,6 +122,14 @@ class JoueurDepot
         $this->pdo->prepare('UPDATE joueur SET dissolution_a_signaler = 0 WHERE id = ?')->execute([$id]);
     }
 
+    // F3 — la ligne du joueur, seulement s'il n'a plus de duo : la condition est relue par MySQL au moment de la suppression. Vrai si la ligne a disparu.
+    public function supprimerSansDuo(int $id): bool
+    {
+        $requete = $this->pdo->prepare('DELETE FROM joueur WHERE id = ? AND duo_id IS NULL');
+        $requete->execute([$id]);
+        return $requete->rowCount() === 1;
+    }
+
     public function marquerOnboardingVu(int $id): void
     {
         $this->pdo->prepare('UPDATE joueur SET onboarding_vu = 1 WHERE id = ?')->execute([$id]);

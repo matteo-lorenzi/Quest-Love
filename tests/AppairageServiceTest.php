@@ -701,6 +701,73 @@ class AppairageServiceTest extends TestCase
         $this->assertNull($this->service->pseudoPartenaire($this->creerJoueur('Zoe')));
     }
 
+    // F3 : joueur en duo. Son compte, les données de jeu du duo et ses tentatives disparaissent ; le partenaire est remis à zéro et prévenu (D3) ;
+    // les tentatives d'un autre joueur restent, celles de plus de 30 minutes sont purgées.
+    public function testSupprimerLeCompteDUnJoueurEnDuo(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $this->service->terminerOnboarding($lou, $this->midi);
+        $this->service->terminerOnboarding($mia, $this->midi);
+        $this->pdo->exec('UPDATE joueur SET pv = 2');
+        $this->pdo->prepare("INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES (?, ?, '2026-10-15', 'oui', ?)")
+            ->execute([$lou->duoId, $lou->id, '2026-10-15 12:00:00']);
+        $zoe = $this->creerJoueur('Zoe');
+        $tentatives = new TentativeDepot($this->pdo);
+        $session = LimiteTentativesService::cleSession('session-de-lou');
+        // Clés de Lou : identifiant saisi (autre casse, l'interclassement l'égale), numéro, session en cours. Celles de Zoé, et une vieille.
+        $tentatives->ajouter('LOU', TypeTentative::Connexion, $this->midi);
+        $tentatives->ajouter((string) $lou->id, TypeTentative::Code, $this->midi);
+        $tentatives->ajouter($session, TypeTentative::Connexion, $this->midi);
+        $tentatives->ajouter($session, TypeTentative::Code, $this->midi);
+        $tentatives->ajouter('Zoe', TypeTentative::Connexion, $this->midi);
+        $tentatives->ajouter((string) $zoe->id, TypeTentative::Code, $this->midi);
+        $tentatives->ajouter('ancien', TypeTentative::Connexion, $this->midi->modify('-31 minutes'));
+
+        $this->assertTrue($this->service->supprimerCompte($this->relire($lou), 'session-de-lou', $this->midi));
+
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($lou->id));
+        $this->assertNull((new DuoDepot($this->pdo))->trouverParId($lou->duoId));
+        $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM participation')->fetchColumn());
+        $partenaire = $this->relire($mia);
+        $this->assertNull($partenaire->duoId);
+        $this->assertSame(Joueur::PV_DEPART, $partenaire->pv);
+        $this->assertTrue($partenaire->dissolutionASignaler);
+        $restantes = $this->pdo->query('SELECT cle FROM tentative')->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertEqualsCanonicalizing(['Zoe', (string) $zoe->id], $restantes);
+    }
+
+    // F3 : joueur sans duo. Seuls son compte et ses tentatives disparaissent, aucun autre joueur n'est signalé.
+    public function testSupprimerLeCompteDUnJoueurSansDuo(): void
+    {
+        $zoe = $this->creerJoueur('Zoe');
+        $lou = $this->creerJoueur('Lou');
+        (new TentativeDepot($this->pdo))->ajouter('Zoe', TypeTentative::Connexion, $this->midi);
+
+        $this->assertTrue($this->service->supprimerCompte($zoe, 'session-de-zoe', $this->midi));
+
+        $this->assertNull((new JoueurDepot($this->pdo))->trouverParId($zoe->id));
+        $this->assertFalse($this->relire($lou)->dissolutionASignaler);
+        $this->assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM tentative')->fetchColumn());
+    }
+
+    // F3 : un duo reformé entre les deux transactions (autre appareil) ne laisse pas un duo à un seul joueur : rien n'est supprimé, un second envoi termine.
+    public function testSupprimerLeCompteRefuseUnDuoReformeEntreLesDeuxTransactions(): void
+    {
+        [$lou, $mia] = $this->formerDuo();
+        $service = new class ($this->pdo, new JoueurDepot($this->pdo), new DuoDepot($this->pdo), new TentativeDepot($this->pdo)) extends AppairageService {
+            // La dissolution « oublie » d'agir : le joueur a encore un duo quand la seconde transaction commence.
+            public function dissoudre(Joueur $joueur): bool
+            {
+                return false;
+            }
+        };
+
+        $this->assertFalse($service->supprimerCompte($lou, 'session-de-lou', $this->midi));
+
+        $this->assertNotNull($this->relire($lou));
+        $this->assertSame($lou->duoId, $this->relire($mia)->duoId);
+    }
+
     private function compterEchecs(string $cle): int
     {
         $requete = $this->pdo->prepare("SELECT COUNT(*) FROM tentative WHERE type = 'code' AND cle = ?");

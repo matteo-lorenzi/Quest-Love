@@ -47,4 +47,15 @@ class RouteurTest extends TestCase
             $this->assertNull(Routeur::redirectionAcces($acces, true, $etape), $etape->name);
         }
     }
+
+    // F3 Suppression de compte : ouverte à tout joueur connecté, sans duo et pendant l'onboarding compris (cadrage § 8.5) ; le visiteur va à la connexion.
+    public function testLaSuppressionDeCompteEstOuverteAuJoueurConnecte(): void
+    {
+        [$classe, $methodeGet, $methodePost, $acces] = Routeur::ECRANS['supprimer-compte'];
+        $this->assertSame(['SupprimerCompteControleur', 'afficher', 'supprimer'], [$classe, $methodeGet, $methodePost]);
+        $this->assertSame('connexion', Routeur::redirectionAcces($acces, false, null));
+        foreach (EtapeAcces::cases() as $etape) {
+            $this->assertNull(Routeur::redirectionAcces($acces, true, $etape), $etape->name);
+        }
+    }
 }
