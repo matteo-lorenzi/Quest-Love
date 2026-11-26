@@ -259,8 +259,9 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 #### Bande 04 — Profil, duo et système
 
 - **F1 · Profil** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-183)
-  Regroupe pseudo, partenaire, accès aux règles et pages légales, déconnexion et suppression de compte.
-  - Cas : sans duo (accès depuis B1, sans partenaire ni option de dissolution, flèche ← vers B1) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-229)
+  Vu par le joueur seul : son pseudo et son identifiant de connexion (sans avatar ni initiale, les avatars graphiques arrivant au lot 3), la ligne « Tu es en duo avec {pseudo} », qui ne dit rien d'autre du partenaire (cadrage § 10), l'accès aux règles et aux pages légales, la déconnexion, puis, dans une zone à part, « Quitter mon duo » et un lien discret « Supprimer mon compte ». Barre basse, onglet Profil actif.
+  - Cas : duo sans accès au jeu (duo formé, pas encore activé : sans barre basse, flèche ← vers B2) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=146-146)
+  - Cas : sans duo (accès depuis B1, sans partenaire ni option de dissolution, sans barre basse, flèche ← vers B1) — [Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=46-229)
 - **F2 · Dissolution du duo** — [maquette Figma](https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=47-162)
   Écran dédié, exigé par le cadrage (§ 10) en exception à la règle générale du panneau bas de confirmation.
   - Avertissement d'irréversibilité, données supprimées
@@ -302,7 +303,7 @@ Schéma des enchaînements entre écrans, à l'échelle de l'application. Détai
 
 #### Lot 1 : duo et défi du jour
 
-17 codes d'écran, 27 cadres zonés.
+17 codes d'écran, 28 cadres zonés.
 
 - Accueil public, inscription, connexion — **A1, A2, A3**
 - Appairage par code, duo formé et onboarding, règles — **B1, B2, B3**

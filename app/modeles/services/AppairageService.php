@@ -237,6 +237,27 @@ class AppairageService
         return $dissous;
     }
 
+    // F3 — suppression de compte (cadrage § 10, modèle de données § 6). Ici et non dans CompteService : elle commence par la dissolution, réutilisée telle quelle.
+    // Deux transactions : la dissolution, puis le compte et ses tentatives. Une panne entre les deux laisse un joueur sans duo avec son compte ;
+    // un second envoi termine. Risque accepté.
+    // Faux si le joueur a de nouveau un duo à la seconde transaction (reformé depuis un autre appareil) : rien n'est supprimé, sinon le partenaire resterait seul dans le duo.
+    public function supprimerCompte(Joueur $joueur, string $idSession, DateTimeImmutable $maintenant): bool
+    {
+        $this->dissoudre($joueur);
+        $this->pdo->beginTransaction();
+        try {
+            $supprime = $this->joueurs->supprimerSansDuo($joueur->id);
+            if ($supprime) {
+                $this->limite->oublier($joueur, $idSession, $maintenant);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+        return $supprime;
+    }
+
     // Raccourci pour qui construit le service avec ses dépôts : le routeur et les contrôleurs, sans conteneur d'injection (ADR-0001).
     public static function construire(PDO $pdo): self
     {

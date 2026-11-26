@@ -56,6 +56,17 @@ class LimiteTentativesService
         return $attente;
     }
 
+    // F3 — suppression de compte : les essais qui désignent le joueur (identifiant, numéro, session en cours) partent, avec la purge habituelle.
+    // Chaque clé avec son type : un identifiant « 42 » ne doit pas effacer les essais de code du joueur n° 42.
+    // Les clés IP restent : une adresse peut être partagée, et l'effacer remettrait à zéro le compteur d'un attaquant qui crée puis supprime un compte.
+    public function oublier(Joueur $joueur, string $idSession, DateTimeImmutable $maintenant): void
+    {
+        $this->tentatives->purger($maintenant->modify(self::CONSERVATION));
+        $session = self::cleSession($idSession);
+        $this->tentatives->supprimerCles(TypeTentative::Connexion, [$joueur->identifiant, $session]);
+        $this->tentatives->supprimerCles(TypeTentative::Code, [(string) $joueur->id, $session]);
+    }
+
     public function liberer(array $ids): void
     {
         foreach ($ids as $id) {

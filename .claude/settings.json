@@ -41,5 +41,18 @@
   "enabledPlugins": {
     "ponytail@ponytail": true,
     "claude-code-setup@claude-plugins-official": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/rappel-gotchas.sh"
+          }
+        ]
+      }
+    ]
   }
 }

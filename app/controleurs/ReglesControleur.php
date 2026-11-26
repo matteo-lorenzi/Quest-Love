@@ -16,7 +16,6 @@ class ReglesControleur
     }
 
     // Écrans d'où B3 s'ouvre : l'énumération OrigineRegles est la liste fermée, le retour ne suit jamais un écran choisi librement dans l'adresse.
-    // TODO(simplif): le profil (F1) n'existe pas, son lien « Règles complètes » (origine=profil) reste à poser avec lui.
     // Origine de B3 validée contre l'énumération ; toute autre valeur (absente, inconnue, tableau) : accueil.
     public static function origine(mixed $origine): OrigineRegles
     {

@@ -7,7 +7,7 @@ Application web qui transforme le quotidien d'un couple en jeu : défi du jour t
 
 ## Feuille de route
 
-État du **code** au 19/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (27 cadres sur 27) : ce qui reste à faire est le code.
+État du **code** au 25/11/2026. Le périmètre de chaque lot est arrêté dans le [cadrage § 11](01-cadrage/cadrage-unifie.md) ; le calendrier semaine par semaine est au § 12 et fait foi. Les maquettes du lot 1 sont toutes zonées (28 cadres sur 28) : ce qui reste à faire est le code.
 
 Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanche en pointillés = à faire. Le statut est aussi écrit dans le texte de la case.
 
@@ -15,7 +15,7 @@ Lecture : case grise = fait ; case jaune au trait épais = en cours ; case blanc
 %%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 20, "padding": 6, "htmlLabels": true}}}%%
 flowchart TB
   S["Socle · fait<br/>noyau MVC, routeur, horloge, CI"]:::fait
-  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 13 écrans sur 17"]:::encours
+  L1["LOT 1 · Duo et défi du jour<br/>obligatoire · en cours · 15 écrans sur 17"]:::encours
   L2["LOT 2 · Gamification<br/>conditionnel : seulement si le lot 1 est fini en S11"]:::afaire
   L3["LOT 3 · Confort · optionnel · à faire"]:::afaire
   L4["LOT 4 · Perspectives<br/>non développé, documenté en recul réflexif"]:::afaire
@@ -54,10 +54,10 @@ flowchart TB
 
   subgraph P5["Profil et système"]
     direction LR
-    F1["F1 Profil<br/>à faire"]:::afaire
+    F1["F1 Profil<br/>fait"]:::fait
     F2["F2 Dissolution<br/>fait"]:::fait
     D3["D3 Duo dissous<br/>fait"]:::fait
-    F3["F3 Suppression<br/>à faire"]:::afaire
+    F3["F3 Suppression<br/>fait"]:::fait
     G1["G1 Erreurs<br/>fait"]:::fait
     F1 ~~~ F2 ~~~ D3 ~~~ F3 ~~~ G1
   end
@@ -83,7 +83,7 @@ Repli sans diagramme (même contenu) :
 | Lot | Statut | Écrans faits | Écrans à faire |
 |---|---|---|---|
 | Socle | Fait | Noyau MVC, routeur, horloge, garde-fous CI | — |
-| 1 — Duo et défi du jour | En cours, 13 sur 17 | A2, A3, B1, B2, B3, C1, C2, C3, D1, D3, D5, F2, G1 | A1, A4, F1, F3 |
+| 1 — Duo et défi du jour | En cours, 15 sur 17 | A2, A3, B1, B2, B3, C1, C2, C3, D1, D3, D5, F1, F2, F3, G1 | A1, A4 |
 | 2 — Gamification | Conditionnel | — | C3+, D1+, D4, D5+, D6, D7, E1, E2, E3, E4 |
 | 3 — Confort | À faire | — | Catégories, statistiques (F4), changement de mot de passe et de pseudo (F5), avatars |
 | 4 — Perspectives | Non développé | — | Défis personnalisés, preuve photo, courriel, web push, récupération de compte |
@@ -93,7 +93,7 @@ Repli sans diagramme (même contenu) :
 | Jalon | Échéance | Statut |
 |---|---|---|
 | Validation de la conception fonctionnelle | 07/10 | Fait |
-| Maquettes du lot 1 (Figma, 27 cadres) | S5 | Fait |
+| Maquettes du lot 1 (Figma, 28 cadres) | S5 | Fait |
 | Feuille de style (`base.css`, `composants.css`, `ecrans.css`) | S6 | En cours : `base.css` et `composants.css` de C1 |
 | Schéma de la base validé à l'oral | S8, 09–15/11 | À faire |
 | Couple témoin recruté | S9, 16–22/11 | À confirmer |
@@ -156,7 +156,7 @@ erDiagram
 | `02-recherche-utilisateur/proto-personas.*` | Sylvianne (initiatrice) et Joul (invité sceptique). | À confirmer par la recherche utilisateur |
 | `02-recherche-utilisateur/parcours-utilisateur.*` | Customer journey map : découverte → fidélisation. | À jour |
 | `02-recherche-utilisateur/guide-animation-focus-group.md` | Déroulé et questions du focus group (2 h, 6 à 8 participants). | v0.3 (07/10/2026) — exercice, séance non tenue |
-| `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.3 — lot 1 complet (27/27 cadres), D2 retiré |
+| `03-conception/inventaire-ecrans.md` | Liste des écrans et avancement du zonage Figma. | v2.3 — lot 1 complet (28/28 cadres), D2 retiré |
 | `04-technique/doc-technique.md` | Description technique : architecture MVC, mécanismes, interface, manifeste des fichiers par lot, exploitation. Spécification écrite avant le code. | V1.3 (18/11/2026) — rattrapage sans défi aléatoire, annulation à 12 h, barre basse réduite à Accueil |
 | `04-technique/modele-donnees.md` | Annexe : tables, contraintes, index, cycle de vie d'une mission. | V1.8 (18/11/2026) — statut `annule`, colonne `origine` retirée de `mission` · **à valider en S8** |
 
@@ -164,7 +164,7 @@ Les fichiers `.json` sont les fichiers de travail générés par l'outil de conc
 
 ## Ressources externes
 
-- Fichier Figma de zonage (maquettes du lot 1, 27 cadres) : https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
+- Fichier Figma de zonage (maquettes du lot 1, 28 cadres) : https://www.figma.com/design/2e82ZImnpQvYrNbE04DlRB/Quest---Love-%E2%80%94-Wireframes--zonage-?node-id=1-2
 - Parcours 1 — arrivée et appairage (FigJam) : https://www.figma.com/board/NDb4YHNxJ62zUXGGJ9a3Vn/Quest---Love---Parcours-1-_-arriv%C3%A9e-et-appairage--v3-?node-id=0-1
 - Parcours 2 — journée de jeu (FigJam) : https://www.figma.com/board/vBm24iEeigI92RZ99AyWxM/Quest---Love---Parcours-2-_-journ%C3%A9e-de-jeu--v3-
 - Parcours 3 — fin de défi et événements (FigJam) : https://www.figma.com/board/UHsyf9H1fFEcpqHKkIm49F/Quest---Love---Parcours-3-_-fin-de-d%C3%A9fi-et-%C3%A9v%C3%A9nements--v3-
