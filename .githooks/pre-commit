@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Hook pre-commit — refuse un commit qui contient un marqueur de conflit de fusion (rapide : fichiers indexés seulement). Activation : git config core.hooksPath .githooks
+
+git diff --cached --name-only --diff-filter=ACMR | bash "$(git rev-parse --show-toplevel)/scripts/verifier-conflits.sh"
