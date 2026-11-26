@@ -10,10 +10,16 @@
 - Vérifié en navigateur (`php -S localhost:8765`) : racine sans paramètre en 200 ; `?code=` : variante invitation ; `?code=` vide ignoré ; code gardé en session puis prérempli en B1 après connexion de `sylvianne` (sans duo) ; la racine renvoie ce joueur vers B1.
 - Style : classes `bienvenue*` ajoutées à `composants.css` (il n'existe pas d'`ecrans.css`).
 
-## À compléter par le ticket #115 (garde-code et variante invitation)
+## Ticket #115 : entrée par invitation (garde du code et variante)
 
-- Le ticket #114 a déjà posé la variante dans la vue (elle suit `$codeRecu`) et appelle `CodeRecu::conserver()` dans le contrôleur, faute de pouvoir rendre A1 sans le code sans les deux ; #115 n'a plus qu'à les vérifier et les finir (textes, cas limites).
-
-- Vérifier dans le navigateur le renvoi d'un joueur connecté déjà en duo (B2 ou C1) quand il ouvre un lien `?code=` (histoire 13) : seul le cas sans duo a été vu au ticket #114.
-- Vérifier que le code reste gardé après un retour A2 ou A3 vers A1 (histoire 10) et affiner les textes de la variante avec leur rédaction définitive (S6).
-- Mettre à jour `CodeRecuTest` si la garde du code change de signature.
+- Rien à changer dans le code : #114 avait déjà livré la garde (`CodeRecu::conserver` dans `BienvenueControleur`) et la variante de la vue ; #115 les a confirmées critère par critère et a ajouté le test de `CodeRecu::reprendre` (code rendu une fois, puis effacé). Les autres cas (code gardé et tronqué, code vide ou illisible ignoré, code vide qui n'écrase pas un code gardé, code rendu à l'appel suivant) et la vue avec code reçu étaient déjà testés (`CodeRecuTest`, `BienvenueVueTest`).
+- `TODO(simplif)` : celui de `CodeRecu::conserver` est levé (A1 appelle la garde ; A2 et A3 gardent leur appel, pour un retour ou une arrivée directe). Reste posé : le lien légal de A1 (`?ecran=legal`) répond 404 jusqu'au ticket A4.
+- Ordre « garder puis rediriger » : le contrôleur garde le code avant de renvoyer un joueur connecté. Sans cet ordre, un joueur connecté sans duo qui ouvre le lien arriverait en B1 sans son code (cadrage § 6.3). Un joueur déjà en duo garde le code en session sans qu'il serve : B1 est le seul à le reprendre (`reprendre`), il reste donc en session jusqu'à une visite de B1.
+- Limite connue : un lien d'invitation qui pointe directement sur B1 (`?ecran=salle-attente&code=…`) sans session est renvoyé vers A3 par le routeur et perd son code ; seul le lien vers A1 (`?ecran=bienvenue&code=…`) le conserve.
+- Vérifié (`php -S`, comptes de démonstration ; `localhost` et `127.0.0.1` ne partagent pas leurs cookies, donc deux sessions distinctes dans le navigateur) :
+  - joueur connecté sans duo (`sylvianne`), navigateur : A1 avec `?code=` renvoie en B1, champ prérempli ;
+  - joueur connecté en duo, requêtes HTTP : renvoyé vers C1 (`ines`, onboarding fini par les deux) ou B2 (`lea` dont le partenaire n'a pas fini l'onboarding) ; il ne voit jamais A1 ;
+  - visiteur, navigateur : A1 en variante invitation ; A2 puis ← et A3 puis ← : variante conservée (l'adresse du retour est `?ecran=bienvenue`, sans code, la session le garde) ;
+  - visiteur qui se connecte (`joul`), navigateur : B1 avec le champ prérempli, sans validation ; l'inscription d'un nouveau compte donne le même résultat (requêtes HTTP) ; une seconde ouverture de B1 n'a plus le code.
+- Piège de vérification : un `php -S` d'un autre worktree peut déjà écouter sur le même port, et deux serveurs répondent alors à tour de rôle, avec le code de l'autre. Contrôler `netstat -ano | grep <port>` avant de conclure, ou prendre un port libre.
+- Textes de la variante : ceux de #114, à reprendre avec leur rédaction définitive (S6).

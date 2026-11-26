@@ -40,6 +40,18 @@ class CodeRecuTest extends TestCase
         $this->assertSame('ABCD-EFGH', CodeRecu::conserver());
     }
 
+    // B1 reprend le code gardé : il est rendu une fois, puis effacé de la session (il ne sert qu'une fois).
+    public function testLeCodeGardeEstRenduUneSeuleFoisParReprendre(): void
+    {
+        $_GET['code'] = 'ABCD-EFGH';
+        CodeRecu::conserver();
+
+        $_GET = [];
+        $this->assertSame('ABCD-EFGH', CodeRecu::reprendre());
+        $this->assertNull(CodeRecu::reprendre());
+        $this->assertNull(CodeRecu::conserver());
+    }
+
     public function testLeCodeEstTronqueASaLongueurMaximale(): void
     {
         $_GET['code'] = str_repeat('a', 200);
