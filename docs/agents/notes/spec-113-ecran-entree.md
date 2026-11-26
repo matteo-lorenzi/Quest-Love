@@ -23,3 +23,5 @@
   - visiteur qui se connecte (`joul`), navigateur : B1 avec le champ prérempli, sans validation ; l'inscription d'un nouveau compte donne le même résultat (requêtes HTTP) ; une seconde ouverture de B1 n'a plus le code.
 - Piège de vérification : un `php -S` d'un autre worktree peut déjà écouter sur le même port, et deux serveurs répondent alors à tour de rôle, avec le code de l'autre. Contrôler `netstat -ano | grep <port>` avant de conclure, ou prendre un port libre.
 - Textes de la variante : ceux de #114, à reprendre avec leur rédaction définitive (S6).
+
+- Livré : A1 `BienvenueControleur` et `a1-bienvenue.php` (case A1 déjà cochée au § 5 avant cette règle).

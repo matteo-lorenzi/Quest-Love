@@ -71,5 +71,9 @@ pv_en_dur=$(grep -nE "'[^']*[^0-9][1-9][0-9]* PV" -- $(printf '%s
 ' "${fichiers[@]}" | grep '^app/.*\.php$') /dev/null)
 [ -n "$pv_en_dur" ] && signaler "valeur de PV écrite en dur dans un texte (utiliser la constante) :"$'\n'"$pv_en_dur"
 
+# 10. Aucun marqueur de conflit de fusion dans les fichiers texte du dépôt, doc comprise : un commit de fusion bâclé en laissait dans
+#     doc-technique.md, que la vérification de syntaxe PHP ne regarde pas. Le hook pre-commit lance le même contrôle sur les fichiers indexés.
+git ls-files --cached --others --exclude-standard | bash scripts/verifier-conflits.sh || echec=1
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"
