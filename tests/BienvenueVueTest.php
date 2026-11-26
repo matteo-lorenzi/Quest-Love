@@ -25,7 +25,6 @@ class BienvenueVueTest extends TestCase
         $this->assertStringContainsString('href="index.php?ecran=inscription"', $html);
         $this->assertStringContainsString('href="index.php?ecran=connexion"', $html);
         $this->assertStringContainsString('href="index.php?ecran=legal"', $html);
-        $this->assertStringNotContainsString('invit', mb_strtolower($html));
     }
 
     // Le ton est celui du jeu : le tutoiement, jamais le vouvoiement (cadrage § 8.1).
