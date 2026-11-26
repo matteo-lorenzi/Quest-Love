@@ -18,4 +18,14 @@ if (HORLOGE_DECALAGE !== '') {
 }
 
 // Étapes 2 à 6 — le routeur résout l'écran, contrôle l'accès, vérifie le jeton et appelle le contrôleur.
-Routeur::traiter($pdo, $maintenant);
+// Une redirection ou une erreur HTTP sort du routeur par exception (ADR-0004) : ce fichier les attrape, répond, puis termine.
+// C'est le seul exit du cycle d'une requête. Seules ces deux exceptions sont attrapées ici : toute autre va au gestionnaire d'amorce.php (G1 en 500).
+try {
+    Routeur::traiter($pdo, $maintenant);
+} catch (Redirection $redirection) {
+    header('Location: index.php?ecran=' . urlencode($redirection->ecran));
+    exit;
+} catch (ErreurHttp $erreur) {
+    (new ErreurControleur())->afficher($erreur->statut);
+    exit;
+}

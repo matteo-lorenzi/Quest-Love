@@ -86,17 +86,18 @@ class Routeur
         }
         // Le routeur ne passe que la connexion et l'heure : le contrôleur construit lui-même ses dépôts et services (ADR-0001).
         (new $classe($pdo, $maintenant))->$methode();
-        // Étape 6 (suite) — redirection après écriture (§ 2.4) : une méthode POST finit par rediriger(), qui ne rend pas la main.
+        // Étape 6 (suite) — redirection après écriture (§ 2.4) : une méthode POST finit par rediriger(), qui lève Redirection et ne rend pas la main.
         // Arriver ici est un bogue : il part au journal et G1 (500) s'affiche ; scripts/verifier.sh le cherche aussi avant la CI.
         if ($methodeHttp === 'POST') {
             throw new LogicException("$classe::$methode n'a pas redirigé après un POST (doc technique § 2.4).");
         }
     }
 
+    // Ne rend jamais la main, mais par exception : index.php l'attrape, envoie l'en-tête Location et termine (ADR-0004).
+    // Un test de contrôleur peut ainsi attendre la Redirection et lire l'état laissé avant elle.
     public static function rediriger(string $ecran): never
     {
-        header('Location: index.php?ecran=' . urlencode($ecran));
-        exit;
+        throw new Redirection($ecran);
     }
 
     // Le joueur de la session, relu en base : l'unique lecture du joueur connecté, pour le routeur et tous les contrôleurs.
@@ -143,10 +144,9 @@ class Routeur
         return null;
     }
 
-    // never, comme rediriger() : après G1, plus rien ne doit s'exécuter.
+    // never, comme rediriger() : après G1, plus rien ne doit s'exécuter. index.php attrape l'exception et affiche G1 (ADR-0004).
     private static function erreur(int $code): never
     {
-        (new ErreurControleur())->afficher($code);
-        exit;
+        throw new ErreurHttp($code);
     }
 }

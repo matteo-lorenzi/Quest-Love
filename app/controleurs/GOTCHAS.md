@@ -10,7 +10,9 @@ Rappels courts. La règle fait foi dans `04-technique/doc-technique.md` (§ 2.2,
 
 ## GET et POST
 
-- `POST` : se termine par un en-tête `Location` puis `exit`, refus compris, et ne rend jamais de vue. (V)
+- `POST` : se termine par `Routeur::rediriger(...)`, refus compris, et ne rend jamais de vue. (V)
+- `rediriger()` lève `Redirection` (et le routeur `ErreurHttp`) ; `index.php` l'attrape, envoie `Location` et termine, seul (ADR-0004). Donc : jamais de `exit` ni de `header('Location')` dans un contrôleur, et jamais de `catch (Throwable)` ou `catch (Exception)` autour d'un appel qui redirige, il avalerait la redirection. (V pour les `catch` seulement.)
+- Faire X puis rediriger : X s'écrit avant `rediriger()`, qui ne rend pas la main. Un test attend `Redirection` et lit l'état laissé (modèle : `BienvenueControleurTest`).
 - Un refus ne montre rien lui-même : redirection vers l'écran dont le `GET` explique la situation. Le message passe par la session et se lit une seule fois (modèle : `ConnexionControleur`).
 - `GET` : lire pour afficher, jamais écrire. Lire l'état de l'accueil n'appelle pas `MissionService::decouvrir`, qui pose une date.
 - Une donnée reçue d'un formulaire ne désigne pas ce qu'elle a le droit de modifier : le service revérifie que l'objet appartient au joueur connecté.
