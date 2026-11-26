@@ -329,7 +329,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] Entités `Joueur`, `Duo`, `RefusCode` · dépôts `JoueurDepot`, `DuoDepot`, `TentativeDepot`
 - [ ] `CompteService` — inscription, connexion, suppression _(en cours : connexion et inscription)_
 - [x] `AppairageService` — code d'invitation, formation · `LimiteTentativesService` · dissolution du duo (`dissoudre`, F2) : elle pose `joueur.dissolution_a_signaler` sur le partenaire, que D3 lira
-- [ ] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
+- [x] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
 - [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`

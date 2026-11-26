@@ -8,6 +8,10 @@ Jeu quotidien à deux : chaque jour, chaque joueur attribue un défi à son part
 Personne inscrite à l'application, avec ou sans duo. Se connecte avec son identifiant, apparaît à son partenaire sous son pseudo.
 _Éviter_ : utilisateur, membre, compte (le compte désigne seulement les identifiants)
 
+**Visiteur** :
+Personne sans session ouverte, pas encore connectée en tant que joueur. Il peut créer un compte ou se connecter.
+_Éviter_ : utilisateur, internaute
+
 **Identifiant** :
 Nom unique et privé avec lequel le joueur se connecte. Jamais affiché au partenaire.
 _Éviter_ : login, nom d'utilisateur
@@ -45,6 +49,14 @@ _Éviter_ : rupture, séparation, suppression du duo (« Quitter mon duo » est 
 **Salle d'attente** :
 Écran B1 d'un joueur sans duo : il y voit son code d'invitation et peut saisir celui de son partenaire.
 _Éviter_ : lobby, file d'attente
+
+**Écran d'entrée** :
+Écran A1, premier écran d'un visiteur : il présente le jeu et propose de créer un compte ou de se connecter. Un joueur connecté n'y reste pas, il est renvoyé vers l'écran de son étape.
+_Éviter_ : accueil public, page d'accueil (l'accueil est l'écran C1 des joueurs)
+
+**Entrée par invitation** :
+Écran d'entrée d'un visiteur arrivé avec un code d'invitation reçu par un lien. Le code n'est pas vérifié à cet écran : il est gardé pour la salle d'attente.
+_Éviter_ : variante invitation, page d'invitation
 
 ## Comptes
 

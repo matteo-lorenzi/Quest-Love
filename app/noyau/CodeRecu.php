@@ -1,5 +1,5 @@
 <?php
-// Code d'invitation reçu par un lien — A2, A3 et B1 — parcours 1 (appairage) — lot 1 — commun. Garde le code en session jusqu'à B1 (doc technique § 3.6).
+// Code d'invitation reçu par un lien — A1, A2, A3 et B1 — parcours 1 (appairage) — lot 1 — commun. Garde le code en session jusqu'à B1 (doc technique § 3.6).
 
 class CodeRecu
 {
@@ -8,8 +8,8 @@ class CodeRecu
     // Un code fait 8 caractères : au-delà, ce n'est pas un code, et la session n'a pas à garder n'importe quoi.
     private const LONGUEUR_MAX = 64;
 
-    // Appelée par A2 et A3 quand elles affichent le formulaire : garde le code d'un lien d'invitation et renvoie celui en session.
-    // TODO(simplif): l'entrée du lien est ?code= sur A2 et A3, faute d'A1 · invitation, à déplacer quand A1 existe ; un lien vers B1 ouvert sans session perd son code (le routeur renvoie à la connexion).
+    // Appelée par A1, l'entrée du lien d'invitation, puis par A2 et A3 pour qu'un retour ou une arrivée directe ne perde pas le code : garde le code d'un lien et renvoie celui en session.
+    // Limite connue : un lien vers B1 ouvert sans session perd son code (le routeur renvoie à la connexion).
     public static function conserver(): ?string
     {
         // Un ?code= vide n'est pas un code reçu : on ne garde rien.

@@ -7,6 +7,7 @@ class Routeur
     // null : l'écran n'accepte pas cette méthode HTTP. Accès : un NiveauAcces (Public, Connecte, Duo, ou Jeu : en duo, onboarding terminé par les deux).
     // Elle grandit ticket par ticket, chaque écran arrivant avec son contrôleur ; liste cible au § 2.3.
     private const ECRANS = [
+        'bienvenue' => ['BienvenueControleur', 'afficher', null, NiveauAcces::Public],
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', NiveauAcces::Connecte],
@@ -24,7 +25,6 @@ class Routeur
     ];
 
     // Écran affiché quand l'URL n'en précise aucun.
-    // TODO(simplif): bienvenue absent de la table, donc G1 (404) sans paramètre, résolu quand A1 entre dans la table.
     private const ECRAN_PAR_DEFAUT = 'bienvenue';
 
     public static function traiter(PDO $pdo, DateTimeImmutable $maintenant): void

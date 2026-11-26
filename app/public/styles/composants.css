@@ -116,6 +116,25 @@
     transition: transform 0.2s ease-out;
 }
 
+/* Écran d'entrée (A1) : titre, accroche, deux actions pleine largeur, pied légal. */
+.bienvenue {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espace-4);
+    margin-block: var(--espace-5);
+}
+
+.bienvenue__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espace-3);
+}
+
+.bienvenue__pied {
+    text-align: center;
+    font-size: 0.875rem;
+}
+
 .eventail {
     display: flex;
     flex-direction: column;
