@@ -107,6 +107,7 @@ Arborescence du lot 1. Les lots suivants n'ajoutent pas de dossier : leurs contr
 4. Si le rattrapage a produit des événements à montrer, le routeur redirige vers l'écran `evenement`.
 5. Le routeur vérifie les préconditions d'accès de l'écran (public, connecté, en duo) et redirige le cas échéant (§ 3.6).
 6. En `POST`, le routeur valide le jeton CSRF, puis le contrôleur appelle un service et redirige ; en `GET`, le contrôleur lit les données et rend sa vue.
+7. Une redirection (`Routeur::rediriger`) et une erreur HTTP (404, 403, 405) ne terminent pas le processus : elles lèvent `Redirection` ou `ErreurHttp`, que `public/index.php` attrape pour envoyer `Location` ou afficher G1, puis terminer. C'est le seul `exit` du cycle ([ADR-0004](../docs/adr/0004-sortie-par-exception.md)).
 
 ### 2.3 Table de routage
 
@@ -139,7 +140,7 @@ Une ligne par écran du lot 1. Le code renvoie à l'inventaire des écrans et au
 - **Contrôleurs fins** — un contrôleur lit la requête, appelle un service, puis redirige ou rend sa vue. Aucune règle du jeu ni aucun SQL dans un contrôleur ou une vue.
 - **SQL dans les dépôts seulement**, en requêtes préparées sans exception, y compris pour les entiers issus de l'URL.
 - **Échappement à la sortie** — une seule fonction d'échappement, appelée dans les vues ; aucun texte libre n'est écrit sans elle.
-- **Redirection après écriture** — tout `POST` se termine par un en-tête `Location` puis `exit`, refus compris : le message à montrer passe par la session et le GET qui suit le lit une seule fois (modèle : `ConnexionControleur`). Contrôlé par `scripts/verifier.sh` et, à l'exécution, par le routeur.
+- **Redirection après écriture** — tout `POST` se termine par `Routeur::rediriger()`, refus compris (l'exception `Redirection` que `index.php` transforme en en-tête `Location`, [ADR-0004](../docs/adr/0004-sortie-par-exception.md)) : le message à montrer passe par la session et le GET qui suit le lit une seule fois (modèle : `ConnexionControleur`). Contrôlé par `scripts/verifier.sh` et, à l'exécution, par le routeur.
 - **Un écran, un contrôleur, une vue** — un écran de l'inventaire ne se rend jamais depuis deux vues différentes.
 - **États en énumérations PHP** — statuts de mission, réponses de participation ; jamais de chaînes libres.
 - **Français sans accent partout** — classes, méthodes, cas d'énumération, tables et colonnes : `MissionDepot::trouverEnCoursParDestinataire()`, `StatutMission::EnCours`. Suffixes de rôle en français : `Controleur`, `Depot`, `Service`.

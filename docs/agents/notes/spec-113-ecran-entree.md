@@ -25,3 +25,11 @@
 - Textes de la variante : ceux de #114, à reprendre avec leur rédaction définitive (S6).
 
 - Livré : A1 `BienvenueControleur` et `a1-bienvenue.php` (case A1 déjà cochée au § 5 avant cette règle).
+
+## Ticket #117 : redirection par exception
+
+- `Routeur::rediriger` lève `Redirection` (`->ecran`), `Routeur::erreur` lève `ErreurHttp` (`->statut`) ; `index.php` attrape les deux et termine. ADR-0004. Le test « garder le code puis rediriger » existe : `BienvenueControleurTest` (le test échoue si on inverse les deux lignes du contrôleur, vérifié par mutation). Il remplace la limite notée au ticket #114 (« l'ordre n'est pas testé »).
+- Pour tester un autre contrôleur qui redirige : poser `$_SESSION`, `$_GET`, créer le joueur avec `JoueurDepot::ajouter`, attendre `Redirection`, puis lire la session. Les classes du noyau et le contrôleur se chargent par `require_once` (hors de l'autochargement des tests).
+- `scripts/verifier.sh` (contrôle 11) refuse `catch (Throwable)` et `catch (Exception)` dans `app/controleurs/` et `app/noyau/` (hors `amorce.php`, dernier recours du gestionnaire d'exceptions).
+- Décision à valider avec l'enseignant (ticket) : un ADR suffit-il pour ce changement de mécanisme de sortie ? L'ADR est écrit, la validation reste à confirmer.
+- Livré : `app/noyau/Redirection.php`, `app/noyau/ErreurHttp.php`, `tests/BienvenueControleurTest.php`.

@@ -75,5 +75,13 @@ pv_en_dur=$(grep -nE "'[^']*[^0-9][1-9][0-9]* PV" -- $(printf '%s
 #     doc-technique.md, que la vérification de syntaxe PHP ne regarde pas. Le hook pre-commit lance le même contrôle sur les fichiers indexés.
 git ls-files --cached --others --exclude-standard | bash scripts/verifier-conflits.sh || echec=1
 
+# 11. Une redirection ou une erreur HTTP sort par exception (ADR-0004) : un catch (Throwable) ou catch (Exception) dans un contrôleur ou le noyau l'avalerait,
+#     et la requête continuerait après « rediriger ». Les catch des services (annulation de transaction) ne redirigent pas : hors du contrôle.
+#     amorce.php est exclu : son catch (Throwable) est le dernier recours du gestionnaire d'exceptions, qui n'appelle ni rediriger ni erreur.
+avales=$(grep -nE 'catch \([^)]*\b(Throwable|Exception)\b' -- $(printf '%s\n' "${fichiers[@]}" | grep -E '^app/(controleurs|noyau)/.*\.php$') /dev/null \
+    | grep -v '^app/noyau/amorce.php:')
+[ -n "$avales" ] && signaler "catch (Throwable) ou catch (Exception) dans un contrôleur ou le noyau : il avalerait une Redirection (ADR-0004) :"$'\n'"$avales"
+
+
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"
