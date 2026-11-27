@@ -14,6 +14,11 @@ if [ ! -f app/config/config.php ]; then
         exit 1
     fi
 fi
+# Un config.php antérieur à #111 n'a pas la clé des tentatives : les tests planteraient sur une constante indéfinie.
+if ! php -r 'require "app/config/config.php"; exit(defined("CLE_SECRETE_TENTATIVES") && CLE_SECRETE_TENTATIVES !== "" ? 0 : 1);'; then
+    echo "ÉCHEC : CLE_SECRETE_TENTATIVES absente ou vide dans app/config/config.php (et dans celui du dossier principal). La recopier de config.exemple.php avec une valeur tirée par : php -r \"echo bin2hex(random_bytes(32)), PHP_EOL;\"" >&2
+    exit 1
+fi
 
 # Le graphe graphify n'est pas versionné non plus : un worktree neuf reprend celui du dossier principal (graphify update . le remet à jour).
 if [ ! -d graphify-out ] && [ -d "$principal/graphify-out" ]; then

@@ -318,7 +318,7 @@ erDiagram
 | Champ | Type | Contrainte |
 |---|---|---|
 | `id` | entier non signé | clé primaire |
-| `cle` | chaîne 64 | non nul ; connexion : identifiant saisi ; code : numéro du joueur ; tous types : empreinte SHA-256 de la session et de l'adresse IP, jamais en clair |
+| `cle` | chaîne 64 | non nul ; connexion : identifiant saisi ; code : numéro du joueur ; tous types : empreinte HMAC-SHA256 de la session et de l'adresse IP, calculée avec la clé secrète `CLE_SECRETE_TENTATIVES` de `config.php`, jamais en clair |
 | `type` | énumération `connexion` / `code` / `inscription` | non nul ; inscription : clé IP seule |
 | `date` | date-heure | non nul |
 

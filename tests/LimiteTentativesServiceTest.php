@@ -32,6 +32,24 @@ class LimiteTentativesServiceTest extends TestCase
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $cle);
     }
 
+    // Sécurité (A2, A3, B1, #111) : sans la clé secrète de config.php, une ligne de la table ne permet plus de remonter à l'adresse IP.
+    public function testLaCleIpDependDeLaCleSecrete(): void
+    {
+        $cle = LimiteTentativesService::cleIp('192.0.2.7', 'secret-a');
+
+        $this->assertNotSame(hash('sha256', 'ip:192.0.2.7'), $cle);
+        $this->assertNotSame(hash('sha256', '192.0.2.7'), $cle);
+        $this->assertNotSame($cle, LimiteTentativesService::cleIp('192.0.2.7', 'secret-b'));
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $cle);
+    }
+
+    // Sécurité (A2, A3, B1, #111) : une installation sans clé échoue franchement au lieu de hacher sans secret.
+    public function testUneCleSecreteVideEstRefusee(): void
+    {
+        $this->expectException(LogicException::class);
+        LimiteTentativesService::cleIp('192.0.2.7', '');
+    }
+
     // Cadrage § 6.6 : les codes et la connexion ont chacun leur compteur, sinon un joueur bloquerait sa propre connexion en se trompant de code.
     public function testLesEssaisDeCodeNeBloquentPasLaConnexion(): void
     {

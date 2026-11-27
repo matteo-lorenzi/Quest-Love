@@ -12,6 +12,11 @@ const BDD_NOM = 'quest_love';
 const BDD_UTILISATEUR = /*secret(*/'root'/*)*/;
 const BDD_MOT_DE_PASSE = /*secret(*/''/*)*/;
 
+// Clé des empreintes d'IP et de session de la table tentative (HMAC), propre à chaque installation.
+// À générer une fois : php -r "echo bin2hex(random_bytes(32)), PHP_EOL;" ; vide, la première tentative échoue.
+// La changer remet à zéro les compteurs en cours, sans autre effet.
+const CLE_SECRETE_TENTATIVES = /*secret(*/''/*)*/;
+
 // Décalage de démonstration appliqué à l'horloge par index.php, par exemple '+11 hours 55 minutes' (doc technique § 3.8).
 // Vide en fonctionnement normal.
 const HORLOGE_DECALAGE = '';

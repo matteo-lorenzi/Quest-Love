@@ -15,6 +15,12 @@
 - L'empreinte de session effacée est celle de la session en cours. La connexion régénère l'identifiant de session : les essais de connexion faits avant le login portent une ancienne empreinte et restent jusqu'à la purge (au plus 30 minutes après la prochaine tentative ou suppression de compte). C'est conforme au ticket, pas un oubli.
 - Le test de la course (duo reformé) neutralise `dissoudre` par une classe anonyme qui hérite de `AppairageService` : `dissoudre` ne doit donc pas devenir `final`.
 
+## Suite : #111, empreintes avec clé secrète
+
+- `cleSession` et `cleIp` sont des HMAC-SHA256 avec `CLE_SECRETE_TENTATIVES` (`config.php`, doc technique § 6.1). La clé est le paramètre par défaut des deux méthodes : un test passe la sienne pour vérifier que l'empreinte en dépend. Constante absente : `Error` de PHP à l'appel ; vide : `LogicException`.
+- Un `config.php` antérieur à #111 n'a pas la constante : `scripts/tester.sh` s'arrête avec la marche à suivre. Le `config.php` d'un worktree, déjà copié, ne se recopie pas : y ajouter la clé aussi. La CI tire une clé à chaque exécution.
+- Sur Azrael, ajouter la clé au `config.php` déposé avant de mettre en ligne cette version, sinon toute connexion échoue.
+
 ## Améliorations futures
 
 - Sessions stockées en base : fermer toutes les sessions d'un joueur à la suppression de son compte. Aujourd'hui, une session ouverte sur un autre appareil reste jusqu'à sa prochaine requête (qui renvoie vers la connexion) ou au nettoyage de PHP.
