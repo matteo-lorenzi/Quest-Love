@@ -286,6 +286,8 @@ Deux fichiers, sans dépendance. L'application reste utilisable sans eux.
 - **`echeance.js`** — affiche le temps restant avant minuit.
   - L'échéance est **toujours écrite en texte statique** dans le HTML, calculée par le serveur ; le script ne fait que l'enrichir, en décomptant à partir de la durée restante fournie par le serveur (§ 3.8).
   - La zone n'est pas une région dynamique : pas d'annonce répétée aux technologies d'assistance.
+  - Mise à jour au changement de minute, jamais à la seconde ; à zéro, texte figé sans rechargement (le rattrapage est serveur). Seulement sur C3 en cours.
+  - **Mouvement réduit** : le script ne fait rien, le texte du serveur reste.
 
 ### 4.4 Accessibilité
 

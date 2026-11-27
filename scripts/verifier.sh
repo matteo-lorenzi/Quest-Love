@@ -20,7 +20,8 @@ lectures=$(grep -nE 'new DateTime(Immutable)?\(|\btime\(\)|\bdate\(|strtotime\(|
 [ -n "$lectures" ] && signaler "horloge lue hors de app/public/index.php :"$'\n'"$lectures"
 
 # 3. Horodatages écrits depuis $maintenant, jamais par l'horloge SQL (§ 3.8).
-sql_horloge=$(grep -niE 'NOW\(\)|CURRENT_TIMESTAMP' -- "${fichiers[@]}" /dev/null)
+# PHP et SQL seulement : performance.now() d'echeance.js n'est pas l'horloge SQL.
+sql_horloge=$(grep -niE 'NOW\(\)|CURRENT_TIMESTAMP' -- $(printf '%s\n' "${fichiers[@]}" | grep -E '\.(php|sql)$') /dev/null)
 [ -n "$sql_horloge" ] && signaler "horloge SQL utilisée :"$'\n'"$sql_horloge"
 # Seul le jeu de démonstration date ses lignes du jour du rechargement (sql/demonstration.sql, TODO(simplif)).
 sql_jour=$(grep -niE 'CURDATE\(|CURRENT_DATE' -- "${fichiers[@]}" /dev/null | grep -v '^sql/demonstration.sql:')

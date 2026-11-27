@@ -25,6 +25,9 @@ class DefiRecuControleur
             'missionId' => $mission->id,
             'enCours' => $enCours,
             'confirmerRealise' => $enCours && ($_GET['confirmer'] ?? null) === 'realise',
+            'dateLimite' => $mission->dateLimite,
+            // Depuis $maintenant, donc décalage de démonstration compris (doc technique § 3.8) : une soustraction pour l'affichage, pas une règle du jeu.
+            'secondesRestantes' => $enCours ? max(0, $mission->dateLimite->getTimestamp() - $this->maintenant->getTimestamp()) : null,
         ]);
     }
 
