@@ -1,3 +1,5 @@
 # Normalise les fins de ligne : évite les faux conflits entre postes
 * text=auto eol=lf
 *.png binary
+# Notes de spec : chaque ticket ajoute sa section, deux tickets parallèles fusionnent sans conflit
+docs/agents/notes/*.md merge=union

@@ -16,7 +16,7 @@ Fin d'un ticket, lancée avant la revue de code pour que la doc soit à jour qua
 
 ## 2. Contraintes du projet
 
-- Couches MVC (ADR-0001) et commentaires (doc technique § 2.4) intacts : en-tête de fichier, commentaire du *pourquoi*, fichiers annotés étape par étape non allégés. Pour un contrôle indépendant du diff, lancer le sous-agent `revue-couches-mvc`.
+- Couches MVC (ADR-0001) et commentaires (doc technique § 2.4) intacts : en-tête de fichier, commentaire du *pourquoi*, fichiers annotés étape par étape non allégés (contrôlés par la revue du § 4).
 - Pas de `TODO(simplif)` sans sa limite ni son échéance.
 - Nouvelle règle reprise du cadrage : elle cite sa section (« cadrage § 4.6 »), elle ne la reformule pas.
 
@@ -29,7 +29,7 @@ Fin d'un ticket, lancée avant la revue de code pour que la doc soit à jour qua
 
 ## 4. Revue
 
-Lancer le sous-agent `revue-couches-mvc` sur le diff complet, doc comprise. Lui passer : le numéro du ticket, le résultat du § 1 (`verifier.sh`, `tester.sh`, vérification dans le navigateur) et le chemin de la note de spec. Corriger ce qu'il retient, puis relancer le § 1. Le skill `/mattpocock-skills:implement` ne se lance qu'à la main : sa revue s'ajoute à celle-ci quand il a été utilisé.
+Lancer le sous-agent `revue-couches-mvc` pour tout diff, données SQL et doc comprises : un diff sans code PHP a aussi ses commentaires à relire. Lui passer : le numéro du ticket, le résultat du § 1 (`verifier.sh`, `tester.sh`, vérification dans le navigateur) et le chemin de la note de spec. Corriger ce qu'il retient, puis relancer le § 1. Le skill `/mattpocock-skills:implement` ne se lance qu'à la main : sa revue s'ajoute à celle-ci quand il a été utilisé.
 
 ## 5. Commit, PR et ticket
 
