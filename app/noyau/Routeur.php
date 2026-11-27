@@ -10,6 +10,7 @@ class Routeur
         'bienvenue' => ['BienvenueControleur', 'afficher', null, NiveauAcces::Public],
         'inscription' => ['InscriptionControleur', 'afficher', 'inscrire', NiveauAcces::Public],
         'connexion' => ['ConnexionControleur', 'afficher', 'connecter', NiveauAcces::Public],
+        'legal' => ['LegalControleur', 'afficher', null, NiveauAcces::Public],
         'deconnexion' => ['ConnexionControleur', null, 'deconnecter', NiveauAcces::Connecte],
         'salle-attente' => ['SalleAttenteControleur', 'afficher', 'traiter', NiveauAcces::Connecte],
         'onboarding' => ['OnboardingControleur', 'afficher', 'terminer', NiveauAcces::Duo],
