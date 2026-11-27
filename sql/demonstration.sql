@@ -12,10 +12,11 @@ INSERT INTO joueur (identifiant, pseudo, mdp_hash, date_creation) VALUES
 -- Un duo déjà formé : Léa et Tom, pour la variante « déjà en duo » de B1 et une connexion qui mène à l'accueil. Même mot de passe de démonstration.
 INSERT INTO duo (id, date_creation, date_activation) VALUES (1, '2026-10-02 18:00:00', '2026-10-02 18:05:00');
 -- Onboarding déjà fini par les deux : leur connexion mène à l'accueil.
-INSERT INTO joueur (identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
-  ('lea', 'Léa', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:50:00'),
-  ('tom', 'Tom', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 1, '2026-10-02 17:55:00');
--- Léa et Tom n'ont pas répondu aujourd'hui : C1 état 1 (« On joue aujourd'hui ? »).
+-- Numéros fixés (3 et 4, ceux qu'ils prenaient déjà) : leur historique, en fin de fichier, y renvoie. 4 PV chacun : un défi expiré chacun dans cet historique.
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, pv, onboarding_vu, date_creation) VALUES
+  (3, 'lea', 'Léa', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 4, 1, '2026-10-02 17:50:00'),
+  (4, 'tom', 'Tom', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, 4, 1, '2026-10-02 17:55:00');
+-- Léa et Tom n'ont pas répondu aujourd'hui : C1 état 1 (« On joue aujourd'hui ? »). Leur historique des jours précédents est en fin de fichier.
 
 -- Un second duo pour C1 état 2 : Inès a dit oui aujourd'hui, Hugo pas encore. Inès voit l'attente du partenaire, Hugo la question.
 INSERT INTO duo (id, date_creation, date_activation) VALUES (2, '2026-10-03 18:00:00', '2026-10-03 18:05:00');
@@ -133,3 +134,49 @@ INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES (7, 1), (7, 2), (7, 3
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
   (10, 7, 1, 116, 117, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:00:00'), CONCAT(CURDATE(), ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 18:00:00')),
   (10, 8, 6, 117, 116, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), NULL, CONCAT(CURDATE(), ' 00:00:00'), 'en_cours', NULL);
+
+-- Un onzième duo pour B2, variante d'attente, et F1 « duo sans accès au jeu » : Chloé a fini l'onboarding, Enzo non. Duo formé mais pas encore activé.
+-- Chloé lit l'attente de B2, et son profil F1 la variante sans accès au jeu ; Enzo voit l'onboarding. Dès qu'Enzo le termine, le duo s'active et les deux passent à l'accueil.
+INSERT INTO duo (id, date_creation, date_activation) VALUES (11, '2026-10-11 18:00:00', NULL);
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, date_creation) VALUES
+  (118, 'chloe', 'Chloé', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 11, 1, '2026-10-11 17:50:00'),
+  (119, 'enzo', 'Enzo', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 11, 0, '2026-10-11 17:55:00');
+
+-- Un joueur sans duo pour D3 à la connexion : son ancien partenaire a dissous leur duo pendant son absence. Il lit D3 une seule fois, puis B1.
+INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, dissolution_a_signaler, date_creation) VALUES
+  (120, 'marc', 'Marc', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, '2026-10-12 17:50:00');
+
+-- Trois jours d'historique pour Léa et Tom (duo 1), avant-hier compris : missions validées et expirées, déjà passées par le rattrapage (statuts terminaux).
+-- Rien aujourd'hui : C1 reste à l'état 1. Chacun a perdu 1 PV par défi expiré (pv à 4 plus haut, cadrage § 4.4).
+-- Les défis reçus par Tom (7, 9, 11) et par Léa (8, 10, 12) ne reviennent plus à son tirage (cadrage § 4.6). Défis 1 à 15 seulement.
+-- Les propositions non retenues d'hier et d'avant-hier sont écartées trois jours : il reste à chacun huit défis disponibles sur quinze.
+INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
+  (1, 3, CURDATE() - INTERVAL 3 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:00:00')),
+  (1, 4, CURDATE() - INTERVAL 3 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:05:00')),
+  (1, 3, CURDATE() - INTERVAL 2 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:00:00')),
+  (1, 4, CURDATE() - INTERVAL 2 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:05:00')),
+  (1, 3, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:00:00')),
+  (1, 4, CURDATE() - INTERVAL 1 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:05:00'));
+-- Tirages impairs : Léa émet pour Tom ; pairs : Tom émet pour Léa.
+INSERT INTO tirage (id, duo_id, emetteur_id, destinataire_id, date_jour) VALUES
+  (9, 1, 3, 4, CURDATE() - INTERVAL 3 DAY),
+  (10, 1, 4, 3, CURDATE() - INTERVAL 3 DAY),
+  (11, 1, 3, 4, CURDATE() - INTERVAL 2 DAY),
+  (12, 1, 4, 3, CURDATE() - INTERVAL 2 DAY),
+  (13, 1, 3, 4, CURDATE() - INTERVAL 1 DAY),
+  (14, 1, 4, 3, CURDATE() - INTERVAL 1 DAY);
+INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES
+  (9, 7), (9, 1), (9, 2),
+  (10, 8), (10, 3), (10, 4),
+  (11, 9), (11, 5), (11, 6),
+  (12, 10), (12, 13), (12, 14),
+  (13, 11), (13, 13), (13, 14),
+  (14, 12), (14, 1), (14, 15);
+-- Avant-hier : les deux validés. Hier et la veille, un défi expiré chacun, ouvert mais pas réalisé (D1 déjà montré, variante « jamais découvert » : duo de Rose).
+INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
+  (1, 9, 7, 3, 4, CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 09:00:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 19:00:00')),
+  (1, 10, 8, 4, 3, CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 09:10:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 20:00:00')),
+  (1, 11, 9, 3, 4, CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 09:00:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 2 DAY, ' 18:30:00')),
+  (1, 12, 10, 4, 3, CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 09:10:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 00:00:00'), 'expire', NULL),
+  (1, 13, 11, 3, 4, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:00:00'), CONCAT(CURDATE(), ' 00:00:00'), 'expire', NULL),
+  (1, 14, 12, 4, 3, CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 1 DAY, ' 09:10:00'), CONCAT(CURDATE(), ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 1 DAY, ' 21:00:00'));
