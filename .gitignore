@@ -41,5 +41,6 @@ graphify-out/
 # Captures et journaux du navigateur piloté par Playwright (serveur MCP)
 .playwright-mcp/
 
-# Serveur php -S du worktree : numéro de processus et port (scripts/servir.sh)
+# Serveur php -S du worktree : numéro de processus et port, horloge décalée (scripts/servir.sh)
 .servir
+.servir-horloge.php

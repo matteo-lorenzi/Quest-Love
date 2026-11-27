@@ -3,9 +3,9 @@
 Les tests ne couvrent que la couche modèle (doc technique § 6.4) : un écran livré se regarde dans le navigateur avant de rendre la main.
 
 1. `bash scripts/tester.sh` : il laisse la base rechargée avec le jeu de démonstration. Sinon, `php sql/reinitialiser.php`.
-2. Servir l'application. Dossier principal : `http://quest-love.local/` (WAMP). Worktree : `quest-love.local` sert le dossier principal, lancer `bash scripts/servir.sh` : il prend le premier port libre à partir de 8765 et affiche l'adresse. Lire le port affiché, pas celui du doc : une autre session peut tenir 8765, et ses pages passent pour les vôtres.
+2. Servir l'application. Pour voir un autre moment de la journée (avant 12 h, après minuit) : `bash scripts/servir.sh --decalage '+14 hours'` (doc technique § 3.8), jamais en écrivant dans `config.php`. Dossier principal : `http://quest-love.local/` (WAMP). Worktree : `quest-love.local` sert le dossier principal, lancer `bash scripts/servir.sh` : il prend le premier port libre à partir de 8765 et affiche l'adresse. Lire le port affiché, pas celui du doc : une autre session peut tenir 8765, et ses pages passent pour les vôtres.
 3. Choisir le compte : chaque groupe de `sql/demonstration.sql` dit en commentaire quel écran et quelle variante il montre. Mot de passe commun : `Quest-Love-demo-2026!`.
-4. Ouvrir l'écran avec les outils du MCP `playwright` (navigation, lecture de la page). Le jeton CSRF se lit sur `?ecran=connexion` ; les pages sans formulaire n'en ont pas.
+4. Ouvrir l'écran avec les outils du MCP `playwright` (navigation, lecture de la page), dans un contexte neuf par vérification (`browser.newContext()` via `browser_run_code`) : ses cookies restent isolés de ceux des autres sessions qui partagent le navigateur. Le jeton CSRF se lit sur `?ecran=connexion` ; les pages sans formulaire n'en ont pas.
 5. Rendre compte de ce qui a été vu (écran, compte, variante). Une connexion consomme l'état de démonstration (un événement ne s'affiche qu'une fois) : recharger la base pour rejouer.
 6. `bash scripts/servir.sh arret`, avant de rendre la main. Un serveur oublié verrouille le dossier du worktree : sa suppression est refusée sous Windows.
 

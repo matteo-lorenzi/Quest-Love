@@ -3,21 +3,28 @@
 
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
-# 1. config.php n'est pas versionné : un worktree neuf n'en a pas. On reprend celui du dossier principal du dépôt.
+# 1. config.php n'est pas versionné : un worktree neuf reprend celui du dossier principal du dépôt.
+#    La clé des tentatives (#111) se contrôle dans le fichier du dossier principal avant toute copie : une copie sans clé bloquerait le worktree.
 principal=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
-if [ ! -f app/config/config.php ]; then
-    if [ -f "$principal/app/config/config.php" ]; then
+cle_presente() { php -r 'require $argv[1]; exit(defined("CLE_SECRETE_TENTATIVES") && CLE_SECRETE_TENTATIVES !== "" ? 0 : 1);' "$1"; }
+if [ ! -f "$principal/app/config/config.php" ]; then
+    echo "ÉCHEC : $principal/app/config/config.php absent. Le copier depuis config.exemple.php et y mettre les identifiants de la base locale (§ 6.3)." >&2
+    exit 1
+fi
+if ! cle_presente "$principal/app/config/config.php"; then
+    echo "ÉCHEC : CLE_SECRETE_TENTATIVES absente ou vide dans $principal/app/config/config.php. La recopier de config.exemple.php avec une valeur tirée par : php -r \"echo bin2hex(random_bytes(32)), PHP_EOL;\"" >&2
+    exit 1
+fi
+if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
+    # Copie absente, ou antérieure à la clé : on reprend celle du dossier principal.
+    if [ ! -f app/config/config.php ] || ! cle_presente app/config/config.php; then
         cp "$principal/app/config/config.php" app/config/config.php
         echo "config.php copié depuis $principal"
-    else
-        echo "ÉCHEC : app/config/config.php absent. Le copier depuis config.exemple.php et y mettre les identifiants de la base locale (§ 6.3)." >&2
-        exit 1
     fi
-fi
-# Un config.php antérieur à #111 n'a pas la clé des tentatives : les tests planteraient sur une constante indéfinie.
-if ! php -r 'require "app/config/config.php"; exit(defined("CLE_SECRETE_TENTATIVES") && CLE_SECRETE_TENTATIVES !== "" ? 0 : 1);'; then
-    echo "ÉCHEC : CLE_SECRETE_TENTATIVES absente ou vide dans app/config/config.php (et dans celui du dossier principal). La recopier de config.exemple.php avec une valeur tirée par : php -r \"echo bin2hex(random_bytes(32)), PHP_EOL;\"" >&2
-    exit 1
+    # Base propre au worktree, posée aussitôt après la copie : aucune sortie du script ne laisse le worktree sur la base du dossier principal (§ 6.3).
+    dossier=$(basename "$PWD")
+    base="quest_love_$(printf '%s' "$dossier" | tr -c 'a-zA-Z0-9' '_' | cut -c1-50)"
+    sed -i "s/^const BDD_NOM = .*/const BDD_NOM = '$base';/" app/config/config.php
 fi
 
 # Le graphe graphify n'est pas versionné non plus : un worktree neuf reprend celui du dossier principal (graphify update . le remet à jour).
@@ -64,13 +71,10 @@ if ! joindre_serveur; then
     exit 1
 fi
 
-# 4. Un worktree teste sur sa propre base, pour que deux worktrees testés en même temps ne vident pas la base l'un de l'autre (§ 6.3).
+# 4. Un worktree teste sur sa propre base (nommée à l'étape 1), pour que deux worktrees testés en même temps ne vident pas la base l'un de l'autre (§ 6.3).
 #    Le dossier principal garde la base de config.php, celle de l'application servie.
 # TODO(simplif): la base d'un worktree supprimé reste sur le serveur, à effacer à la main (DROP DATABASE) ; nettoyage automatique si elles s'accumulent.
 if [ "$(git rev-parse --show-toplevel)" != "$principal" ]; then
-    dossier=$(basename "$PWD")
-    base="quest_love_$(printf '%s' "$dossier" | tr -c 'a-zA-Z0-9' '_' | cut -c1-50)"
-    sed -i "s/^const BDD_NOM = .*/const BDD_NOM = '$base';/" app/config/config.php
     php -r 'require "app/config/config.php"; (new PDO("mysql:host=" . BDD_HOTE, BDD_UTILISATEUR, BDD_MOT_DE_PASSE))->exec("CREATE DATABASE IF NOT EXISTS `" . BDD_NOM . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");' || exit 1
     echo "Base de test du worktree : $base"
 fi
