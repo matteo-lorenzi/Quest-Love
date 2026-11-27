@@ -54,17 +54,12 @@ session_start();
 // La session n'est pas touchée : le joueur reste connecté et garde son jeton CSRF.
 set_exception_handler(function (Throwable $exception): void {
     error_log((string) $exception);
-    // Tous les tampons ouverts (celui de Vue::rendre, celui de php.ini) : G1 s'affiche seule, sans morceau de la page interrompue.
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
+    Vue::viderTampons();
     try {
         (new ErreurControleur())->afficher(500);
     } catch (Throwable) {
         // G1 a échoué à son tour : son rendu interrompu ne part pas avec le texte de secours.
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
+        Vue::viderTampons();
         http_response_code(500);
         echo 'Erreur interne.';
     }
