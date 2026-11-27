@@ -44,3 +44,11 @@ Livré : C3 « en cours » (`ecrans/c3-defi-recu.php`, `DefiRecuControleur`), `a
 - Vérifié dans le navigateur (`php -S 127.0.0.3`, 375 px, un contexte neuf par compte, après 18 h) : Chloé arrive sur l'attente de B2 (« En attente de Enzo ») et ouvre F1 ; Enzo sur l'onboarding (1 / 3) ; Marc sur D3 puis B1. Léa, après 12 h, lit la journée blanche « n'avait pas répondu à 12 h » : l'état 1 ne se voit qu'avant 12 h, comme pour tout duo sans réponse.
 - Prochain numéro libre : duo 12, joueur 121, tirage 15.
 - Livré : `sql/demonstration.sql` (duo 11, Marc, historique de Léa et Tom), doc technique § 6.5.
+
+## Ticket #129 : clôture du lot 1, manifeste recoché et recette technique
+
+- Manifeste (doc technique § 5.1) recoché d'après les lignes « Livré : » : `sql/defis.sql` (#125), A4 (#120, note de la spec #120), `echeance.js` (#124), G1 (#123), `sql/demonstration.sql` (#126). Restent non cochés, avec leur raison : feuilles de style (`ecrans.css` absent, CSS hors de la spec), `debug.php` sur Azrael (binôme, #128).
+- Recette (§ 6.6) : les quatre cases _(test)_ cochées avec le nom du test ; dissolution et JavaScript désactivé cochées ; démonstration sur deux téléphones, parcours au clavier et préparation du gel laissés, raison écrite sur la case.
+- Parcours JavaScript désactivé (contexte Playwright neuf, `javaScriptEnabled: false`, 375 px, `php -S 127.0.0.1`, `HORLOGE_DECALAGE` à `+14 hours` puis `+30 hours` par `auto_prepend_file`) : A1, A2, B1 (code), second compte qui saisit le code, B2 trois écrans puis attente (« recharge cette page »), C1 état 1, oui des deux, C2 par liens `&carte=` et formulaire « Attribuer », C1 états 4 et 5, C3 avec temps restant en texte, panneau de confirmation par lien `&confirmer=realise`, C3 réalisé, C1 état 6 ; après minuit D1 puis C1 état 1 ; F2 puis D3 chez le partenaire et B1 ; F1, A4 (mentions, confidentialité) et une 404 en G1.
+- Sans JavaScript, B1 et l'attente de B2 ne se mettent pas à jour seules : le texte demande de recharger, et un rechargement suffit.
+- Livré : doc technique § 5.1 (manifeste du lot 1) et § 6.6 (recette).

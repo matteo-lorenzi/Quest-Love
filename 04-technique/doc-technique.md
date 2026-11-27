@@ -316,14 +316,14 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 **Socle** _(commun)_
 
 - [x] `sql/schema.sql` — schéma complet, conforme à l'annexe (validé en S8) _(toutes les tables du lot 1, celles de la journée de jeu comprises ; la table `gage` arrive avec le lot 2)_
-- [ ] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4 _(en cours : jeu provisoire de quinze défis en quatre catégories)_
+- [x] `sql/defis.sql` — d'abord un jeu **provisoire** d'environ quinze défis en quatre catégories, marqué comme tel en en-tête ; remplacé par la bibliothèque des 50 défis rédigée selon le cadrage § 8.4 _(cinquante défis en quatre catégories avec la spec #122 ; numéros 16 à 50 en premier jet, à valider par le binôme)_
 - [x] `public/index.php` — contrôleur frontal
 - [x] `noyau/amorce.php`, `noyau/Routeur.php` — autoloader, session, fuseau, table de routage, préconditions, appel du rattrapage _(rattrapage branché avec la spec #59)_
 - [x] `noyau/Bdd.php`, `config/config.exemple.php` — connexion PDO et configuration
 - [x] `noyau/Securite.php` — jeton CSRF
 - [x] `noyau/Vue.php` — rendu et échappement de sortie
 - [x] `vues/gabarits/entete.php`, `pied.php`, `navigation.php` _(`navigation.php` avec les onglets Accueil et Profil)_
-- [ ] `public/styles/base.css`, `composants.css`, `ecrans.css` _(en cours : `base.css` et `composants.css` de C1)_
+- [ ] `public/styles/base.css`, `composants.css`, `ecrans.css` _(en cours : `base.css` et `composants.css` de C1 ; `ecrans.css` pas encore créé, le CSS est hors du périmètre de la spec #122)_
 - [x] `sql/reinitialiser.php` — reconstruction d'une base locale en une commande (§ 6.3)
 - [x] `tests/` — tests PHPUnit de la couche modèle (§ 6.4)
 
@@ -335,7 +335,7 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] A1 `BienvenueControleur` + `vues/ecrans/a1-bienvenue.php` — et variante invitation
 - [x] A3 `ConnexionControleur` (et déconnexion) — **écran de référence**, écrit en premier et annoté étape par étape (§ 2.4)
 - [x] A2 `InscriptionControleur` + `vues/ecrans/a2-inscription.php`
-- [ ] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions`
+- [x] A4 `LegalControleur` — vue unique, page en `&page=mentions|confidentialite|conditions` _(livré avec la spec #120 ; mentions manquantes demandées à l'université, ticket #127)_
 - [x] B1 `SalleAttenteControleur` — et cas « déjà en duo »
 - [x] B2 `OnboardingControleur` — trois règles, une par écran, étape en `&etape=` ; variante d'attente (`&etape=attente`) ; précondition du routeur sur C1, C2, C3 · B3 `ReglesControleur` (retour vers l'écran d'origine)
 - [x] F1 `ProfilControleur` — et cas « duo sans accès au jeu » et « sans duo » _(livré avec la spec #104)_
@@ -355,18 +355,18 @@ Manifeste des fichiers à produire. Chemins relatifs à `app/` sauf `sql/` et `t
 - [x] `vues/composants/carte-defi.php`, `panneau-confirmation.php` _(le statut du défi reçu est écrit par la vue de C3, hors de la carte)_
 - [x] C1 `AccueilControleur` — six états et cas « aucun jeu aujourd'hui » (dont la variante « un des deux n'a pas choisi ») _(états 1 à 6, variante « défi réalisé », journées blanches et premier jour demain)_
 - [x] C2 `TirageControleur` · C3 `DefiRecuControleur` _(C2 livré avec la spec #58, C3 avec #76)_
-- [ ] `public/scripts/eventail.js`, `echeance.js` _(en cours : `eventail.js` livré avec C2)_
+- [x] `public/scripts/eventail.js`, `echeance.js` _(`eventail.js` livré avec C2, `echeance.js` avec la spec #122)_
 
 **Événements et erreurs** _(B, sauf D3)_
 
 - [x] `vues/composants/bloc-evenement.php` _(sans illustration, `TODO(simplif)`)_
 - [x] D1, D3, D5 `EvenementControleur` _(D5 livré avec #79)_
-- [ ] G1 `ErreurControleur` — page introuvable et erreur serveur _(en cours : version minimale pour le routeur)_
+- [x] G1 `ErreurControleur` — page introuvable et erreur serveur _(403, 404, 405 et 500, page seule avec son code HTTP, livrés avec la spec #122)_
 
 **Exploitation** _(commun)_
 
-- [ ] `sql/demonstration.sql` — jeu de données reproductible (§ 6.5) _(en cours : complété ticket par ticket, jusqu'à D1 et D5 avec la spec #61)_
-- [ ] `debug.php` déposé à la racine du dossier Azrael
+- [x] `sql/demonstration.sql` — jeu de données reproductible (§ 6.5) _(attente de B2, D3 à la connexion et historique de Léa et Tom ajoutés avec la spec #122 ; un écran ajouté plus tard y ajoute son groupe)_
+- [ ] `debug.php` déposé à la racine du dossier Azrael _(au binôme : ticket #128, mise en ligne sur Azrael)_
 
 ### 5.2 Lot 2 — gamification
 
@@ -492,15 +492,15 @@ Cadrage § 6.4.
 
 Complète les critères de succès du cadrage § 14, qui restent la référence. Les cases marquées _(test)_ sont couvertes par un test automatique (§ 6.4).
 
-- [ ] _(test)_ Deux sessions du même compte ne produisent ni double pénalité ni double attribution.
-- [ ] _(test)_ Une réponse envoyée après la bascule est refusée avec un message en texte.
-- [ ] _(test)_ Un chargement de page après minuit applique l'expiration et produit l'événement D1.
-- [ ] _(test)_ Un chargement de page après 12 h annule la mission non révélée quand l'autre joueur n'a pas choisi, sans perte de PV ni événement.
-- [ ] La démonstration avec décalage d'horloge (§ 3.8) montre la bascule de 12 h et l'expiration de minuit sur deux téléphones.
-- [ ] La dissolution supprime les données de jeu et affiche D3 au partenaire.
-- [ ] Le parcours complet se fait au clavier, avec focus visible.
-- [ ] L'application reste utilisable avec JavaScript désactivé.
-- [ ] Avant le gel (S12) : audit d'accessibilité, captures sur appareil réel, vidéo du parcours, export du code et sauvegarde de la base.
+- [x] _(test)_ Deux sessions du même compte ne produisent ni double pénalité ni double attribution. _(`RattrapageServiceTest::testDeuxRattrapagesConcurrentsNeRetirentQuUnPv`, `MissionServiceTest::testUneDoubleValidationNEnregistreQuUneValidation`)_
+- [x] _(test)_ Une réponse envoyée après la bascule est refusée avec un message en texte. _(`JourneeServiceTest::testUneReponseApresMidiEstRefuseeSansEcriture`, `TirageServiceTest::testUnChoixApresMidiEstRefuseSansEcriture` ; le message est écrit par `AccueilControleur` et `TirageControleur`, sans test)_
+- [x] _(test)_ Un chargement de page après minuit applique l'expiration et produit l'événement D1. _(`RattrapageServiceTest::testUneMissionNonValideeAMinuitExpireEtCouteUnPv`)_
+- [x] _(test)_ Un chargement de page après 12 h annule la mission non révélée quand l'autre joueur n'a pas choisi, sans perte de PV ni événement. _(`RattrapageServiceTest::testUnSeulChoixAMidiAnnuleLaMissionSansPerteDePv`)_
+- [ ] La démonstration avec décalage d'horloge (§ 3.8) montre la bascule de 12 h et l'expiration de minuit sur deux téléphones. _(non faite sur téléphone : vue seulement dans deux contextes de navigateur à 375 px, expiration de minuit et D1 compris ; à rejouer sur deux téléphones avant la soutenance)_
+- [x] La dissolution supprime les données de jeu et affiche D3 au partenaire. _(`AppairageServiceTest::testDissoudreRemetLesDeuxJoueursAZeroEtPrevientLePartenaire`, suppression en cascade du schéma ; D3 vu dans le navigateur)_
+- [ ] Le parcours complet se fait au clavier, avec focus visible. _(non vérifié à la clôture du lot 1 : à faire avec les feuilles de style, encore en cours, et l'audit d'accessibilité de S12)_
+- [x] L'application reste utilisable avec JavaScript désactivé. _(parcours 1 et 2 complets vus à la clôture du lot 1, voir la note de la spec #122)_
+- [ ] Avant le gel (S12) : audit d'accessibilité, captures sur appareil réel, vidéo du parcours, export du code et sauvegarde de la base. _(prévu en S12, cadrage § 12)_
 
 ---
 
