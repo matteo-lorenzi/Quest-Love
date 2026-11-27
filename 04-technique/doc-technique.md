@@ -478,7 +478,9 @@ Piège de WAMP : le cache d'opcodes d'Apache (`opcache.revalidate_freq=2`) ne re
 
 `sql/demonstration.sql`, rechargeable en une commande (§ 6.3), **en local seulement : il ne se charge jamais sur Azrael**, où ses comptes seraient réels. Avec le décalage d'horloge (§ 3.8), c'est ce qui permet de démontrer l'expiration sans attendre minuit. Doit contenir :
 
-- un duo formé, avec quelques jours d'historique ;
+- un duo formé, avec quelques jours d'historique (Léa et Tom : missions validées et expirées les trois jours précédents ; les défis reçus ne reviennent pas au tirage) ;
+- un duo formé dont un seul joueur a fini l'onboarding (Chloé voit l'attente de B2 et F1 « duo sans accès au jeu », Enzo l'onboarding) ;
+- un joueur sans duo dont la dissolution est à signaler (Marc lit D3 à la connexion) ;
 - une mission expirée, `date_decouverte` nulle, pour la variante « jamais découvert » ;
 - une journée blanche par refus et une par choix manquant (mission annulée) ; la seconde (duo 8, Jade et Owen) ne se montre qu'après 12 h ou avec `HORLOGE_DECALAGE` (§ 3.8) : avant, Jade lit l'état 4 et Owen l'état 3 ;
 - un joueur à 1 point de vie, pour atteindre D5 en une action ;
