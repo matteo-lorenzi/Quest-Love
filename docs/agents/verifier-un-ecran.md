@@ -12,4 +12,5 @@ Les tests ne couvrent que la couche modèle (doc technique § 6.4) : un écran l
 Pièges :
 - Après une modification de `config.php`, attendre 2 s (`opcache.revalidate_freq`).
 - Si `tester.sh` ne démarre pas MySQL (le service `wampmysqld64` échoue), lancer `mysqld` à la main depuis `C:\wamp64\bin\mysql\<version>` avec son `my.ini`, et l'arrêter à la fin comme le serveur web.
+- `curl` n'atteint pas le serveur local depuis l'agent (exit 7) : pour un code de retour (405 d'un POST, par exemple), passer par playwright (`browser_evaluate` avec un `fetch`, ou `browser_network_requests`).
 - Le premier rattrapage a lieu à la requête qui suit le POST de connexion (redirection vers l'accueil, puis `evenement`).

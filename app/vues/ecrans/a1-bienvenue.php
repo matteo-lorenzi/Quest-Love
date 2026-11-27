@@ -20,6 +20,5 @@ $invite = $codeRecu !== null;
     </nav>
 </main>
 <footer class="bienvenue__pied">
-    <!-- TODO(simplif): l'écran des pages légales (A4) n'existe pas, ce lien mène à G1 (404) jusqu'à son ticket. -->
     <a href="index.php?ecran=legal">Mentions légales et confidentialité</a>
 </footer>

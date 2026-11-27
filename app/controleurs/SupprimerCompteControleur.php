@@ -33,7 +33,6 @@ class SupprimerCompteControleur
         // Comme à la déconnexion : session vidée et identifiant changé, l'ancien cookie ne désigne plus rien.
         $_SESSION = [];
         session_regenerate_id(true);
-        // TODO(simplif): A1 · bienvenue n'existe pas, la redirection mène donc à G1 (404) jusqu'à son lot.
         Routeur::rediriger('bienvenue');
     }
 }

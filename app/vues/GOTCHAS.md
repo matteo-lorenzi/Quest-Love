@@ -15,7 +15,8 @@ Rappels courts. La règle fait foi dans `04-technique/doc-technique.md` (§ 2.4,
 - Tout texte libre (pseudos, gages) passe par `e()` à la sortie. Une valeur écrite sans elle est une faille.
 - Aucun SQL ni règle du jeu dans une vue, et aucune lecture de l'horloge (V pour ce dernier point). L'échéance affichée est du texte statique calculé par le serveur ; `echeance.js` ne fait que décompter.
 - Une valeur de PV dans un texte vient de sa constante (`PointsDeVieService::PENALITE`, `Joueur::PV_DEPART`), jamais écrite en dur. (V)
-- Textes d'interface : `[TEXTE À RÉDIGER : …]` tant qu'ils ne sont pas rédigés en S6 ; ne pas les improviser.
+- Textes d'interface : `[TEXTE À RÉDIGER : …]` tant qu'ils ne sont pas rédigés en S6, y compris une mention imposée par le cadrage (il fixe le mécanisme, pas la phrase).
+- Lien vers un écran pas encore livré : `TODO(simplif): écran \`cle\` absent, <la limite>`, avec la clé de `?ecran=`. (V : le contrôle échoue dès que l'écran entre dans `Routeur::ECRANS`.)
 
 ## Formulaires et JavaScript
 

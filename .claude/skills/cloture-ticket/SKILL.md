@@ -29,7 +29,7 @@ Fin d'un ticket, lancée avant la revue de code pour que la doc soit à jour qua
 
 ## 4. Revue
 
-Si le flux du ticket prévoit une revue de code (`/implement`), elle se lance ici, sur le diff complet, doc comprise. Corriger ce qu'elle retient, puis relancer le § 1.
+Lancer le sous-agent `revue-couches-mvc` sur le diff complet, doc comprise. Lui passer : le numéro du ticket, le résultat du § 1 (`verifier.sh`, `tester.sh`, vérification dans le navigateur) et le chemin de la note de spec. Corriger ce qu'il retient, puis relancer le § 1. Le skill `/mattpocock-skills:implement` ne se lance qu'à la main : sa revue s'ajoute à celle-ci quand il a été utilisé.
 
 ## 5. Commit, PR et ticket
 

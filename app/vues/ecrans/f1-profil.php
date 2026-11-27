@@ -22,10 +22,8 @@
 
     <ul class="liste-liens">
         <li><a class="liste-liens__lien" href="index.php?ecran=regles&amp;origine=<?= ReglesControleur::parametre(OrigineRegles::Profil) ?>">Règles du jeu <span class="liste-liens__precision">· un petit rappel des règles ?</span></a></li>
-        <!-- TODO(simplif): A4 · pages légales n'existe pas, ce lien mène à G1 (404) jusqu'à son lot. -->
         <li><a class="liste-liens__lien" href="index.php?ecran=legal">Pages légales <span class="liste-liens__precision">· les petits caractères</span></a></li>
         <li>
-            <!-- TODO(simplif): A1 · bienvenue n'existe pas, la déconnexion y redirige donc vers G1 (404) jusqu'à son lot. -->
             <form method="post" action="index.php?ecran=deconnexion">
                 <input type="hidden" name="jeton" value="<?= e($jeton) ?>">
                 <button class="liste-liens__lien" type="submit">Se déconnecter <span class="liste-liens__precision">· à demain ?</span></button>

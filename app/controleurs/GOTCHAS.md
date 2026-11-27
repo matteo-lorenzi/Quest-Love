@@ -22,6 +22,7 @@ Rappels courts. La règle fait foi dans `04-technique/doc-technique.md` (§ 2.2,
 - Le constructeur reçoit `PDO` et `DateTimeImmutable $maintenant` du routeur. Il crée lui-même ses dépôts et services avec `new` : pas de conteneur, pas de classe mère (ADR-0001).
 - Jamais de lecture de l'horloge : seul `index.php` la lit. (V)
 - Les adresses d'écran (`ecran=…`) se construisent ici, dans le routeur ou dans les vues, jamais dans le modèle.
+- Redirection vers un écran pas encore livré : `TODO(simplif): écran \`cle\` absent, <la limite>`. (V : le contrôle échoue dès que l'écran entre dans `Routeur::ECRANS`.)
 
 ## Nommage et événements
 

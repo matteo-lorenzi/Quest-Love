@@ -99,6 +99,8 @@ $champs = ['identifiant' => 'Identifiant', 'pseudo' => 'Pseudo', 'mdp' => 'Mot d
         <p class="inscription__avertissement">Sans adresse e-mail, un mot de passe oublié ne peut pas être récupéré : ton compte serait perdu.</p>
 
         <button class="bouton" type="submit">Créer mon compte</button>
+        <!-- Mention sans case à cocher : créer le compte vaut acceptation (cadrage § 10). -->
+        <p class="inscription__conditions"><a href="index.php?ecran=legal&amp;page=conditions">[TEXTE À RÉDIGER : créer son compte vaut acceptation des conditions d'utilisation]</a></p>
     </form>
 
     <p class="inscription__connexion"><a href="index.php?ecran=connexion">Déjà un compte ? Se connecter</a></p>
