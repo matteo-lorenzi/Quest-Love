@@ -26,6 +26,8 @@ try {
     header('Location: index.php?ecran=' . urlencode($redirection->ecran));
     exit;
 } catch (ErreurHttp $erreur) {
+    // Une erreur HTTP levée en plein rendu laisse ouvert le tampon de Vue::rendre : on le vide, pour que G1 s'affiche seule.
+    Vue::viderTampons();
     (new ErreurControleur())->afficher($erreur->statut);
     exit;
 }

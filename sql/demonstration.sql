@@ -146,7 +146,7 @@ INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, duo_id, onboarding_vu, da
 INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, dissolution_a_signaler, date_creation) VALUES
   (120, 'marc', 'Marc', '$2y$10$rjwoUdt8qkxCXqIp/CTRieI7ivw1Rz0.gNWneozgKyCpRLBmr/38W', 1, '2026-10-12 17:50:00');
 
--- Trois jours d'historique pour Léa et Tom (duo 1), avant-hier compris : missions validées et expirées, déjà passées par le rattrapage (statuts terminaux).
+-- Trois jours d'historique pour Léa et Tom (duo 1), d'il y a trois jours (J-3) à hier (J-1) : missions validées et expirées, déjà passées par le rattrapage (statuts terminaux).
 -- Rien aujourd'hui : C1 reste à l'état 1. Chacun a perdu 1 PV par défi expiré (pv à 4 plus haut, cadrage § 4.4).
 -- Les défis reçus par Tom (7, 9, 11) et par Léa (8, 10, 12) ne reviennent plus à son tirage (cadrage § 4.6). Défis 1 à 15 seulement.
 -- Les propositions non retenues d'hier et d'avant-hier sont écartées trois jours, comme le veut la fenêtre (cadrage § 4.6).
@@ -172,7 +172,7 @@ INSERT INTO tirage_proposition (tirage_id, defi_id) VALUES
   (12, 10), (12, 13), (12, 14),
   (13, 11), (13, 13), (13, 14),
   (14, 12), (14, 1), (14, 15);
--- Avant-hier : les deux validés. Hier et la veille, un défi expiré chacun, ouvert mais pas réalisé (D1 déjà montré, variante « jamais découvert » : duo de Rose).
+-- J-3 : les deux validés. J-2 : Tom valide, Léa laisse expirer le sien. J-1 : Léa valide, Tom laisse expirer le sien. Chaque défi expiré a été ouvert mais pas réalisé (D1 déjà montré, variante « jamais découvert » : duo de Rose).
 INSERT INTO mission (duo_id, tirage_id, defi_id, emetteur_id, destinataire_id, date_attribution, date_revelation, date_decouverte, date_limite, statut, date_validation) VALUES
   (1, 9, 7, 3, 4, CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:20:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 09:00:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 19:00:00')),
   (1, 10, 8, 4, 3, CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:30:00'), CONCAT(CURDATE() - INTERVAL 3 DAY, ' 09:10:00'), CONCAT(CURDATE() - INTERVAL 2 DAY, ' 00:00:00'), 'valide', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 20:00:00')),
