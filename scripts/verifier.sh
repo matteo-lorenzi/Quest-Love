@@ -82,6 +82,15 @@ avales=$(grep -nE 'catch \([^)]*\b(Throwable|Exception)\b' -- $(printf '%s\n' "$
     | grep -v '^app/noyau/amorce.php:')
 [ -n "$avales" ] && signaler "catch (Throwable) ou catch (Exception) dans un contrôleur ou le noyau : il avalerait une Redirection (ADR-0004) :"$'\n'"$avales"
 
+# 12. Un TODO(simplif) d'écran manquant s'écrit « écran `cle` absent » (cle : clé de ?ecran=) : il échoue dès que l'écran entre dans la table du routeur.
+#     Sans ce contrôle, trois renvois vers A1 ont survécu à sa livraison (rétro de #120).
+cles=$(grep -oE "^\s*'[a-z-]+' => \[" app/noyau/Routeur.php | grep -oE "[a-z-]+")
+perimes=$(grep -nE "TODO\(simplif\).*écran \`[a-z-]+\` absent" -- "${fichiers[@]}" /dev/null \
+    | while IFS= read -r ligne; do
+        cle=$(grep -oE "écran \`[a-z-]+\` absent" <<< "$ligne" | sed -E 's/écran `([a-z-]+)` absent/\1/')
+        grep -qxF "$cle" <<< "$cles" && printf '%s\n' "$ligne"
+    done)
+[ -n "$perimes" ] && signaler "TODO(simplif) d'un écran qui existe désormais dans Routeur::ECRANS (le lever) :"$'\n'"$perimes"
 
 [ "$echec" -eq 0 ] && echo "Vérifications : tout est conforme."
 exit "$echec"

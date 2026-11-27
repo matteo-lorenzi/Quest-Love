@@ -4,7 +4,7 @@ Cadrage de référence : `01-cadrage/cadrage-unifie.md` (fait foi en cas d'écar
 
 ## Standards de code
 
-Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête, motifs en `$`, adresses d'écran dans le modèle, vue rendue par une méthode POST, PV écrits en dur) : `bash scripts/verifier.sh`. Tests de la couche modèle : `bash scripts/tester.sh` (prépare `config.php`, vérifie le phar et la base). La CI relance les deux.
+Règles : `04-technique/doc-technique.md` § 2.4, seule source ; architecture : `docs/adr/0001-controleur-frontal-mvc.md`. Contrôle mécanique (syntaxe, horloge, lignes d'en-tête, motifs en `$`, adresses d'écran dans le modèle, vue rendue par une méthode POST, PV écrits en dur, `TODO(simplif)` d'un écran déjà livré) : `bash scripts/verifier.sh`. Tests de la couche modèle : `bash scripts/tester.sh` (prépare `config.php`, vérifie le phar et la base). La CI relance les deux.
 
 - Avant de modifier `app/modeles/`, `app/controleurs/` ou `app/vues/`, lire le `GOTCHAS.md` de ce dossier (pièges de la couche, avec renvoi aux règles ; il ne les remplace pas).
 - Tickets et tests citent l'écran et le parcours couverts. Les seams de test sont ceux des « Testing Decisions » de la spec : ils valent validation. Une règle reprise du cadrage cite sa section (« cadrage § 4.6 ») au lieu de la reformuler.
