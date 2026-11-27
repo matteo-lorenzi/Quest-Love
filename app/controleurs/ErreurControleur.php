@@ -1,5 +1,5 @@
 <?php
-// Contrôleur d'erreur — G1 — lot 1 — commun, version minimale pour le routeur ; la suite (illustration) revient au périmètre B.
+// Contrôleur d'erreur — G1 — tous parcours (sortie d'erreur) — lot 1 — B. Codes 403, 404 et 405 levés par le routeur (ErreurHttp), 500 par le gestionnaire d'exceptions de l'amorce.
 
 class ErreurControleur
 {
