@@ -50,12 +50,16 @@ session_set_cookie_params([
 ]);
 session_start();
 
-// Exception non attrapée (base injoignable, bogue de contrôleur) : détail au journal, G1 en version 500 pour le joueur.
+// Exception non attrapée (base injoignable, bogue de contrôleur ou de vue) : détail au journal, G1 en version 500 pour le joueur.
+// La session n'est pas touchée : le joueur reste connecté et garde son jeton CSRF.
 set_exception_handler(function (Throwable $exception): void {
     error_log((string) $exception);
+    Vue::viderTampons();
     try {
         (new ErreurControleur())->afficher(500);
     } catch (Throwable) {
+        // G1 a échoué à son tour : son rendu interrompu ne part pas avec le texte de secours.
+        Vue::viderTampons();
         http_response_code(500);
         echo 'Erreur interne.';
     }

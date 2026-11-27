@@ -26,7 +26,7 @@
 
 - Bras `OnboardingAFaire, Attente` de `elementsAffiches` : `['carteDuo' => true, 'barre' => false, 'retour' => Routeur::ecranDeLEtape($etape)]`, soit `onboarding` pour les deux ; B2 choisit lui-même sa variante d'attente.
 - Aucune retouche de la vue : `$barre` faux masque déjà la barre, `$retour` affiche la flèche.
-- Le jeu de démonstration n'a aucun duo formé pas encore activé. Pour vérifier : `UPDATE joueur SET onboarding_vu = 0 WHERE identifiant = 'lea'` après `tester.sh`, puis Léa montre « onboarding à faire » et Tom « attente » ; recharger la base ensuite.
+- Duo formé pas encore activé : Chloé (attente) et Enzo (onboarding à faire), duo 11 du jeu de démonstration depuis #126.
 - Vérifié dans le navigateur (`php -S localhost:8767`, 375 px) : Léa et Tom voient « Tu es en duo avec … », « Quitter mon duo », aucune barre, la flèche ← mène à B2 (règles pour Léa, variante d'attente pour Tom).
 
 ## #108 — documents de référence

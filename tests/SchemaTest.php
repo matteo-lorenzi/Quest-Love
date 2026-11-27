@@ -52,15 +52,19 @@ class SchemaTest extends TestCase
         $this->assertSame(['attribue_non_revele', 'en_cours', 'valide', 'expire', 'annule'], $valeurs);
     }
 
-    // Doc technique § 6.3 et § 5.1 : sur une base existante, le jeu provisoire remplace les défis.
-    public function testLaReinitialisationChargeLeJeuProvisoireDeDefis(): void
+    // Doc technique § 6.3 et cadrage § 4.6 : sur une base existante, la bibliothèque d'environ cinquante défis remplace les défis, environ douze par catégorie.
+    public function testLaReinitialisationChargeLaBibliothequeDeDefis(): void
     {
         $this->reinitialiser();
 
-        $this->assertSame(4, (int) $this->pdo->query('SELECT COUNT(*) FROM categorie')->fetchColumn());
-        $defis = (int) $this->pdo->query('SELECT COUNT(*) FROM defi')->fetchColumn();
-        $this->assertGreaterThanOrEqual(12, $defis);
-        $this->assertLessThanOrEqual(18, $defis);
+        $effectifs = $this->pdo->query('SELECT COUNT(defi.id) FROM categorie LEFT JOIN defi ON defi.categorie_id = categorie.id GROUP BY categorie.id')->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertCount(4, $effectifs);
+        $this->assertGreaterThanOrEqual(45, array_sum($effectifs));
+        $this->assertLessThanOrEqual(55, array_sum($effectifs));
+        foreach ($effectifs as $effectif) {
+            $this->assertGreaterThanOrEqual(10, (int) $effectif);
+            $this->assertLessThanOrEqual(14, (int) $effectif);
+        }
     }
 
     // Doc technique § 6.3 : un poste neuf n'a encore aucune table (ticket #66).
