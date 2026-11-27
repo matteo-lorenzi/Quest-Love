@@ -43,9 +43,9 @@ jobs:
           php-version: "8.2"
           extensions: intl, mbstring, pdo_mysql
           tools: phpunit:11.5.57
-      # La configuration locale n'est jamais versionnée : celle de l'exemple convient (root sans mot de passe, hôte localhost).
+      # La configuration locale n'est jamais versionnée : celle de l'exemple convient (root sans mot de passe, hôte localhost), avec une clé des tentatives tirée à chaque run.
       # Hôte 127.0.0.1 exigé par le garde-fou de sql/reinitialiser.php, qui refuse toute autre base que la base locale.
-      - run: sed "s/'localhost'/'127.0.0.1'/" app/config/config.exemple.php > app/config/config.php
+      - run: sed -e "s/'localhost'/'127.0.0.1'/" -e "s/CLE_SECRETE_TENTATIVES = \/\*secret(\*\/''/CLE_SECRETE_TENTATIVES = \/*secret(*\/'$(openssl rand -hex 32)'/" app/config/config.exemple.php > app/config/config.php
       - run: phpunit
 
   attribution:

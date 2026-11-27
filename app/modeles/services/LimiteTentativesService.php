@@ -14,16 +14,26 @@ class LimiteTentativesService
     public function __construct(private TentativeDepot $tentatives) {}
 
     // Clé de limitation d'une session : l'identifiant de session ne s'écrit jamais en clair dans la table des tentatives.
-    // SHA-256 en hexadécimal fait déjà 64 caractères, la taille de la colonne tentative.cle ; elle ne peut pas croiser un identifiant (30 au plus) ni un numéro de joueur.
-    public static function cleSession(string $idSession): string
+    // HMAC-SHA256 en hexadécimal : 64 caractères, la taille de la colonne tentative.cle ; elle ne peut pas croiser un identifiant (30 au plus) ni un numéro de joueur.
+    public static function cleSession(string $idSession, string $secret = CLE_SECRETE_TENTATIVES): string
     {
-        return substr(hash('sha256', $idSession), 0, 64);
+        return self::empreinte($idSession, $secret);
     }
 
-    // Clé de limitation d'une adresse IP, hachée comme celle de session ; le préfixe l'empêche de croiser une clé de session.
-    public static function cleIp(string $ip): string
+    // Clé de limitation d'une adresse IP, calculée comme celle de session ; le préfixe l'empêche de croiser une clé de session.
+    public static function cleIp(string $ip, string $secret = CLE_SECRETE_TENTATIVES): string
     {
-        return hash('sha256', 'ip:' . $ip);
+        return self::empreinte('ip:' . $ip, $secret);
+    }
+
+    // Sans secret, un SHA-256 d'IPv4 se retrouve en recalculant les quatre milliards d'adresses : la clé rend la table illisible sans config.php.
+    // Une clé vide échoue au lieu de hacher sans secret ; une constante absente échoue déjà à l'appel (Error de PHP).
+    private static function empreinte(string $texte, string $secret): string
+    {
+        if ($secret === '') {
+            throw new LogicException('CLE_SECRETE_TENTATIVES est vide dans config.php (doc technique § 6.1).');
+        }
+        return hash_hmac('sha256', $texte, $secret);
     }
 
     // Réserve un essai sur chaque clé (joueur, session…) avant que le service ne le vérifie.
