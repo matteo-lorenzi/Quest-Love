@@ -10,6 +10,8 @@ class Vue
         // EXTR_SKIP : une donnée ne peut pas écraser $vue, $titre ou $jeton.
         extract($donnees, EXTR_SKIP);
         $dossier = dirname(__DIR__) . '/vues';
+        // Tampon de sortie : une exception en plein rendu n'a rien envoyé, le gestionnaire d'amorce.php vide ce tampon et pose encore le code 500.
+        ob_start();
         require "$dossier/gabarits/entete.php";
         require "$dossier/ecrans/$vue.php";
         require "$dossier/gabarits/pied.php";
