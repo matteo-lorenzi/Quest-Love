@@ -149,7 +149,7 @@ INSERT INTO joueur (id, identifiant, pseudo, mdp_hash, dissolution_a_signaler, d
 -- Trois jours d'historique pour Léa et Tom (duo 1), avant-hier compris : missions validées et expirées, déjà passées par le rattrapage (statuts terminaux).
 -- Rien aujourd'hui : C1 reste à l'état 1. Chacun a perdu 1 PV par défi expiré (pv à 4 plus haut, cadrage § 4.4).
 -- Les défis reçus par Tom (7, 9, 11) et par Léa (8, 10, 12) ne reviennent plus à son tirage (cadrage § 4.6). Défis 1 à 15 seulement.
--- Les propositions non retenues d'hier et d'avant-hier sont écartées trois jours : il reste à chacun huit défis disponibles sur quinze.
+-- Les propositions non retenues d'hier et d'avant-hier sont écartées trois jours, comme le veut la fenêtre (cadrage § 4.6).
 INSERT INTO participation (duo_id, joueur_id, date_jour, reponse, date_reponse) VALUES
   (1, 3, CURDATE() - INTERVAL 3 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:00:00')),
   (1, 4, CURDATE() - INTERVAL 3 DAY, 'oui', CONCAT(CURDATE() - INTERVAL 3 DAY, ' 08:05:00')),

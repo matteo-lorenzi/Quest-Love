@@ -107,7 +107,7 @@ Arborescence du lot 1. Les lots suivants n'ajoutent pas de dossier : leurs contr
 4. Si le rattrapage a produit des événements à montrer, le routeur redirige vers l'écran `evenement`.
 5. Le routeur vérifie les préconditions d'accès de l'écran (public, connecté, en duo) et redirige le cas échéant (§ 3.6).
 6. En `POST`, le routeur valide le jeton CSRF, puis le contrôleur appelle un service et redirige ; en `GET`, le contrôleur lit les données et rend sa vue.
-7. Une redirection (`Routeur::rediriger`) et une erreur HTTP (404, 403, 405) ne terminent pas le processus : elles lèvent `Redirection` ou `ErreurHttp`, que `public/index.php` attrape pour envoyer `Location` ou afficher G1, puis terminer. C'est le seul `exit` du cycle ([ADR-0004](../docs/adr/0004-sortie-par-exception.md)).
+7. Une redirection (`Routeur::rediriger`) et une erreur HTTP (404, 403, 405) ne terminent pas le processus : elles lèvent `Redirection` ou `ErreurHttp`, que `public/index.php` attrape pour envoyer `Location` ou afficher G1, puis terminer. C'est le seul `exit` du cycle ([ADR-0004](../docs/adr/0004-sortie-par-exception.md)). Toute autre exception va au gestionnaire de `amorce.php` : détail au journal, tampons de sortie vidés (`Vue::rendre` en ouvre un), puis G1 seule en 500 ; la session n'est pas touchée.
 
 ### 2.3 Table de routage
 
@@ -286,6 +286,8 @@ Deux fichiers, sans dépendance. L'application reste utilisable sans eux.
 - **`echeance.js`** — affiche le temps restant avant minuit.
   - L'échéance est **toujours écrite en texte statique** dans le HTML, calculée par le serveur ; le script ne fait que l'enrichir, en décomptant à partir de la durée restante fournie par le serveur (§ 3.8).
   - La zone n'est pas une région dynamique : pas d'annonce répétée aux technologies d'assistance.
+  - Mise à jour au changement de minute, jamais à la seconde ; à zéro, texte figé sans rechargement (le rattrapage est serveur). Seulement sur C3 en cours.
+  - **Mouvement réduit** : le script ne fait rien, le texte du serveur reste.
 
 ### 4.4 Accessibilité
 
