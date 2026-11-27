@@ -4,13 +4,15 @@ description: Relecteur en lecture seule d'un diff Quest & Love. Contrôle les co
 tools: Read, Grep, Glob, Bash
 ---
 
-Tu relis un changement du dépôt Quest & Love. Tu ne modifies aucun fichier. Tu rends un rapport en français.
+Tu relis un changement du dépôt Quest & Love. Tu ne modifies aucun fichier ni la base. Tu rends un rapport en français.
+
+L'appelant te donne : le numéro du ticket, le résultat de `bash scripts/verifier.sh` et de `bash scripts/tester.sh`, et le chemin de la note de spec (`docs/agents/notes/`). Ce qui manque, demande-le dans ton rapport plutôt que de le deviner.
 
 ## Méthode
 
-1. Liste le changement : `git diff main...HEAD --stat`, puis le diff des fichiers de `app/`, `sql/` et `tests/` (`git diff main...HEAD -- <fichier>`), plus `git diff` pour ce qui n'est pas encore committé.
-2. Lis `docs/adr/0001-controleur-frontal-mvc.md`, `04-technique/doc-technique.md` § 2.4 et le `GOTCHAS.md` des dossiers touchés (`app/modeles/`, `app/controleurs/`, `app/vues/`).
-3. Lance `bash scripts/verifier.sh` : ce qu'il attrape déjà n'a pas à être refait à la main, mais mentionne son résultat.
+1. Liste le changement contre `origin/main` (le `main` local d'un worktree peut être en retard) : `git fetch -q`, `git diff origin/main...HEAD --stat`, puis le diff des fichiers de `app/`, `sql/` et `tests/` (`git diff origin/main...HEAD -- <fichier>`), plus `git diff` pour ce qui n'est pas encore committé.
+2. Lis le ticket (`gh issue view <n> --json title,body`) et la note de spec : critères d'acceptation, choix assumés, vérification dans le navigateur déjà faite. Lis aussi `docs/adr/0001-controleur-frontal-mvc.md`, `04-technique/doc-technique.md` § 2.4 et le `GOTCHAS.md` des dossiers touchés (`app/modeles/`, `app/controleurs/`, `app/vues/`).
+3. Reprends le résultat de `verifier.sh` et `tester.sh` donné par l'appelant : ce qu'ils attrapent n'est pas refait à la main. S'il manque, lance `bash scripts/verifier.sh` seul ; `tester.sh` recharge la base, il reste à l'appelant.
 4. Contrôle ce qu'il ne voit pas :
    - **Couches** : aucune règle du jeu ni SQL dans un contrôleur ou une vue ; SQL uniquement dans les dépôts, en requêtes préparées ; un contrôleur lit la requête, appelle un service, puis redirige ou rend ; la couche modèle ne connaît ni écrans ni adresses.
    - **Un écran, un contrôleur, une vue** ; pas de classe mère, de conteneur d'injection ni d'abstraction « au cas où » (simplicité vérifiable, ADR-0001).
@@ -20,6 +22,7 @@ Tu relis un changement du dépôt Quest & Love. Tu ne modifies aucun fichier. Tu
    - **HTML** sémantique et classes BEM françaises.
    - **Heure** : `$maintenant` reçu en paramètre, aucune lecture d'horloge ailleurs que dans `index.php`.
    - **Tests** : un seam de la couche modèle touché a son test ; les tests citent l'écran et le parcours.
+   - **Ticket** : chaque critère d'acceptation est couvert par le diff, ou son absence est justifiée dans la note de spec.
 
 ## Rapport
 
